@@ -1,5 +1,5 @@
 # Sistema Gestão Izzant
 
-Versão: v1.6.5
+Versão: v1.6.7
 
-Correção: módulo Férias com documentos gerados separados dos feriados.
+Correção focada no módulo Férias/Feriados.

@@ -2049,20 +2049,20 @@ class App(tk.Tk):
         style.configure('Feriados.Treeview', font=('Arial', 11), rowheight=30)
         style.configure('Feriados.Treeview.Heading', font=('Arial', 11, 'bold'))
         ttk.Label(f,text='Cadastro e Consulta de Feriados',style='Title.TLabel').grid(row=0,column=0,columnspan=6,sticky='w',padx=16,pady=16)
-        self.fer_id=None
-        self.fer_nome=tk.StringVar(); self.fer_data=tk.StringVar(); self.fer_tipo=tk.StringVar(value='Municipal'); self.fer_setor=tk.StringVar(value='TODOS')
-        campos=[('Nome',self.fer_nome),('Data DD/MM/AAAA',self.fer_data),('Tipo',self.fer_tipo),('Setor',self.fer_setor)]
+        self.feriado_id=None
+        self.feriado_nome=tk.StringVar(); self.feriado_data=tk.StringVar(); self.feriado_tipo=tk.StringVar(value='Municipal'); self.feriado_setor=tk.StringVar(value='TODOS')
+        campos=[('Nome',self.feriado_nome),('Data DD/MM/AAAA',self.feriado_data),('Tipo',self.feriado_tipo),('Setor',self.feriado_setor)]
         for i,(lab,var) in enumerate(campos):
             r=1+i//2; c=(i%2)*3
             ttk.Label(f,text=lab).grid(row=r,column=c,sticky='w',padx=12,pady=6)
             if lab=='Tipo':
                 ttk.Combobox(f,textvariable=var,values=['Nacional','Estadual','Municipal','Interno'],state='readonly').grid(row=r,column=c+1,columnspan=2,sticky='ew',padx=8,pady=6)
             elif lab=='Setor':
-                self.combo_fer_setor=ttk.Combobox(f,textvariable=var,values=['TODOS'],state='readonly'); self.combo_fer_setor.grid(row=r,column=c+1,columnspan=2,sticky='ew',padx=8,pady=6)
+                self.combo_feriados_setor=ttk.Combobox(f,textvariable=var,values=['TODOS'],state='readonly'); self.combo_feriados_setor.grid(row=r,column=c+1,columnspan=2,sticky='ew',padx=8,pady=6)
             else:
                 ttk.Entry(f,textvariable=var,width=35).grid(row=r,column=c+1,columnspan=2,sticky='ew',padx=8,pady=6)
         ttk.Label(f,text='Observação').grid(row=3,column=0,sticky='nw',padx=12,pady=6)
-        self.fer_obs=tk.Text(f,height=4,width=80,wrap='word'); self.fer_obs.grid(row=3,column=1,columnspan=5,sticky='ew',padx=8,pady=6)
+        self.feriado_obs=tk.Text(f,height=4,width=80,wrap='word'); self.feriado_obs.grid(row=3,column=1,columnspan=5,sticky='ew',padx=8,pady=6)
         ttk.Button(f,text='Novo',command=self.clear_feriado).grid(row=4,column=0,sticky='ew',padx=8,pady=10)
         ttk.Button(f,text='Salvar feriado',command=self.save_feriado).grid(row=4,column=1,sticky='ew',padx=8,pady=10)
         ttk.Button(f,text='Inativar',command=lambda:self.set_feriado_ativo(0)).grid(row=4,column=2,sticky='ew',padx=8,pady=10)
@@ -2074,46 +2074,46 @@ class App(tk.Tk):
         # Esta área é apenas para visualização/filtro e não altera a regra de geração da folha.
         box=ttk.LabelFrame(f,text='Consulta ampliada de feriados cadastrados')
         box.grid(row=5,column=0,columnspan=6,sticky='ew',padx=12,pady=(4,8))
-        self.fer_filtro_ano=tk.StringVar(value='Todos')
-        self.fer_filtro_tipo=tk.StringVar(value='Todos')
-        self.fer_total_var=tk.StringVar(value='Feriados cadastrados: 0')
-        self.fer_info_var=tk.StringVar(value='Use os filtros e clique em Consultar. Os feriados nacionais e municipais de Itajaí-SC são carregados automaticamente.')
+        self.feriados_filtro_ano=tk.StringVar(value='Todos')
+        self.feriados_filtro_tipo=tk.StringVar(value='Todos')
+        self.feriados_total_var=tk.StringVar(value='Feriados cadastrados: 0')
+        self.feriados_info_var=tk.StringVar(value='Use os filtros e clique em Consultar. Os feriados nacionais e municipais de Itajaí-SC são carregados automaticamente.')
         ttk.Label(box,text='Ano').grid(row=0,column=0,sticky='w',padx=8,pady=6)
-        self.combo_fer_ano=ttk.Combobox(box,textvariable=self.fer_filtro_ano,values=['Todos'],state='readonly',width=12)
-        self.combo_fer_ano.grid(row=0,column=1,sticky='w',padx=8,pady=6)
+        self.combo_feriados_ano=ttk.Combobox(box,textvariable=self.feriados_filtro_ano,values=['Todos'],state='readonly',width=12)
+        self.combo_feriados_ano.grid(row=0,column=1,sticky='w',padx=8,pady=6)
         ttk.Label(box,text='Tipo').grid(row=0,column=2,sticky='w',padx=8,pady=6)
-        self.combo_fer_tipo=ttk.Combobox(box,textvariable=self.fer_filtro_tipo,values=['Todos','Nacional','Estadual','Municipal','Interno'],state='readonly',width=16)
-        self.combo_fer_tipo.grid(row=0,column=3,sticky='w',padx=8,pady=6)
+        self.combo_feriados_tipo=ttk.Combobox(box,textvariable=self.feriados_filtro_tipo,values=['Todos','Nacional','Estadual','Municipal','Interno'],state='readonly',width=16)
+        self.combo_feriados_tipo.grid(row=0,column=3,sticky='w',padx=8,pady=6)
         ttk.Button(box,text='Consultar',command=self.populate_feriados_tree).grid(row=0,column=4,sticky='ew',padx=8,pady=6)
         ttk.Button(box,text='Limpar filtros',command=self.limpar_filtros_feriados).grid(row=0,column=5,sticky='ew',padx=8,pady=6)
-        ttk.Label(box,textvariable=self.fer_total_var,font=('Arial',12,'bold')).grid(row=0,column=6,sticky='e',padx=12,pady=6)
-        ttk.Label(box,textvariable=self.fer_info_var,font=('Arial',10)).grid(row=1,column=0,columnspan=7,sticky='w',padx=8,pady=(0,8))
+        ttk.Label(box,textvariable=self.feriados_total_var,font=('Arial',12,'bold')).grid(row=0,column=6,sticky='e',padx=12,pady=6)
+        ttk.Label(box,textvariable=self.feriados_info_var,font=('Arial',10)).grid(row=1,column=0,columnspan=7,sticky='w',padx=8,pady=(0,8))
         box.columnconfigure(6,weight=1)
 
         tree_frame = ttk.Frame(f)
         tree_frame.grid(row=6,column=0,columnspan=6,sticky='nsew',padx=12,pady=12)
-        self.fer_tree=ttk.Treeview(tree_frame,columns=('data','nome','tipo','setor','ativo'),show='headings',height=22,style='Feriados.Treeview')
+        self.feriados_tree=ttk.Treeview(tree_frame,columns=('data','nome','tipo','setor','ativo'),show='headings',height=22,style='Feriados.Treeview')
         for col,txt,w in [('data','Data',130),('nome','Nome do feriado',470),('tipo','Tipo',150),('setor','Setor',190),('ativo','Ativo',90)]:
-            self.fer_tree.heading(col,text=txt); self.fer_tree.column(col,width=w, minwidth=w, anchor='center' if col in ('data','ativo','tipo') else 'w')
-        self.fer_tree.tag_configure('nacional', background='#eef5ff')
-        self.fer_tree.tag_configure('municipal', background='#f1fff0')
-        self.fer_tree.tag_configure('estadual', background='#fff8e8')
-        self.fer_tree.tag_configure('interno', background='#f6f0ff')
-        self.fer_tree.tag_configure('inativo', background='#eeeeee', foreground='#777777')
-        fer_scroll = ttk.Scrollbar(tree_frame, orient='vertical', command=self.fer_tree.yview)
-        self.fer_tree.configure(yscrollcommand=fer_scroll.set)
-        self.fer_tree.grid(row=0,column=0,sticky='nsew')
+            self.feriados_tree.heading(col,text=txt); self.feriados_tree.column(col,width=w, minwidth=w, anchor='center' if col in ('data','ativo','tipo') else 'w')
+        self.feriados_tree.tag_configure('nacional', background='#eef5ff')
+        self.feriados_tree.tag_configure('municipal', background='#f1fff0')
+        self.feriados_tree.tag_configure('estadual', background='#fff8e8')
+        self.feriados_tree.tag_configure('interno', background='#f6f0ff')
+        self.feriados_tree.tag_configure('inativo', background='#eeeeee', foreground='#777777')
+        fer_scroll = ttk.Scrollbar(tree_frame, orient='vertical', command=self.feriados_tree.yview)
+        self.feriados_tree.configure(yscrollcommand=fer_scroll.set)
+        self.feriados_tree.grid(row=0,column=0,sticky='nsew')
         fer_scroll.grid(row=0,column=1,sticky='ns')
         tree_frame.rowconfigure(0,weight=1); tree_frame.columnconfigure(0,weight=1)
-        self.fer_tree.bind('<<TreeviewSelect>>', self.on_select_feriado)
+        self.feriados_tree.bind('<<TreeviewSelect>>', self.on_select_feriado)
 
         # Consulta textual de apoio: garante que os feriados fiquem visíveis mesmo em computadores
         # onde o Treeview do Windows/Tk apresente problema de renderização.
         consulta_text_frame = ttk.LabelFrame(f, text='Lista detalhada para conferência')
         consulta_text_frame.grid(row=7,column=0,columnspan=6,sticky='ew',padx=12,pady=(0,10))
-        self.fer_text = tk.Text(consulta_text_frame, height=10, wrap='none', font=('Consolas', 11))
-        self.fer_text.pack(fill='both', expand=True, padx=8, pady=8)
-        self.fer_text.configure(state='disabled')
+        self.feriados_text = tk.Text(consulta_text_frame, height=10, wrap='none', font=('Consolas', 11))
+        self.feriados_text.pack(fill='both', expand=True, padx=8, pady=8)
+        self.feriados_text.configure(state='disabled')
 
         f.rowconfigure(6,weight=1)
         for c in range(6): f.columnconfigure(c,weight=1)
@@ -2121,14 +2121,14 @@ class App(tk.Tk):
         self.after(250, self.populate_feriados_tree)
 
     def clear_feriado(self):
-        self.fer_id=None; self.fer_nome.set(''); self.fer_data.set(''); self.fer_tipo.set('Municipal'); self.fer_setor.set('TODOS')
-        self.fer_obs.delete('1.0','end')
+        self.feriado_id=None; self.feriado_nome.set(''); self.feriado_data.set(''); self.feriado_tipo.set('Municipal'); self.feriado_setor.set('TODOS')
+        self.feriado_obs.delete('1.0','end')
 
     def limpar_filtros_feriados(self):
         if hasattr(self,'fer_filtro_ano'):
-            self.fer_filtro_ano.set('Todos')
+            self.feriados_filtro_ano.set('Todos')
         if hasattr(self,'fer_filtro_tipo'):
-            self.fer_filtro_tipo.set('Todos')
+            self.feriados_filtro_tipo.set('Todos')
         self.populate_feriados_tree()
 
     def populate_feriados_tree(self):
@@ -2142,10 +2142,10 @@ class App(tk.Tk):
             normalizar_datas_feriados()
         except Exception:
             pass
-        for i in self.fer_tree.get_children():
-            self.fer_tree.delete(i)
-        ano = self.fer_filtro_ano.get() if hasattr(self,'fer_filtro_ano') else 'Todos'
-        tipo_filtro = self.fer_filtro_tipo.get() if hasattr(self,'fer_filtro_tipo') else 'Todos'
+        for i in self.feriados_tree.get_children():
+            self.feriados_tree.delete(i)
+        ano = self.feriados_filtro_ano.get() if hasattr(self,'fer_filtro_ano') else 'Todos'
+        tipo_filtro = self.feriados_filtro_tipo.get() if hasattr(self,'fer_filtro_tipo') else 'Todos'
         sql='SELECT id,nome,data,tipo,setor,ativo FROM feriados WHERE 1=1'
         params=[]
         if ano and ano!='Todos':
@@ -2172,63 +2172,63 @@ class App(tk.Tk):
             tag = 'inativo' if not ativo else (tipo or '').lower()
             if tag not in ('nacional','municipal','estadual','interno','inativo'):
                 tag = ''
-            self.fer_tree.insert('', 'end', iid=str(id_), values=(data_br,nome,tipo,setor,ativo_txt), tags=(tag,))
+            self.feriados_tree.insert('', 'end', iid=str(id_), values=(data_br,nome,tipo,setor,ativo_txt), tags=(tag,))
             linhas_texto.append(f'{data_br:<12} | {tipo:<10} | {ativo_txt:<3} | {setor:<15} | {nome}')
         if hasattr(self,'fer_text'):
-            self.fer_text.configure(state='normal')
-            self.fer_text.delete('1.0','end')
+            self.feriados_text.configure(state='normal')
+            self.feriados_text.delete('1.0','end')
             if linhas_texto:
-                self.fer_text.insert('end', 'DATA         | TIPO       | AT. | SETOR           | FERIADO\n')
-                self.fer_text.insert('end', '-'*120 + '\n')
-                self.fer_text.insert('end', '\n'.join(linhas_texto))
+                self.feriados_text.insert('end', 'DATA         | TIPO       | AT. | SETOR           | FERIADO\n')
+                self.feriados_text.insert('end', '-'*120 + '\n')
+                self.feriados_text.insert('end', '\n'.join(linhas_texto))
             else:
-                self.fer_text.insert('end', 'Nenhum feriado encontrado para os filtros selecionados.')
-            self.fer_text.configure(state='disabled')
+                self.feriados_text.insert('end', 'Nenhum feriado encontrado para os filtros selecionados.')
+            self.feriados_text.configure(state='disabled')
         if hasattr(self,'fer_total_var'):
             ativos=sum(1 for r in rows if r[5])
-            self.fer_total_var.set(f'Total: {len(rows)} feriados | Ativos: {ativos}')
+            self.feriados_total_var.set(f'Total: {len(rows)} feriados | Ativos: {ativos}')
             if hasattr(self,'fer_info_var'):
-                self.fer_info_var.set('Consulta atualizada. Clique em um feriado da tabela para carregar os dados no cadastro acima.')
+                self.feriados_info_var.set('Consulta atualizada. Clique em um feriado da tabela para carregar os dados no cadastro acima.')
         if hasattr(self,'combo_fer_ano'):
             vals=['Todos']+[str(a) for a in anos if a]
-            atual=self.fer_filtro_ano.get() if hasattr(self,'fer_filtro_ano') else 'Todos'
-            self.combo_fer_ano['values']=vals
+            atual=self.feriados_filtro_ano.get() if hasattr(self,'fer_filtro_ano') else 'Todos'
+            self.combo_feriados_ano['values']=vals
             if atual not in vals:
-                self.fer_filtro_ano.set('Todos')
+                self.feriados_filtro_ano.set('Todos')
         if hasattr(self,'combo_fer_setor'):
             vals=['TODOS']+get_setores(True)
-            self.combo_fer_setor['values']=vals
+            self.combo_feriados_setor['values']=vals
 
     def on_select_feriado(self,_=None):
-        sel=self.fer_tree.selection()
+        sel=self.feriados_tree.selection()
         if not sel: return
-        self.fer_id=int(sel[0])
+        self.feriado_id=int(sel[0])
         with con() as db:
-            row=db.execute('SELECT nome,data,tipo,setor,observacao FROM feriados WHERE id=?',(self.fer_id,)).fetchone()
+            row=db.execute('SELECT nome,data,tipo,setor,observacao FROM feriados WHERE id=?',(self.feriado_id,)).fetchone()
         if row:
-            self.fer_nome.set(row[0] or ''); self.fer_data.set(fmt_data(row[1] or '')); self.fer_tipo.set(row[2] or 'Municipal'); self.fer_setor.set(row[3] or 'TODOS')
-            self.fer_obs.delete('1.0','end'); self.fer_obs.insert('1.0', row[4] or '')
+            self.feriado_nome.set(row[0] or ''); self.feriado_data.set(fmt_data(row[1] or '')); self.feriado_tipo.set(row[2] or 'Municipal'); self.feriado_setor.set(row[3] or 'TODOS')
+            self.feriado_obs.delete('1.0','end'); self.feriado_obs.insert('1.0', row[4] or '')
 
     def save_feriado(self):
-        nome=self.fer_nome.get().strip().upper(); data_txt=self.fer_data.get().strip()
+        nome=self.feriado_nome.get().strip().upper(); data_txt=self.feriado_data.get().strip()
         if not nome or not data_txt:
             messagebox.showwarning('Atenção','Informe nome e data do feriado.'); return
         try: iso=parse_data_br(data_txt).isoformat()
         except Exception:
             messagebox.showerror('Data inválida','Use DD/MM/AAAA.'); return
-        vals=(nome,iso,self.fer_tipo.get().strip(), 'TODAS', self.fer_setor.get().strip() or 'TODOS', self.fer_obs.get('1.0','end').strip())
+        vals=(nome,iso,self.feriado_tipo.get().strip(), 'TODAS', self.feriado_setor.get().strip() or 'TODOS', self.feriado_obs.get('1.0','end').strip())
         with con() as db:
-            if self.fer_id:
-                db.execute('UPDATE feriados SET nome=?,data=?,tipo=?,empresa=?,setor=?,observacao=?,ativo=1 WHERE id=?', (*vals,self.fer_id))
+            if self.feriado_id:
+                db.execute('UPDATE feriados SET nome=?,data=?,tipo=?,empresa=?,setor=?,observacao=?,ativo=1 WHERE id=?', (*vals,self.feriado_id))
             else:
                 db.execute('INSERT INTO feriados(nome,data,tipo,empresa,setor,observacao,ativo) VALUES(?,?,?,?,?,?,1)', vals)
         log_action(self.usuario,'FERIADO','Feriado salvo: '+nome)
         self.clear_feriado(); self.populate_feriados_tree(); self.refresh_dashboard(); messagebox.showinfo('Feriados','Feriado salvo.')
 
     def set_feriado_ativo(self, ativo):
-        if not self.fer_id:
+        if not self.feriado_id:
             messagebox.showwarning('Atenção','Selecione um feriado.'); return
-        with con() as db: db.execute('UPDATE feriados SET ativo=? WHERE id=?',(ativo,self.fer_id))
+        with con() as db: db.execute('UPDATE feriados SET ativo=? WHERE id=?',(ativo,self.feriado_id))
         log_action(self.usuario,'FERIADO',('Reativado' if ativo else 'Inativado'))
         self.populate_feriados_tree(); self.refresh_dashboard()
 
@@ -2236,8 +2236,8 @@ class App(tk.Tk):
         ano = datetime.now().year
         # Se o usuário já digitou uma data no cadastro, usa o ano dela como referência.
         try:
-            if self.fer_data.get().strip():
-                ano = parse_data_br(self.fer_data.get().strip()).year
+            if self.feriado_data.get().strip():
+                ano = parse_data_br(self.feriado_data.get().strip()).year
         except Exception:
             pass
         total, fonte = importar_feriados_brasil_itajai(ano, self.usuario)
@@ -2420,7 +2420,7 @@ class App(tk.Tk):
         historico_box.grid(row=13,column=0,columnspan=8,sticky='nsew',padx=12,pady=(8,4))
         historico_box.rowconfigure(0, weight=1)
         historico_box.columnconfigure(0, weight=1)
-        self.fer_tree=ttk.Treeview(historico_box,columns=('func','aq','conc','periodo','ret','dias','rest','total','status'),show='headings', height=8)
+        self.fer_tree=ttk.Treeview(historico_box,columns=('func','aq','conc','periodo','ret','dias','rest','total','status'),show='headings', height=12)
         for col,txt,w in [('func','Funcionário',210),('aq','Aquisitivo',160),('conc','Concessivo até',100),('periodo','Férias',165),('ret','Retorno',85),('dias','Dias',50),('rest','Rest.',50),('total','Total bruto',95),('status','Status',90)]:
             self.fer_tree.heading(col,text=txt); self.fer_tree.column(col,width=w)
         self.fer_tree.grid(row=0,column=0,sticky='nsew')
@@ -2440,7 +2440,7 @@ class App(tk.Tk):
         docs_scroll.grid(row=0,column=1,sticky='ns')
         self.fer_docs_tree.configure(yscrollcommand=docs_scroll.set)
 
-        f.rowconfigure(13,weight=2)
+        f.rowconfigure(13,weight=3)
         f.rowconfigure(14,weight=1)
         for c in range(8): f.columnconfigure(c,weight=1)
 
@@ -2708,7 +2708,7 @@ class App(tk.Tk):
     def carregar_documentos_ferias(self):
         """Carrega somente documentos gerados no módulo Férias.
 
-        Correção v1.6.5: esta grade não deve consultar feriados nem outros
+        Correção v1.6.7: esta grade não deve consultar feriados nem outros
         registros administrativos. Ela usa exclusivamente a tabela
         documentos_rh filtrando documentos com observação de origem do módulo
         Férias ou tipos de documentos de férias.
