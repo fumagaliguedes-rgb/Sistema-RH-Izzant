@@ -1,11 +1,5 @@
 # Sistema Gestão Izzant
 
-Versão: v1.7.4
+Versão: v1.8.0
 
-## Correção
-- Módulo Férias simplificado na aba de programação.
-- Cálculos financeiros continuam automáticos, mas deixam de poluir a tela.
-- PDF de Aviso + Recibo de Férias redesenhado com tabela fixa de lançamentos.
-- Mantida a interface moderna validada nas versões anteriores.
-
-Branch recomendada: develop
+Correção completa do fluxo de férias: PDF reposicionado, valor por extenso, ocorrência na folha e conclusão de férias.

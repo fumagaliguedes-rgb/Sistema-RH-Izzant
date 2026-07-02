@@ -1,9 +1,8 @@
 # Changelog
 
-## v1.7.4 - Férias simples e PDF reposicionado
-- Simplificada a tela de programação de férias.
-- Adicionado botão direto para gerar PDF de férias na programação.
-- Ocultado o quadro de cálculos financeiros da tela principal, mantendo os cálculos internos.
-- Refeito o PDF de Aviso + Recibo de Férias com campos e lançamentos em posições fixas.
-- Corrigida a separação visual entre proventos, descontos, líquido, comunicação, extenso e assinaturas.
-- Preservada a interface moderna e a lógica estável da folha de ponto.
+## v1.8.0
+- Refeito o PDF de Aviso + Recibo de Férias com posições fixas e sem sobreposição.
+- Corrigido o campo Valor por extenso.
+- Corrigida a geração de ocorrência na folha vinculada ao registro de férias.
+- Corrigido o botão Concluir Férias para criar ocorrência e marcar o registro como concluído.
+- Mantida a interface já aprovada.
