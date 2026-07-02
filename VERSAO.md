@@ -1,14 +1,9 @@
 # Sistema Gestão Izzant
 
-Versão: v3.0 - Férias Enterprise Final
-Data: 02/07/2026
-Status: Patch de consolidação do módulo Férias
+Versão: v3.1 - Férias recalculadas e PDF em duas colunas
 
-Principais ajustes:
-- PDF de férias reestruturado por blocos.
-- Dados do colaborador lado a lado.
-- Períodos lado a lado.
-- Demonstrativo adaptável com venda de férias, 1/3 do abono, adiantamento do 13º, INSS e IRRF.
-- INSS 2026 progressivo e exibição da alíquota da faixa.
-- IRRF 2026 parametrizado.
-- Recibo em segunda página para evitar desconfiguração com mais lançamentos.
+- INSS 2026 progressivo com alíquota marginal exibida no demonstrativo.
+- IRRF 2026 com tabela mensal e redução adicional.
+- Demonstrativo de férias em duas colunas: proventos e descontos.
+- Dados do colaborador e períodos lado a lado.
+- Recibo em nova página quando houver muitos lançamentos.
