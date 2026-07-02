@@ -460,7 +460,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v4.0 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v4.1 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1422,7 +1422,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v4.0 Folha')
+        self.title(APP_NAME + ' - Enterprise v4.1 Folha')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -4110,7 +4110,7 @@ class App(tk.Tk):
         self.folha_tab_lanc = ttk.Frame(self.folha_nb)
         self.folha_tab_eventos = ttk.Frame(self.folha_nb)
         self.folha_tab_holerites = ttk.Frame(self.folha_nb)
-        self.folha_nb.add(self.folha_tab_lanc, text='➕ Menu Lançamentos')
+        self.folha_nb.add(self.folha_tab_lanc, text='🧾 Lançamentos')
         self.folha_nb.add(self.folha_tab_resumo, text='📊 Resumo')
         self.folha_nb.add(self.folha_tab_eventos, text='⚙️ Eventos')
         self.folha_nb.add(self.folha_tab_holerites, text='🖨 Holerites')
@@ -4228,14 +4228,112 @@ class App(tk.Tk):
         sb=ttk.Scrollbar(lista,orient='vertical',command=self.folha_eventos_tree.yview); sb.grid(row=0,column=1,sticky='ns'); self.folha_eventos_tree.configure(yscrollcommand=sb.set)
 
     def _build_folha_holerites_tab(self):
-        f=self.folha_tab_holerites
-        f.columnconfigure(0,weight=1); f.rowconfigure(1,weight=1)
-        ttk.Label(f,text='Holerites',style='Title.TLabel').grid(row=0,column=0,sticky='w',padx=8,pady=8)
-        botoes=ttk.Frame(f); botoes.grid(row=0,column=1,sticky='e',padx=8,pady=8)
-        ttk.Button(botoes,text='Gerar selecionado',command=self.gerar_holerite_selecionado).pack(side='left',padx=4)
-        ttk.Button(botoes,text='Gerar todos',command=self.gerar_holerites_folha).pack(side='left',padx=4)
-        ttk.Button(botoes,text='Abrir pasta',command=lambda:self._open(os.path.join(PDF_DIR,'folha_pagamento'))).pack(side='left',padx=4)
-        ttk.Label(f,text='O holerite segue o modelo enviado: duas vias por página, tabela de eventos, totais, salário líquido, bases e assinatura.').grid(row=1,column=0,columnspan=2,sticky='nw',padx=8,pady=8)
+        f = self.folha_tab_holerites
+        f.columnconfigure(0, weight=1)
+        f.rowconfigure(2, weight=1)
+
+        header = ttk.LabelFrame(f, text='Holerites da competência')
+        header.grid(row=0, column=0, sticky='ew', padx=8, pady=8)
+        for c in range(9):
+            header.columnconfigure(c, weight=1)
+        ttk.Label(header, text='Filtro').grid(row=0, column=0, sticky='w', padx=6, pady=6)
+        self.hol_filtro_tipo = tk.StringVar(value='Todos')
+        self.hol_filtro_valor = tk.StringVar(value='TODOS')
+        ttk.Combobox(header, textvariable=self.hol_filtro_tipo, values=['Todos','Funcionário','Setor','Função'], state='readonly', width=14).grid(row=0, column=1, sticky='ew', padx=6, pady=6)
+        self.hol_filtro_combo = ttk.Combobox(header, textvariable=self.hol_filtro_valor)
+        self.hol_filtro_combo.grid(row=0, column=2, columnspan=2, sticky='ew', padx=6, pady=6)
+        ttk.Button(header, text='Atualizar lista', command=self.carregar_holerites_funcionarios).grid(row=0, column=4, sticky='ew', padx=6, pady=6)
+        ttk.Button(header, text='Marcar todos', command=lambda: self._holerites_marcar(True)).grid(row=0, column=5, sticky='ew', padx=6, pady=6)
+        ttk.Button(header, text='Desmarcar', command=lambda: self._holerites_marcar(False)).grid(row=0, column=6, sticky='ew', padx=6, pady=6)
+        ttk.Button(header, text='Gerar selecionados', command=self.gerar_holerites_selecionados).grid(row=0, column=7, sticky='ew', padx=6, pady=6)
+        ttk.Button(header, text='Abrir pasta', command=lambda:self._open(os.path.join(PDF_DIR,'folha_pagamento'))).grid(row=0, column=8, sticky='ew', padx=6, pady=6)
+
+        info = ttk.LabelFrame(f, text='Orientação')
+        info.grid(row=1, column=0, sticky='ew', padx=8, pady=(0,8))
+        info.columnconfigure(0, weight=1)
+        ttk.Label(info, text='A lista abaixo carrega os funcionários da competência conforme o filtro. Selecione um ou vários funcionários para gerar os holerites.', font=('Arial', 9)).grid(row=0, column=0, sticky='w', padx=8, pady=5)
+
+        grid = ttk.LabelFrame(f, text='Funcionários para geração de holerite')
+        grid.grid(row=2, column=0, sticky='nsew', padx=8, pady=(0,8))
+        grid.columnconfigure(0, weight=1)
+        grid.rowconfigure(0, weight=1)
+        self.hol_func_tree = ttk.Treeview(grid, columns=('id','nome','setor','funcao','salario','prov','desc','liq'), show='headings', height=13, selectmode='extended')
+        for col, txt, w in [('id','ID',55),('nome','Funcionário',260),('setor','Setor',115),('funcao','Função',140),('salario','Salário',95),('prov','Proventos',105),('desc','Descontos',105),('liq','Líquido',105)]:
+            self.hol_func_tree.heading(col, text=txt)
+            self.hol_func_tree.column(col, width=w, minwidth=50)
+        self.hol_func_tree.grid(row=0, column=0, sticky='nsew')
+        sb = ttk.Scrollbar(grid, orient='vertical', command=self.hol_func_tree.yview)
+        sb.grid(row=0, column=1, sticky='ns')
+        self.hol_func_tree.configure(yscrollcommand=sb.set)
+        self.hol_filtro_tipo.trace_add('write', lambda *a: self.atualizar_filtros_holerites_folha())
+        self.atualizar_filtros_holerites_folha()
+        self.carregar_holerites_funcionarios()
+
+    def atualizar_filtros_holerites_folha(self):
+        if not hasattr(self, 'hol_filtro_combo'):
+            return
+        tipo = self.hol_filtro_tipo.get() if hasattr(self, 'hol_filtro_tipo') else 'Todos'
+        funcs = get_funcionarios(True)
+        if tipo == 'Funcionário':
+            vals = [f'{f["id"]} - {f["nome"]}' for f in funcs]
+        elif tipo == 'Setor':
+            vals = get_setores(True)
+        elif tipo == 'Função':
+            vals = sorted({(f.get('funcao') or '').strip() for f in funcs if (f.get('funcao') or '').strip()})
+        else:
+            vals = ['TODOS']
+        self.hol_filtro_combo['values'] = vals
+        if vals and self.hol_filtro_valor.get() not in vals:
+            self.hol_filtro_valor.set(vals[0])
+        if hasattr(self, 'hol_func_tree'):
+            self.carregar_holerites_funcionarios()
+
+    def _folha_holerites_funcionarios(self):
+        funcs = get_funcionarios(True)
+        tipo = self.hol_filtro_tipo.get() if hasattr(self, 'hol_filtro_tipo') else 'Todos'
+        alvo = self.hol_filtro_valor.get() if hasattr(self, 'hol_filtro_valor') else 'TODOS'
+        if tipo == 'Funcionário' and alvo:
+            try:
+                fid = int(str(alvo).split(' - ')[0])
+                funcs = [f for f in funcs if int(f.get('id') or 0) == fid]
+            except Exception:
+                funcs = []
+        elif tipo == 'Setor' and alvo and alvo != 'TODOS':
+            funcs = [f for f in funcs if (f.get('setor') or 'GERAL').strip().upper() == alvo.strip().upper()]
+        elif tipo == 'Função' and alvo and alvo != 'TODOS':
+            funcs = [f for f in funcs if (f.get('funcao') or '').strip().upper() == alvo.strip().upper()]
+        return funcs
+
+    def carregar_holerites_funcionarios(self):
+        if not hasattr(self, 'hol_func_tree'):
+            return
+        self.hol_func_tree.delete(*self.hol_func_tree.get_children())
+        for f in self._folha_holerites_funcionarios():
+            pro, des, tp, td, liq = self._folha_calcular_funcionario(f)
+            self.hol_func_tree.insert('', 'end', iid=str(f['id']), values=(f['id'], f.get('nome',''), f.get('setor') or '', f.get('funcao') or '', moeda_br(f.get('salario') or 0), moeda_br(tp), moeda_br(td), moeda_br(liq)))
+
+    def _holerites_marcar(self, marcar=True):
+        if not hasattr(self, 'hol_func_tree'):
+            return
+        itens = self.hol_func_tree.get_children()
+        self.hol_func_tree.selection_set(itens if marcar else ())
+
+    def gerar_holerites_selecionados(self):
+        if not hasattr(self, 'hol_func_tree'):
+            return self.gerar_holerite_selecionado()
+        sel = self.hol_func_tree.selection()
+        if not sel:
+            messagebox.showwarning('Folha', 'Selecione um ou mais funcionários na aba Holerites.')
+            return
+        funcs = get_funcionarios(True)
+        mapa = {int(f['id']): f for f in funcs}
+        qtd = 0
+        for iid in sel:
+            f = mapa.get(int(iid))
+            if f:
+                self._gerar_holerite_func(f)
+                qtd += 1
+        messagebox.showinfo('Folha de Pagamento', f'{qtd} holerite(s) gerado(s).')
 
     def _folha_get_competencia_id(self):
         mes=int(self.folha_mes.get()); ano=int(self.folha_ano.get())
@@ -4521,22 +4619,29 @@ class App(tk.Tk):
             txt(x0+385,totals_y-18,'SALÁRIO LÍQUIDO',8.2,True,'center')
             txt(R-10,totals_y-18,f'R$ {m(liquido)}',9.0,True,'right')
             base_y=y0+54
-            line(x0,base_y+10,R,base_y+10)
+            # Quadro de bases com divisões internas, preservando o espaço padrão do modelo.
+            rect(x0, base_y-17, block_w, 27)
+            cell_w = block_w/5
+            for i in range(1,5):
+                line(x0+cell_w*i, base_y-17, x0+cell_w*i, base_y+10)
             salario=float(f.get('salario') or 0); base_inss=total_p; base_fgts=total_p; valor_fgts=round(base_fgts*0.08,2); inss=sum(v for _,d,_,v,_ in des if 'INSS' in str(d).upper()); base_irrf=max(0,total_p-inss)
             for i,(label,value) in enumerate([('Salário base',salario),('Base INSS',base_inss),('Base FGTS',base_fgts),('Valor FGTS',valor_fgts),('Base IRRF',base_irrf)]):
-                cx=x0+(block_w/5)*i+(block_w/10); txt(cx,base_y+1,label,6.5,False,'center'); txt(cx,base_y-10,m(value),6.5,False,'center')
+                cx=x0+cell_w*i+cell_w/2; txt(cx,base_y+1,label,6.5,False,'center'); txt(cx,base_y-10,m(value),6.5,True,'center')
             dec_y=y0+22; line(x0,dec_y+14,R,dec_y+14); txt(x0+8,dec_y+4,'Declaro ter recebido o valor líquido deste recibo.',6.8); txt(x0+25,y0+5,'     /      /          Assinatura do Colaborador:',6.8); txt(x0+8,y0-10,'Sistema Gestão Izzant',6); txt(R-8,y0-10,datetime.now().strftime('%d/%m/%Y %H:%M'),6,False,'right')
         draw_via(y1); draw_via(y2); c.save(); return total_p,total_d,liquido
 
     def gerar_holerite_selecionado(self):
-        sel=self.folha_tree.selection() if hasattr(self,'folha_tree') else []
+        # Prioridade para a aba Holerites, onde a lista de funcionários é exibida especificamente para geração.
+        if hasattr(self, 'hol_func_tree') and self.hol_func_tree.selection():
+            return self.gerar_holerites_selecionados()
+        sel = self.folha_tree.selection() if hasattr(self,'folha_tree') else []
         funcs=[]
         if sel:
             fid=int(sel[0]); funcs=[f for f in get_funcionarios(True) if int(f['id'])==fid]
         else:
             funcs=self._folha_funcionarios_filtrados() if hasattr(self, '_folha_funcionarios_filtrados') else []
             if len(funcs) != 1:
-                messagebox.showwarning('Folha','Selecione um funcionário no filtro ou marque "Mostrar funcionários na tela" e escolha na lista.'); return
+                messagebox.showwarning('Folha','Selecione um funcionário na aba Holerites ou filtre um único funcionário.'); return
         if funcs: self._gerar_holerite_func(funcs[0])
 
     def _gerar_holerite_func(self, f):
@@ -4549,9 +4654,17 @@ class App(tk.Tk):
         return arquivo
 
     def gerar_holerites_folha(self):
+        # Gera conforme filtro da aba Holerites quando ela existir; caso contrário, gera todos.
+        funcs = self._folha_holerites_funcionarios() if hasattr(self, '_folha_holerites_funcionarios') else get_funcionarios(True)
+        if not funcs:
+            messagebox.showwarning('Folha de Pagamento', 'Nenhum funcionário encontrado para gerar holerites.')
+            return
         qtd=0
-        for f in get_funcionarios(True): self._gerar_holerite_func(f); qtd+=1
+        for f in funcs:
+            self._gerar_holerite_func(f); qtd+=1
         messagebox.showinfo('Folha de Pagamento', f'{qtd} holerite(s) gerado(s).')
+        if hasattr(self, 'carregar_holerites_funcionarios'):
+            self.carregar_holerites_funcionarios()
 
     def gerar_relatorio_liquidos_folha(self):
         """Gera relatório de líquidos da competência simulada/calculada em PDF e CSV."""

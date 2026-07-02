@@ -1,2 +1,2 @@
 Sistema Gestão Izzant
-Versão 4.0 - Folha de Pagamento Enterprise
+Versão 4.1 - Folha com Holerites e Lançamentos reorganizados

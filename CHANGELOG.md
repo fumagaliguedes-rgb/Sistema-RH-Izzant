@@ -1,9 +1,8 @@
-# v4.0 - Folha de Pagamento Enterprise
+# v4.1 - Folha com Holerites e Lançamentos reorganizados
 
-- Reorganiza o módulo Folha de Pagamento com menu específico de lançamentos.
-- Mantém a lista de funcionários apenas sob demanda/filtros.
-- Lançamentos podem ser aplicados por funcionário, setor, função ou todos.
-- Lançamentos aceitam valor fixo, percentual do salário, percentual dos proventos atuais ou cálculo automático do evento.
-- Corrige leitura dos lançamentos percentuais no cálculo da folha e no holerite.
-- Ajusta o quadro de Salário Líquido no holerite.
-- Mantém o espaçamento padrão do modelo SCI/Domínio.
+- Reorganiza a aba Holerites com filtro próprio por funcionário, setor, função ou todos.
+- Corrige o carregamento dos funcionários na aba Holerites para geração individual ou em lote.
+- Mantém Lançamentos como menu específico da Folha de Pagamento.
+- Mantém lançamentos por valor fixo ou percentual para cálculo na folha.
+- Ajusta os quadros inferiores do holerite, preservando o espaço padrão do modelo SCI/Domínio.
+- Melhora a seleção de funcionários para geração de holerites.
