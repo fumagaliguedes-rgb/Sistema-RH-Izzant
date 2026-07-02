@@ -1,11 +1,9 @@
-# Changelog
+## v3.2.1 - Férias com PDFs separados
 
-## v3.1 - Férias recalculadas e PDF em duas colunas
-
-- Corrigido cálculo de INSS 2026 por faixa progressiva com parcela a deduzir.
-- Ajustada exibição do INSS para mostrar a alíquota marginal da faixa, como em demonstrativos de folha.
-- Ajustado IRRF 2026 com tabela mensal e redução adicional.
-- Refeito PDF de férias com dados do colaborador lado a lado.
-- Refeito bloco de períodos em grade 2x2.
-- Refeito demonstrativo em duas colunas, separando proventos e descontos.
-- Recibo passa para nova página quando houver muitos lançamentos.
+- Geração separada de Aviso de Férias em PDF.
+- Geração separada de Recibo de Férias em PDF.
+- Dados do colaborador lado a lado.
+- Períodos em grade 2x2.
+- Demonstrativo em duas colunas: proventos e descontos.
+- INSS 2026 progressivo e IRRF 2026 com redução legal.
+- Venda de férias e adiantamento do 13º preservados no demonstrativo.
