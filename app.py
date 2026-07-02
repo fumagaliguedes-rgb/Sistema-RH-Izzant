@@ -21,8 +21,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 
-APP_NAME = 'Sistema RH Izzant'
-APP_VERSION = 'v1.5.9 Navegação por Grupos'
+APP_NAME = 'Sistema Gestão Izzant'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'dados')
 PDF_DIR = os.path.join(BASE_DIR, 'PDFs')
@@ -417,9 +416,9 @@ class LoginDialog(tk.Tk):
         except Exception:
             pass
 
-        tk.Label(card, text='Sistema RH Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
+        tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text=f'Enterprise {APP_VERSION}', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v1.6.0 Interface', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1338,7 +1337,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise ' + APP_VERSION)
+        self.title(APP_NAME + ' - Enterprise v1.6.0 Interface')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -1350,12 +1349,20 @@ class App(tk.Tk):
 
     def build_ui(self):
         style=ttk.Style(self)
-        try: style.theme_use('clam')
-        except Exception: pass
+        try:
+            style.theme_use('clam')
+        except Exception:
+            pass
         style.configure('TButton', padding=8, font=('Arial', 10))
         style.configure('Treeview', rowheight=28, font=('Arial', 10))
         style.configure('Treeview.Heading', font=('Arial', 10, 'bold'))
         style.configure('Title.TLabel', font=('Arial', 18, 'bold'))
+        style.configure('Side.TButton', padding=(14, 10), font=('Arial', 10, 'bold'))
+        # Oculta as abas superiores: a navegação principal passa a ser por grupos no menu lateral.
+        try:
+            style.layout('Hidden.TNotebook.Tab', [])
+        except Exception:
+            pass
 
         self.menu = tk.Menu(self)
         arquivo = tk.Menu(self.menu, tearoff=0)
@@ -1365,18 +1372,7 @@ class App(tk.Tk):
         arquivo.add_separator()
         arquivo.add_command(label='Sair', command=self.destroy)
         self.menu.add_cascade(label='Arquivo', menu=arquivo)
-        cad = tk.Menu(self.menu, tearoff=0)
-        cad.add_command(label='Novo funcionário', command=lambda: (self.nb.select(self.tab_func), self.clear_func()))
-        cad.add_command(label='Setores', command=lambda: self.nb.select(self.tab_setores))
-        cad.add_command(label='Jornadas', command=lambda: self.nb.select(self.tab_jornadas))
-        cad.add_command(label='Escalas', command=lambda: self.nb.select(self.tab_escalas))
-        cad.add_command(label='Feriados', command=lambda: self.nb.select(self.tab_feriados))
-        cad.add_command(label='Inativar funcionário selecionado', command=self.delete_func)
-        cad.add_command(label='Importar funcionários do Excel', command=self.importar_excel)
-        cad.add_command(label='Baixar modelo de importação', command=self.baixar_modelo_importacao)
-        cad.add_command(label='Exportar funcionários para Excel', command=self.exportar_excel)
-        cad.add_command(label='Exportar funcionários CSV', command=self.exportar_csv)
-        self.menu.add_cascade(label='Cadastros', menu=cad)
+
         ferramentas = tk.Menu(self.menu, tearoff=0)
         ferramentas.add_command(label='Modo Desenvolvedor', command=lambda: self.nb.select(self.tab_dev))
         ferramentas.add_command(label='Abrir pasta do projeto', command=self.open_base)
@@ -1386,94 +1382,155 @@ class App(tk.Tk):
 
         main=ttk.Frame(self)
         main.pack(fill='both', expand=True)
-        sidebar=tk.Frame(main, bg='#1f2937', width=190)
+
+        sidebar=tk.Frame(main, bg='#111827', width=220)
         sidebar.pack(side='left', fill='y')
         sidebar.pack_propagate(False)
-        tk.Label(sidebar, text='SISTEMA RH\nIZZANT', bg='#1f2937', fg='white', font=('Arial',18,'bold'), justify='left').pack(anchor='w', padx=18, pady=(22,18))
-        self.nb=ttk.Notebook(main)
+
+        logo_box=tk.Frame(sidebar, bg='#111827')
+        logo_box.pack(fill='x', padx=16, pady=(18,12))
+        try:
+            if os.path.exists(LOGO_APP):
+                self.logo_sidebar_img = tk.PhotoImage(file=LOGO_APP)
+                tk.Label(logo_box, image=self.logo_sidebar_img, bg='#111827').pack(anchor='w', pady=(0,8))
+        except Exception:
+            pass
+        tk.Label(logo_box, text='SISTEMA GESTÃO\nIZZANT', bg='#111827', fg='white',
+                 font=('Arial',15,'bold'), justify='left').pack(anchor='w')
+        tk.Label(logo_box, text='Enterprise v1.6.0', bg='#111827', fg='#9ca3af',
+                 font=('Arial',9), justify='left').pack(anchor='w', pady=(4,0))
+
+        self.nb=ttk.Notebook(main, style='Hidden.TNotebook')
         self.nb.pack(side='right', fill='both', expand=True, padx=10, pady=10)
-        self.tab_inicio=ttk.Frame(self.nb); self.tab_empresa=ttk.Frame(self.nb); self.tab_func=ttk.Frame(self.nb); self.tab_setores=ttk.Frame(self.nb); self.tab_jornadas=ttk.Frame(self.nb); self.tab_escalas=ttk.Frame(self.nb); self.tab_feriados=ttk.Frame(self.nb); self.tab_ocorrencias=ttk.Frame(self.nb); self.tab_ferias=ttk.Frame(self.nb); self.tab_banco=ttk.Frame(self.nb); self.tab_documentos=ttk.Frame(self.nb); self.tab_epis=ttk.Frame(self.nb); self.tab_exames=ttk.Frame(self.nb); self.tab_agenda=ttk.Frame(self.nb); self.tab_central_pdfs=ttk.Frame(self.nb); self.tab_assistente=ttk.Frame(self.nb); self.tab_pdf=ttk.Frame(self.nb); self.tab_backup=ttk.Frame(self.nb); self.tab_rel=ttk.Frame(self.nb); self.tab_logs=ttk.Frame(self.nb); self.tab_usuarios=ttk.Frame(self.nb); self.tab_atualizador=ttk.Frame(self.nb); self.tab_dev=ttk.Frame(self.nb)
-        self.nb.add(self.tab_inicio, text='Início')
-        self.nb.add(self.tab_empresa, text='Empresa')
-        self.nb.add(self.tab_func, text='Funcionários')
-        self.nb.add(self.tab_setores, text='Setores')
-        self.nb.add(self.tab_jornadas, text='Jornadas')
-        self.nb.add(self.tab_escalas, text='Escalas')
-        self.nb.add(self.tab_feriados, text='Feriados')
-        self.nb.add(self.tab_ocorrencias, text='Ocorrências')
-        self.nb.add(self.tab_ferias, text='Controle de Férias')
-        self.nb.add(self.tab_banco, text='Banco de Horas')
-        self.nb.add(self.tab_documentos, text='Documentos')
-        self.nb.add(self.tab_epis, text='EPIs')
-        self.nb.add(self.tab_exames, text='Exames')
-        self.nb.add(self.tab_agenda, text='Agenda RH')
-        self.nb.add(self.tab_central_pdfs, text='Central PDFs')
-        self.nb.add(self.tab_assistente, text='Assistente')
-        self.nb.add(self.tab_pdf, text='Gerar PDFs')
-        self.nb.add(self.tab_backup, text='Backup')
-        self.nb.add(self.tab_rel, text='Relatórios')
-        self.nb.add(self.tab_logs, text='Auditoria')
-        self.nb.add(self.tab_usuarios, text='Usuários')
-        self.nb.add(self.tab_atualizador, text='Atualizador')
-        self.nb.add(self.tab_dev, text='Modo Desenvolvedor')
-        def nav_button(parent, text, tab, destaque=False):
-            bg = '#dc2626' if destaque else '#374151'
-            active = '#b91c1c' if destaque else '#4b5563'
-            return tk.Button(parent, text=text, anchor='w', bg=bg, fg='white', activebackground=active,
-                             activeforeground='white', bd=0, padx=14, pady=8,
-                             font=('Arial', 10, 'bold') if destaque else ('Arial', 10),
-                             command=lambda t=tab:self.nb.select(t))
 
-        def grupo_button(parent, text, titulo, itens, destaque=False):
-            bg = '#dc2626' if destaque else '#374151'
-            active = '#b91c1c' if destaque else '#4b5563'
-            return tk.Button(parent, text=text, anchor='w', bg=bg, fg='white', activebackground=active,
-                             activeforeground='white', bd=0, padx=14, pady=8,
-                             font=('Arial', 10, 'bold') if destaque else ('Arial', 10),
-                             command=lambda t=titulo, i=itens:self.mostrar_submenus(t, i))
+        # Abas internas. A maioria é aberta pelos cartões de submenu, não pela barra superior.
+        self.tab_inicio=ttk.Frame(self.nb); self.tab_grupos=ttk.Frame(self.nb)
+        self.tab_empresa=ttk.Frame(self.nb); self.tab_func=ttk.Frame(self.nb); self.tab_setores=ttk.Frame(self.nb)
+        self.tab_jornadas=ttk.Frame(self.nb); self.tab_escalas=ttk.Frame(self.nb); self.tab_feriados=ttk.Frame(self.nb)
+        self.tab_ocorrencias=ttk.Frame(self.nb); self.tab_ferias=ttk.Frame(self.nb); self.tab_banco=ttk.Frame(self.nb)
+        self.tab_documentos=ttk.Frame(self.nb); self.tab_epis=ttk.Frame(self.nb); self.tab_exames=ttk.Frame(self.nb)
+        self.tab_agenda=ttk.Frame(self.nb); self.tab_central_pdfs=ttk.Frame(self.nb); self.tab_assistente=ttk.Frame(self.nb)
+        self.tab_pdf=ttk.Frame(self.nb); self.tab_backup=ttk.Frame(self.nb); self.tab_rel=ttk.Frame(self.nb)
+        self.tab_logs=ttk.Frame(self.nb); self.tab_usuarios=ttk.Frame(self.nb); self.tab_atualizador=ttk.Frame(self.nb); self.tab_dev=ttk.Frame(self.nb)
 
-        # Navegação v1.5.9: menu lateral só com grupos. Os submenus aparecem na tela inicial.
-        grupo_button(sidebar, '🏠  Início', 'Início', [
-            ('Dashboard', self.tab_inicio, 'Indicadores e atalhos principais do sistema.')
-        ], True).pack(fill='x', padx=12, pady=(2,6))
-        grupo_button(sidebar, '👥  Cadastros', 'Cadastros', [
-            ('Empresa', self.tab_empresa, 'Dados da empresa e identificação nos documentos.'),
-            ('Funcionários', self.tab_func, 'Cadastro, edição, importação e inativação.'),
-            ('Setores', self.tab_setores, 'Cadastro e organização por setores.'),
-            ('Jornadas', self.tab_jornadas, 'Horários, sábado compensado, DSR e 12x36.'),
-            ('Escalas', self.tab_escalas, 'Escalas de trabalho e revezamento.'),
-            ('Feriados', self.tab_feriados, 'Cadastro e consulta de feriados.')
-        ]).pack(fill='x', padx=12, pady=3)
-        grupo_button(sidebar, '🏖️  Férias', 'Férias', [
-            ('Gestão de Férias', self.tab_ferias, 'Cálculos, períodos, valores, documentos e histórico.'),
-            ('Ocorrências/Afastamentos', self.tab_ocorrencias, 'Lançamentos que refletem na folha de ponto.'),
-            ('Banco de Horas', self.tab_banco, 'Saldos e movimentações relacionados ao RH.'),
-            ('Agenda RH', self.tab_agenda, 'Retornos, vencimentos e lembretes do RH.')
-        ], True).pack(fill='x', padx=12, pady=6)
-        grupo_button(sidebar, '🕒  Folha de Ponto', 'Folha de Ponto', [
-            ('Gerar PDFs', self.tab_pdf, 'Gerar folhas individuais, por setor ou em lote.'),
-            ('Central PDFs', self.tab_central_pdfs, 'Histórico e consulta dos PDFs gerados.'),
-            ('Ocorrências', self.tab_ocorrencias, 'Férias, atestados, faltas e licenças.')
-        ]).pack(fill='x', padx=12, pady=3)
-        grupo_button(sidebar, '📄  Documentos', 'Documentos', [
-            ('Modelos e Documentos', self.tab_documentos, 'Modelos Word, contratos, declarações e termos.'),
-            ('EPIs', self.tab_epis, 'Entrega, validade e controle de EPIs.'),
-            ('Exames', self.tab_exames, 'ASO e exames ocupacionais.')
-        ]).pack(fill='x', padx=12, pady=3)
-        grupo_button(sidebar, '📊  Gestão', 'Gestão', [
-            ('Relatórios', self.tab_rel, 'Relatórios gerenciais do sistema.'),
-            ('Assistente', self.tab_assistente, 'Consulta inteligente e apoio ao RH.'),
-            ('Auditoria', self.tab_logs, 'Registro de ações e alterações.')
-        ]).pack(fill='x', padx=12, pady=3)
-        grupo_button(sidebar, '⚙️  Sistema', 'Sistema', [
-            ('Backup', self.tab_backup, 'Backup e restauração do banco de dados.'),
-            ('Usuários', self.tab_usuarios, 'Login, usuários e perfis de acesso.'),
-            ('Atualizador', self.tab_atualizador, 'Controle de versões e atualizações.'),
-            ('Modo Desenvolvedor', self.tab_dev, 'Diagnóstico, logs e testes técnicos.')
-        ]).pack(fill='x', padx=12, pady=3)
-        tk.Label(sidebar, text=f'Folha aprovada mantida\nsem alteração de layout.\n{APP_VERSION}', bg='#1f2937', fg='#d1d5db', font=('Arial',9), justify='left').pack(side='bottom', anchor='w', padx=18, pady=18)
-        self.build_inicio(); self.build_empresa(); self.build_func(); self.build_setores(); self.build_jornadas(); self.build_escalas(); self.build_feriados(); self.build_ocorrencias(); self.build_ferias(); self.build_banco_horas(); self.build_documentos(); self.build_epis(); self.build_exames(); self.build_agenda(); self.build_central_pdfs(); self.build_assistente(); self.build_pdf(); self.build_backup(); self.build_relatorios(); self.build_logs(); self.build_usuarios(); self.build_atualizador(); self.build_dev()
+        for frame, titulo in [
+            (self.tab_inicio,'Painel'), (self.tab_grupos,'Módulos'), (self.tab_empresa,'Empresa'),
+            (self.tab_func,'Funcionários'), (self.tab_setores,'Setores'), (self.tab_jornadas,'Jornadas'),
+            (self.tab_escalas,'Escalas'), (self.tab_feriados,'Feriados'), (self.tab_ocorrencias,'Ocorrências'),
+            (self.tab_ferias,'Férias'), (self.tab_banco,'Banco de Horas'), (self.tab_documentos,'Documentos'),
+            (self.tab_epis,'EPIs'), (self.tab_exames,'Exames'), (self.tab_agenda,'Agenda'),
+            (self.tab_central_pdfs,'Central PDFs'), (self.tab_assistente,'Assistente'), (self.tab_pdf,'Folha de Ponto'),
+            (self.tab_backup,'Backup'), (self.tab_rel,'Relatórios'), (self.tab_logs,'Auditoria'),
+            (self.tab_usuarios,'Usuários'), (self.tab_atualizador,'Atualizador'), (self.tab_dev,'Modo Desenvolvedor')
+        ]:
+            self.nb.add(frame, text=titulo)
+
+        # Mapa de grupos: clique no grupo lateral para exibir os submódulos na área principal.
+        self.grupos_menu = {
+            'Painel': [('Abrir painel inicial', 'Resumo geral do sistema', self.tab_inicio, '🏠')],
+            'Cadastros': [
+                ('Empresa', 'Dados da empresa e identificação', self.tab_empresa, '🏢'),
+                ('Funcionários', 'Cadastro, importação, status e consulta', self.tab_func, '👥'),
+                ('Setores', 'Criação e manutenção dos setores', self.tab_setores, '📂'),
+                ('Jornadas', 'Horários, sábado compensado, DSR e 12x36', self.tab_jornadas, '🕒'),
+                ('Escalas', 'Escalas de trabalho e revezamento', self.tab_escalas, '📅'),
+            ],
+            'Gestão de Pessoas': [
+                ('Férias', 'Programação, cálculos, documentos e histórico', self.tab_ferias, '🏖️'),
+                ('Ocorrências', 'Férias, atestados, faltas, licenças e afastamentos', self.tab_ocorrencias, '📌'),
+                ('Banco de Horas', 'Créditos, débitos e saldos', self.tab_banco, '⏱️'),
+                ('EPIs', 'Controle de entrega, CA e validade', self.tab_epis, '🦺'),
+                ('Exames', 'ASO, periódico, retorno e demissional', self.tab_exames, '🩺'),
+                ('Agenda RH', 'Compromissos, alertas e lembretes', self.tab_agenda, '🗓️'),
+            ],
+            'Controle de Jornada': [
+                ('Gerar Folhas de Ponto', 'PDF por funcionário, setor ou todos', self.tab_pdf, '🧾'),
+                ('Feriados', 'Consulta, importação e manutenção dos feriados', self.tab_feriados, '📆'),
+                ('Jornadas', 'Cadastro e regras de jornada', self.tab_jornadas, '🕒'),
+                ('Escalas', 'Escalas e revezamentos', self.tab_escalas, '📅'),
+            ],
+            'Documentos': [
+                ('Documentos Inteligentes', 'Modelos Word, campos automáticos e geração', self.tab_documentos, '📄'),
+                ('Central de PDFs', 'Histórico e arquivos emitidos', self.tab_central_pdfs, '🗂️'),
+                ('Assistente', 'Consultas rápidas e comandos internos', self.tab_assistente, '🤖'),
+            ],
+            'Relatórios': [
+                ('Relatórios', 'Relatórios gerenciais e exportações', self.tab_rel, '📊'),
+                ('Auditoria', 'Logs, ações e rastreabilidade', self.tab_logs, '🔎'),
+            ],
+            'Administração': [
+                ('Usuários', 'Login, perfis e permissões', self.tab_usuarios, '🔐'),
+                ('Backup', 'Cópias de segurança e restauração', self.tab_backup, '💾'),
+                ('Atualizador', 'Controle de versão e atualizações futuras', self.tab_atualizador, '⬆️'),
+            ],
+            'Ferramentas': [
+                ('Modo Desenvolvedor', 'Diagnóstico técnico e testes do sistema', self.tab_dev, '🛠️'),
+                ('Abrir pasta do projeto', 'Acessar diretório local do sistema', None, '📁', self.open_base),
+                ('Abrir pasta PDFs', 'Acessar folhas e documentos gerados', None, '📎', self.open_pdfs),
+            ]
+        }
+
+        sidebar_buttons=[
+            ('🏠 Painel', lambda: self.nb.select(self.tab_inicio)),
+            ('📁 Cadastros', lambda: self.show_group('Cadastros')),
+            ('👥 Gestão de Pessoas', lambda: self.show_group('Gestão de Pessoas')),
+            ('⏰ Controle de Jornada', lambda: self.show_group('Controle de Jornada')),
+            ('📄 Documentos', lambda: self.show_group('Documentos')),
+            ('📊 Relatórios', lambda: self.show_group('Relatórios')),
+            ('⚙ Administração', lambda: self.show_group('Administração')),
+            ('🛠 Ferramentas', lambda: self.show_group('Ferramentas')),
+        ]
+        for label, cmd in sidebar_buttons:
+            tk.Button(sidebar, text=label, anchor='w', bg='#1f2937', fg='white', activebackground='#374151',
+                      activeforeground='white', bd=0, padx=16, pady=12, font=('Arial',10,'bold'), command=cmd).pack(fill='x', padx=10, pady=3)
+
+        tk.Label(sidebar, text='Folha aprovada preservada\nJornadas/DSR estáveis', bg='#111827', fg='#d1d5db',
+                 font=('Arial',9), justify='left').pack(side='bottom', anchor='w', padx=18, pady=18)
+
+        self.build_inicio(); self.build_grupo_placeholder(); self.build_empresa(); self.build_func(); self.build_setores(); self.build_jornadas(); self.build_escalas(); self.build_feriados(); self.build_ocorrencias(); self.build_ferias(); self.build_banco_horas(); self.build_documentos(); self.build_epis(); self.build_exames(); self.build_agenda(); self.build_central_pdfs(); self.build_assistente(); self.build_pdf(); self.build_backup(); self.build_relatorios(); self.build_logs(); self.build_usuarios(); self.build_atualizador(); self.build_dev()
         self.nb.bind('<<NotebookTabChanged>>', self.on_tab_changed)
+
+    def build_grupo_placeholder(self):
+        self.grupo_container = ttk.Frame(self.tab_grupos)
+        self.grupo_container.pack(fill='both', expand=True)
+
+    def show_group(self, nome_grupo):
+        for child in self.grupo_container.winfo_children():
+            child.destroy()
+        header = ttk.Frame(self.grupo_container)
+        header.pack(fill='x', padx=24, pady=(22, 10))
+        ttk.Label(header, text=nome_grupo, style='Title.TLabel').pack(anchor='w')
+        ttk.Label(header, text='Selecione uma opção abaixo para abrir o módulo correspondente.', font=('Arial', 10)).pack(anchor='w', pady=(3,0))
+        grid = ttk.Frame(self.grupo_container)
+        grid.pack(fill='both', expand=True, padx=18, pady=10)
+        itens = self.grupos_menu.get(nome_grupo, [])
+        for idx, item in enumerate(itens):
+            titulo, desc, tab, icone = item[0], item[1], item[2], item[3]
+            comando_extra = item[4] if len(item) > 4 else None
+            self.make_submenu_card(grid, idx, titulo, desc, tab, icone, comando_extra)
+        for c in range(3):
+            grid.columnconfigure(c, weight=1)
+        self.nb.select(self.tab_grupos)
+
+    def make_submenu_card(self, parent, idx, titulo, desc, tab, icone='•', comando_extra=None):
+        r, ccol = divmod(idx, 3)
+        card = tk.Frame(parent, bg='white', highlightbackground='#d1d5db', highlightthickness=1, cursor='hand2')
+        card.grid(row=r, column=ccol, sticky='nsew', padx=10, pady=10, ipadx=8, ipady=8)
+        top = tk.Frame(card, bg='white')
+        top.pack(fill='x', padx=12, pady=(12,4))
+        tk.Label(top, text=icone, bg='white', fg='#111827', font=('Arial',22)).pack(side='left')
+        tk.Label(top, text=titulo, bg='white', fg='#111827', font=('Arial',13,'bold')).pack(side='left', padx=10)
+        tk.Label(card, text=desc, bg='white', fg='#4b5563', font=('Arial',10), wraplength=260, justify='left').pack(anchor='w', padx=14, pady=(2,12))
+        btn = ttk.Button(card, text='Abrir', command=(comando_extra if comando_extra else lambda t=tab: self.nb.select(t)))
+        btn.pack(anchor='e', padx=14, pady=(0,12))
+        def abrir(_event=None):
+            if comando_extra:
+                comando_extra()
+            elif tab is not None:
+                self.nb.select(tab)
+        for w in (card, top):
+            w.bind('<Double-Button-1>', abrir)
+            w.bind('<Button-1>', lambda e: None)
 
     def _abrir_pasta_generica(self, caminho):
         try:
@@ -1482,37 +1539,9 @@ class App(tk.Tk):
         except Exception as e:
             messagebox.showerror('Abrir pasta', str(e))
 
-    def mostrar_submenus(self, titulo, itens):
-        """Mostra os submenus do grupo na tela inicial, sem expandir setas no menu lateral."""
-        try:
-            self.nb.select(self.tab_inicio)
-            if hasattr(self, 'submenu_titulo'):
-                self.submenu_titulo.config(text=titulo)
-            if hasattr(self, 'submenu_desc'):
-                self.submenu_desc.config(text='Escolha uma opção abaixo para abrir o módulo desejado.')
-            if hasattr(self, 'submenu_grid'):
-                for w in self.submenu_grid.winfo_children():
-                    w.destroy()
-                for idx, item in enumerate(itens):
-                    if len(item) == 3:
-                        label, tab, desc = item
-                    else:
-                        label, tab = item
-                        desc = ''
-                    card = tk.Frame(self.submenu_grid, bg='white', highlightbackground='#d1d5db', highlightthickness=1)
-                    card.grid(row=idx//3, column=idx%3, sticky='nsew', padx=8, pady=8)
-                    tk.Label(card, text=label, bg='white', fg='#111827', font=('Arial', 12, 'bold')).pack(anchor='w', padx=14, pady=(12,4))
-                    tk.Label(card, text=desc, bg='white', fg='#4b5563', font=('Arial', 9), wraplength=230, justify='left').pack(anchor='w', padx=14, pady=(0,10))
-                    ttk.Button(card, text='Abrir', command=lambda t=tab:self.nb.select(t)).pack(anchor='e', padx=14, pady=(0,12))
-                for col in range(3):
-                    self.submenu_grid.columnconfigure(col, weight=1)
-        except Exception as e:
-            messagebox.showerror('Menu', f'Não foi possível abrir o grupo: {e}')
-
     def build_dev(self):
         contexto = {
             'APP_NAME': APP_NAME,
-            'APP_VERSION': APP_VERSION,
             'BASE_DIR': BASE_DIR,
             'DATA_DIR': DATA_DIR,
             'PDF_DIR': PDF_DIR,
@@ -1536,9 +1565,9 @@ class App(tk.Tk):
         except Exception:
             pass
 
-    def card(self, parent, title, value, col, row=1):
+    def card(self, parent, title, value, col):
         frame=tk.Frame(parent, bg='white', highlightbackground='#d1d5db', highlightthickness=1)
-        frame.grid(row=row, column=col, sticky='nsew', padx=8, pady=8)
+        frame.grid(row=1, column=col, sticky='nsew', padx=8, pady=8)
         tk.Label(frame, text=title, bg='white', fg='#4b5563', font=('Arial',10)).pack(anchor='w', padx=14, pady=(12,4))
         lab=tk.Label(frame, text=value, bg='white', fg='#111827', font=('Arial',20,'bold'))
         lab.pack(anchor='w', padx=14, pady=(0,12))
@@ -1554,42 +1583,26 @@ class App(tk.Tk):
                 ttk.Label(header, image=self.logo_inicio_img).pack(side='left', padx=(0,16))
         except Exception:
             pass
-        ttk.Label(header, text='Sistema RH Izzant', style='Title.TLabel').pack(side='left', anchor='center')
-        self.card_total=self.card(f,'Funcionários ativos','0',0,row=1)
-        self.card_mes=self.card(f,'Mês padrão',MESES[datetime.now().month-1],1,row=1)
-        self.card_pdf=self.card(f,'Último PDF','Nenhum',2,row=1)
-        self.card_backup=self.card(f,'Backups','0',3,row=1)
-        self.card_setores=self.card(f,'Setores','0',0,row=2)
-        self.card_jornadas=self.card(f,'Jornadas','0',1,row=2)
-        self.card_ocorrencias=self.card(f,'Ocorrências mês','0',2,row=2)
-        self.card_feriados=self.card(f,'Feriados','0',3,row=2)
+        ttk.Label(header, text='Sistema Gestão Izzant', style='Title.TLabel').pack(side='left', anchor='center')
+        self.card_total=self.card(f,'Funcionários ativos','0',0)
+        self.card_mes=self.card(f,'Mês padrão',MESES[datetime.now().month-1],1)
+        self.card_pdf=self.card(f,'Último PDF','Nenhum',2)
+        self.card_backup=self.card(f,'Backups','0',3)
+        self.card_setores=self.card(f,'Setores','0',0)
+        self.card_jornadas=self.card(f,'Jornadas','0',1)
+        self.card_ocorrencias=self.card(f,'Ocorrências mês','0',2)
+        self.card_feriados=self.card(f,'Feriados','0',3)
         actions=ttk.LabelFrame(f, text='Atalhos rápidos')
-        actions.grid(row=3,column=0,columnspan=4,sticky='ew',padx=20,pady=(18,8))
+        actions.grid(row=2,column=0,columnspan=4,sticky='ew',padx=20,pady=18)
         ttk.Button(actions, text='Cadastrar funcionário', command=lambda:(self.nb.select(self.tab_func), self.clear_func())).pack(side='left', padx=8, pady=12)
         ttk.Button(actions, text='Gerar PDF de todos', command=lambda:(self.nb.select(self.tab_pdf), self.gerar_pdf(True))).pack(side='left', padx=8, pady=12)
         ttk.Button(actions, text='Importar Excel', command=self.importar_excel).pack(side='left', padx=8, pady=12)
+        ttk.Button(actions, text='Baixar Modelo', command=self.baixar_modelo_importacao).pack(side='left', padx=8, pady=12)
         ttk.Button(actions, text='Backup agora', command=self.backup_now).pack(side='left', padx=8, pady=12)
-
-        submenu = ttk.LabelFrame(f, text='Menu do módulo')
-        submenu.grid(row=4,column=0,columnspan=4,sticky='nsew',padx=20,pady=8)
-        self.submenu_titulo = ttk.Label(submenu, text='Início', style='Title.TLabel')
-        self.submenu_titulo.grid(row=0,column=0,columnspan=3,sticky='w',padx=12,pady=(10,2))
-        self.submenu_desc = ttk.Label(submenu, text='Clique em um grupo no menu lateral para exibir as opções aqui.', font=('Arial',10))
-        self.submenu_desc.grid(row=1,column=0,columnspan=3,sticky='w',padx=12,pady=(0,6))
-        self.submenu_grid = ttk.Frame(submenu)
-        self.submenu_grid.grid(row=2,column=0,columnspan=3,sticky='nsew',padx=4,pady=(0,8))
-        submenu.columnconfigure(0, weight=1)
-        submenu.rowconfigure(2, weight=1)
-
         info=('Sistema local com salvamento automático em banco SQLite.\n'
               'Os PDFs são salvos automaticamente por ano e mês. A folha de ponto aprovada foi preservada. Férias são calculadas em dias corridos, sem prorrogação por feriados.')
-        ttk.Label(f, text=info, font=('Arial',10), justify='left').grid(row=5,column=0,columnspan=4,sticky='w',padx=20,pady=8)
+        ttk.Label(f, text=info, font=('Arial',11), justify='left').grid(row=3,column=0,columnspan=4,sticky='w',padx=20,pady=8)
         for c in range(4): f.columnconfigure(c, weight=1)
-        f.rowconfigure(4, weight=1)
-        try:
-            self.mostrar_submenus('Início', [('Dashboard', self.tab_inicio, 'Indicadores e atalhos principais do sistema.')])
-        except Exception:
-            pass
 
     def build_empresa(self):
         f=self.tab_empresa
@@ -2249,7 +2262,7 @@ class App(tk.Tk):
 
     def build_ferias(self):
         f=self.tab_ferias
-        ttk.Label(f,text='Gestão de Férias - Cálculos, Documentos e Histórico',style='Title.TLabel').grid(row=0,column=0,columnspan=8,sticky='w',padx=16,pady=16)
+        ttk.Label(f,text='Controle Completo de Férias - Cálculos, Histórico e Documentos',style='Title.TLabel').grid(row=0,column=0,columnspan=8,sticky='w',padx=16,pady=16)
         ttk.Label(f,text='Funcionário').grid(row=1,column=0,sticky='w',padx=12,pady=6)
         self.ferias_func_var=tk.StringVar()
         self.combo_ferias_func=ttk.Combobox(f,textvariable=self.ferias_func_var,width=65,state='readonly')
@@ -2299,15 +2312,15 @@ class App(tk.Tk):
 
         ttk.Label(f,text='Observação').grid(row=9,column=0,sticky='nw',padx=12,pady=6)
         self.fer_obs=tk.Text(f,height=3,wrap='word'); self.fer_obs.grid(row=9,column=1,columnspan=7,sticky='ew',padx=8,pady=6)
-        ttk.Button(f,text='Salvar',command=self.salvar_ferias).grid(row=10,column=1,sticky='ew',padx=6,pady=8)
-        ttk.Button(f,text='Cancelar',command=self.cancelar_ferias).grid(row=10,column=2,sticky='ew',padx=6,pady=8)
-        ttk.Button(f,text='Lançar na folha',command=self.gerar_ocorrencia_ferias).grid(row=10,column=3,sticky='ew',padx=6,pady=8)
-        ttk.Button(f,text='Aviso',command=lambda:self.gerar_documento_ferias('Aviso de Férias')).grid(row=10,column=4,sticky='ew',padx=6,pady=8)
-        ttk.Button(f,text='Recibo',command=lambda:self.gerar_documento_ferias('Recibo de Férias')).grid(row=10,column=5,sticky='ew',padx=6,pady=8)
-        ttk.Button(f,text='Comunicação',command=lambda:self.gerar_documento_ferias('Comunicação de Férias')).grid(row=10,column=6,sticky='ew',padx=6,pady=8)
-        ttk.Button(f,text='Concluir',command=self.concluir_ferias).grid(row=10,column=7,sticky='ew',padx=6,pady=8)
+        ttk.Button(f,text='Salvar férias',command=self.salvar_ferias).grid(row=10,column=1,sticky='ew',padx=8,pady=10)
+        ttk.Button(f,text='Cancelar férias selecionada',command=self.cancelar_ferias).grid(row=10,column=2,sticky='ew',padx=8,pady=10)
+        ttk.Button(f,text='Gerar ocorrência FÉRIAS na folha',command=self.gerar_ocorrencia_ferias).grid(row=10,column=3,sticky='ew',padx=8,pady=10)
+        ttk.Button(f,text='Gerar Aviso de Férias',command=lambda:self.gerar_documento_ferias('Aviso de Férias')).grid(row=10,column=4,sticky='ew',padx=8,pady=10)
+        ttk.Button(f,text='Gerar Recibo de Férias',command=lambda:self.gerar_documento_ferias('Recibo de Férias')).grid(row=10,column=5,sticky='ew',padx=8,pady=10)
+        ttk.Button(f,text='Gerar Comunicação/Termo',command=lambda:self.gerar_documento_ferias('Comunicação de Férias')).grid(row=10,column=6,sticky='ew',padx=8,pady=10)
+        ttk.Button(f,text='Concluir Férias',command=self.concluir_ferias).grid(row=10,column=7,sticky='ew',padx=8,pady=10)
         ttk.Button(f,text='Atualizar cálculo',command=self.calcular_ferias_tela).grid(row=12,column=6,sticky='ew',padx=8,pady=4)
-        ttk.Button(f,text='Abrir docs.',command=self.abrir_documentos_ferias).grid(row=12,column=7,sticky='ew',padx=6,pady=4)
+        ttk.Button(f,text='Abrir documentos de férias',command=self.abrir_documentos_ferias).grid(row=12,column=7,sticky='ew',padx=8,pady=4)
         self.fer_tree=ttk.Treeview(f,columns=('func','aq','conc','periodo','ret','dias','rest','total','status'),show='headings')
         for col,txt,w in [('func','Funcionário',210),('aq','Aquisitivo',160),('conc','Concessivo até',100),('periodo','Férias',165),('ret','Retorno',85),('dias','Dias',50),('rest','Rest.',50),('total','Total bruto',95),('status','Status',90)]:
             self.fer_tree.heading(col,text=txt); self.fer_tree.column(col,width=w)
@@ -2732,7 +2745,7 @@ class App(tk.Tk):
     def build_atualizador(self):
         f=self.tab_atualizador
         ttk.Label(f,text='Atualizador Automático',style='Title.TLabel').grid(row=0,column=0,columnspan=4,sticky='w',padx=16,pady=16)
-        texto=('Este módulo prepara o Sistema RH Izzant para atualizações futuras sem perder o banco de dados.\n\n'
+        texto=('Este módulo prepara o Sistema Gestão Izzant para atualizações futuras sem perder o banco de dados.\n\n'
                'Fluxo recomendado:\n1. Fazer backup antes de atualizar.\n2. Substituir somente os arquivos do programa.\n3. Manter a pasta dados intacta.\n4. Executar o sistema para aplicar migrações automáticas do banco.')
         ttk.Label(f,text=texto,justify='left',font=('Arial',11)).grid(row=1,column=0,columnspan=4,sticky='w',padx=16,pady=8)
         ttk.Button(f,text='Fazer backup antes de atualizar',command=self.backup_now).grid(row=2,column=0,sticky='ew',padx=12,pady=10)
@@ -2744,7 +2757,7 @@ class App(tk.Tk):
     def gerar_instrucoes_instalacao(self):
         path=os.path.join(BASE_DIR,'INSTALACAO_WINDOWS_EXE.txt')
         with open(path,'w',encoding='utf-8') as fp:
-            fp.write('Sistema RH Izzant - Instalação Windows\n\n')
+            fp.write('Sistema Gestão Izzant - Instalação Windows\n\n')
             fp.write('1. Extraia o pacote em uma pasta fixa.\n2. Execute INSTALAR_BIBLIOTECAS.bat uma vez.\n3. Use INICIAR_PROGRAMA.bat para abrir.\n4. Para gerar .exe, instale o PyInstaller e execute: pyinstaller --onefile --windowed app.py\n5. Preserve a pasta dados para manter o banco SQLite.\n')
         messagebox.showinfo('Instalação', 'Arquivo gerado:\n'+path)
 
