@@ -1,0 +1,16 @@
+Sistema RH Izzant - PATCH v1.5.8 Interface Compacta
+
+Como aplicar:
+1. Faça backup do app.py atual.
+2. Copie este app.py para a pasta do projeto.
+3. Substitua o app.py existente.
+4. Execute o sistema e confira a interface.
+5. Se estiver OK, faça commit na branch develop:
+   Ajuste interface compacta e menu Férias v1.5.8
+
+Alterações:
+- Menu lateral reduzido e agrupado por categorias.
+- Férias ficou como botão principal único no menu lateral.
+- Cadastros, Ponto/RH, Documentos, Gestão e Sistema viraram menus compactos.
+- Botões do módulo Férias foram encurtados para ocupar menos espaço.
+- Folha de ponto e regras de DSR/COMPENSADO não foram alteradas.

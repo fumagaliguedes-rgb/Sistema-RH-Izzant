@@ -22,7 +22,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 
 APP_NAME = 'Sistema RH Izzant'
-APP_VERSION = 'v1.5.7 Dashboard Estável'
+APP_VERSION = 'v1.5.8 Interface Compacta'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'dados')
 PDF_DIR = os.path.join(BASE_DIR, 'PDFs')
@@ -1416,8 +1416,45 @@ class App(tk.Tk):
         self.nb.add(self.tab_usuarios, text='Usuários')
         self.nb.add(self.tab_atualizador, text='Atualizador')
         self.nb.add(self.tab_dev, text='Modo Desenvolvedor')
-        for txt_btn, tab in [('Início',self.tab_inicio),('Empresa',self.tab_empresa),('Funcionários',self.tab_func),('Setores',self.tab_setores),('Jornadas',self.tab_jornadas),('Escalas',self.tab_escalas),('Feriados',self.tab_feriados),('Ocorrências',self.tab_ocorrencias),('Férias',self.tab_ferias),('Banco de Horas',self.tab_banco),('Documentos',self.tab_documentos),('EPIs',self.tab_epis),('Exames',self.tab_exames),('Agenda RH',self.tab_agenda),('Central PDFs',self.tab_central_pdfs),('Assistente',self.tab_assistente),('Gerar PDFs',self.tab_pdf),('Backup',self.tab_backup),('Relatórios',self.tab_rel),('Auditoria',self.tab_logs),('Usuários',self.tab_usuarios),('Atualizador',self.tab_atualizador),('Modo Desenvolvedor',self.tab_dev)]:
-            tk.Button(sidebar, text=txt_btn, anchor='w', bg='#374151', fg='white', activebackground='#4b5563', activeforeground='white', bd=0, padx=16, pady=10, command=lambda t=tab:self.nb.select(t)).pack(fill='x', padx=12, pady=4)
+        def nav_button(parent, text, tab, destaque=False):
+            bg = '#dc2626' if destaque else '#374151'
+            active = '#b91c1c' if destaque else '#4b5563'
+            return tk.Button(parent, text=text, anchor='w', bg=bg, fg='white', activebackground=active,
+                             activeforeground='white', bd=0, padx=14, pady=8,
+                             font=('Arial', 10, 'bold') if destaque else ('Arial', 10),
+                             command=lambda t=tab:self.nb.select(t))
+
+        def nav_menu(parent, text, itens):
+            mb = tk.Menubutton(parent, text=text + '  ▾', anchor='w', bg='#374151', fg='white',
+                               activebackground='#4b5563', activeforeground='white', bd=0,
+                               padx=14, pady=8, relief='flat', font=('Arial', 10))
+            menu = tk.Menu(mb, tearoff=0)
+            for label, tab in itens:
+                menu.add_command(label=label, command=lambda t=tab:self.nb.select(t))
+            mb.configure(menu=menu)
+            return mb
+
+        # Navegação compacta v1.5.8: poucos grupos visíveis e menos botões extensos.
+        nav_button(sidebar, '🏠  Início', self.tab_inicio, True).pack(fill='x', padx=12, pady=(2,6))
+        nav_menu(sidebar, '👥  Cadastros', [
+            ('Empresa', self.tab_empresa), ('Funcionários', self.tab_func), ('Setores', self.tab_setores),
+            ('Jornadas', self.tab_jornadas), ('Escalas', self.tab_escalas), ('Feriados', self.tab_feriados)
+        ]).pack(fill='x', padx=12, pady=3)
+        nav_button(sidebar, '🏖️  Férias', self.tab_ferias, True).pack(fill='x', padx=12, pady=6)
+        nav_menu(sidebar, '🕒  Ponto e RH', [
+            ('Ocorrências', self.tab_ocorrencias), ('Banco de Horas', self.tab_banco), ('Gerar PDFs', self.tab_pdf),
+            ('Central PDFs', self.tab_central_pdfs), ('Agenda RH', self.tab_agenda)
+        ]).pack(fill='x', padx=12, pady=3)
+        nav_menu(sidebar, '📄  Documentos', [
+            ('Documentos', self.tab_documentos), ('EPIs', self.tab_epis), ('Exames', self.tab_exames)
+        ]).pack(fill='x', padx=12, pady=3)
+        nav_menu(sidebar, '📊  Gestão', [
+            ('Relatórios', self.tab_rel), ('Assistente', self.tab_assistente), ('Auditoria', self.tab_logs)
+        ]).pack(fill='x', padx=12, pady=3)
+        nav_menu(sidebar, '⚙️  Sistema', [
+            ('Backup', self.tab_backup), ('Usuários', self.tab_usuarios), ('Atualizador', self.tab_atualizador),
+            ('Modo Desenvolvedor', self.tab_dev)
+        ]).pack(fill='x', padx=12, pady=3)
         tk.Label(sidebar, text=f'Folha aprovada mantida\nsem alteração de layout.\n{APP_VERSION}', bg='#1f2937', fg='#d1d5db', font=('Arial',9), justify='left').pack(side='bottom', anchor='w', padx=18, pady=18)
         self.build_inicio(); self.build_empresa(); self.build_func(); self.build_setores(); self.build_jornadas(); self.build_escalas(); self.build_feriados(); self.build_ocorrencias(); self.build_ferias(); self.build_banco_horas(); self.build_documentos(); self.build_epis(); self.build_exames(); self.build_agenda(); self.build_central_pdfs(); self.build_assistente(); self.build_pdf(); self.build_backup(); self.build_relatorios(); self.build_logs(); self.build_usuarios(); self.build_atualizador(); self.build_dev()
         self.nb.bind('<<NotebookTabChanged>>', self.on_tab_changed)
@@ -2153,7 +2190,7 @@ class App(tk.Tk):
 
     def build_ferias(self):
         f=self.tab_ferias
-        ttk.Label(f,text='Controle Completo de Férias - Cálculos, Histórico e Documentos',style='Title.TLabel').grid(row=0,column=0,columnspan=8,sticky='w',padx=16,pady=16)
+        ttk.Label(f,text='Gestão de Férias - Cálculos, Documentos e Histórico',style='Title.TLabel').grid(row=0,column=0,columnspan=8,sticky='w',padx=16,pady=16)
         ttk.Label(f,text='Funcionário').grid(row=1,column=0,sticky='w',padx=12,pady=6)
         self.ferias_func_var=tk.StringVar()
         self.combo_ferias_func=ttk.Combobox(f,textvariable=self.ferias_func_var,width=65,state='readonly')
@@ -2203,15 +2240,15 @@ class App(tk.Tk):
 
         ttk.Label(f,text='Observação').grid(row=9,column=0,sticky='nw',padx=12,pady=6)
         self.fer_obs=tk.Text(f,height=3,wrap='word'); self.fer_obs.grid(row=9,column=1,columnspan=7,sticky='ew',padx=8,pady=6)
-        ttk.Button(f,text='Salvar férias',command=self.salvar_ferias).grid(row=10,column=1,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Cancelar férias selecionada',command=self.cancelar_ferias).grid(row=10,column=2,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Gerar ocorrência FÉRIAS na folha',command=self.gerar_ocorrencia_ferias).grid(row=10,column=3,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Gerar Aviso de Férias',command=lambda:self.gerar_documento_ferias('Aviso de Férias')).grid(row=10,column=4,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Gerar Recibo de Férias',command=lambda:self.gerar_documento_ferias('Recibo de Férias')).grid(row=10,column=5,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Gerar Comunicação/Termo',command=lambda:self.gerar_documento_ferias('Comunicação de Férias')).grid(row=10,column=6,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Concluir Férias',command=self.concluir_ferias).grid(row=10,column=7,sticky='ew',padx=8,pady=10)
+        ttk.Button(f,text='Salvar',command=self.salvar_ferias).grid(row=10,column=1,sticky='ew',padx=6,pady=8)
+        ttk.Button(f,text='Cancelar',command=self.cancelar_ferias).grid(row=10,column=2,sticky='ew',padx=6,pady=8)
+        ttk.Button(f,text='Lançar na folha',command=self.gerar_ocorrencia_ferias).grid(row=10,column=3,sticky='ew',padx=6,pady=8)
+        ttk.Button(f,text='Aviso',command=lambda:self.gerar_documento_ferias('Aviso de Férias')).grid(row=10,column=4,sticky='ew',padx=6,pady=8)
+        ttk.Button(f,text='Recibo',command=lambda:self.gerar_documento_ferias('Recibo de Férias')).grid(row=10,column=5,sticky='ew',padx=6,pady=8)
+        ttk.Button(f,text='Comunicação',command=lambda:self.gerar_documento_ferias('Comunicação de Férias')).grid(row=10,column=6,sticky='ew',padx=6,pady=8)
+        ttk.Button(f,text='Concluir',command=self.concluir_ferias).grid(row=10,column=7,sticky='ew',padx=6,pady=8)
         ttk.Button(f,text='Atualizar cálculo',command=self.calcular_ferias_tela).grid(row=12,column=6,sticky='ew',padx=8,pady=4)
-        ttk.Button(f,text='Abrir documentos de férias',command=self.abrir_documentos_ferias).grid(row=12,column=7,sticky='ew',padx=8,pady=4)
+        ttk.Button(f,text='Abrir docs.',command=self.abrir_documentos_ferias).grid(row=12,column=7,sticky='ew',padx=6,pady=4)
         self.fer_tree=ttk.Treeview(f,columns=('func','aq','conc','periodo','ret','dias','rest','total','status'),show='headings')
         for col,txt,w in [('func','Funcionário',210),('aq','Aquisitivo',160),('conc','Concessivo até',100),('periodo','Férias',165),('ret','Retorno',85),('dias','Dias',50),('rest','Rest.',50),('total','Total bruto',95),('status','Status',90)]:
             self.fer_tree.heading(col,text=txt); self.fer_tree.column(col,width=w)
