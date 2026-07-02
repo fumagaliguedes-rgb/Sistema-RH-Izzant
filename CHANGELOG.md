@@ -1,15 +1,9 @@
 # Changelog
 
-## v1.7.2 - Correção do PDF de férias
-- Redesenhado o PDF de férias com posições fixas.
-- Corrigido o posicionamento dos lançamentos contábeis no aviso de férias.
-- Separados corretamente proventos, descontos e líquido.
-- Ajustado recibo inferior para seguir melhor o modelo enviado.
-- Preservada a interface atual e as regras já aprovadas.
-
-## v1.7.1
-- Melhorada a interface do módulo Férias.
-- Criadas abas mais claras para Programação/Cálculos, Documentos, Histórico e Calendário.
-- Aumentada a visualização do histórico de férias e documentos gerados.
-- PDF de férias ajustado para seguir o modelo de Aviso e Recibo enviado pelo usuário.
-- Incluída marca d'água da Izzant no PDF quando a logo estiver disponível em assets.
+## v1.7.4 - Férias simples e PDF reposicionado
+- Simplificada a tela de programação de férias.
+- Adicionado botão direto para gerar PDF de férias na programação.
+- Ocultado o quadro de cálculos financeiros da tela principal, mantendo os cálculos internos.
+- Refeito o PDF de Aviso + Recibo de Férias com campos e lançamentos em posições fixas.
+- Corrigida a separação visual entre proventos, descontos, líquido, comunicação, extenso e assinaturas.
+- Preservada a interface moderna e a lógica estável da folha de ponto.

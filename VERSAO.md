@@ -1,9 +1,11 @@
 # Sistema Gestão Izzant
 
-Versão: v1.7.2
+Versão: v1.7.4
 
 ## Correção
-- PDF de férias redesenhado no padrão oficial de Aviso + Recibo.
-- Lançamentos, proventos, descontos e líquido posicionados em áreas fixas.
-- Correção de sobreposição/lançamentos em locais errados no arquivo gerado.
-- Mantida marca d'água da empresa quando houver logo em assets/izzant_logo.png.
+- Módulo Férias simplificado na aba de programação.
+- Cálculos financeiros continuam automáticos, mas deixam de poluir a tela.
+- PDF de Aviso + Recibo de Férias redesenhado com tabela fixa de lançamentos.
+- Mantida a interface moderna validada nas versões anteriores.
+
+Branch recomendada: develop
