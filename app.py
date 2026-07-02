@@ -460,7 +460,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v4.3 Folha Premium', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v5.0 Folha DP', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1422,7 +1422,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v4.3 Folha Premium')
+        self.title(APP_NAME + ' - Enterprise v5.0 Folha DP')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -4085,7 +4085,7 @@ class App(tk.Tk):
         # Módulo de folha com competências, lançamentos, eventos, cálculo e holerites.
         frame = self.tab_folha
         frame.columnconfigure(0, weight=1)
-        frame.rowconfigure(1, weight=1)
+        frame.rowconfigure(2, weight=1)
 
         top = ttk.LabelFrame(frame, text='Painel da competência da folha')
         top.grid(row=0, column=0, sticky='ew', padx=14, pady=10)
@@ -4104,18 +4104,28 @@ class App(tk.Tk):
         ttk.Button(top, text='💰 Relatório líquidos', command=self.gerar_relatorio_liquidos_folha).grid(row=0, column=8, sticky='ew', padx=6, pady=8)
         ttk.Button(top, text='📂 Abrir pasta', command=lambda:self._open(os.path.join(PDF_DIR, 'folha_pagamento'))).grid(row=0, column=9, sticky='ew', padx=6, pady=8)
 
+        fluxo = ttk.LabelFrame(frame, text='Fluxo de trabalho da folha')
+        fluxo.grid(row=1, column=0, sticky='ew', padx=14, pady=(0,10))
+        for c in range(5):
+            fluxo.columnconfigure(c, weight=1)
+        ttk.Button(fluxo, text='1. Gerar Folha', command=lambda: self.folha_nb.select(self.folha_tab_resumo)).grid(row=0, column=0, sticky='ew', padx=6, pady=8)
+        ttk.Button(fluxo, text='2. Lançamentos', command=lambda: self.folha_nb.select(self.folha_tab_lanc)).grid(row=0, column=1, sticky='ew', padx=6, pady=8)
+        ttk.Button(fluxo, text='3. Holerites', command=lambda: self.folha_nb.select(self.folha_tab_holerites)).grid(row=0, column=2, sticky='ew', padx=6, pady=8)
+        ttk.Button(fluxo, text='4. Relatórios', command=lambda: self.folha_nb.select(self.folha_tab_relatorios)).grid(row=0, column=3, sticky='ew', padx=6, pady=8)
+        ttk.Button(fluxo, text='5. Eventos', command=lambda: self.folha_nb.select(self.folha_tab_eventos)).grid(row=0, column=4, sticky='ew', padx=6, pady=8)
+
         self.folha_nb = ttk.Notebook(frame)
-        self.folha_nb.grid(row=1, column=0, sticky='nsew', padx=14, pady=(0,12))
+        self.folha_nb.grid(row=2, column=0, sticky='nsew', padx=14, pady=(0,12))
         self.folha_tab_resumo = ttk.Frame(self.folha_nb)
         self.folha_tab_lanc = ttk.Frame(self.folha_nb)
         self.folha_tab_holerites = ttk.Frame(self.folha_nb)
         self.folha_tab_relatorios = ttk.Frame(self.folha_nb)
         self.folha_tab_eventos = ttk.Frame(self.folha_nb)
-        self.folha_nb.add(self.folha_tab_resumo, text='📌 Painel da Folha')
-        self.folha_nb.add(self.folha_tab_lanc, text='➕ Menu Lançamentos')
-        self.folha_nb.add(self.folha_tab_holerites, text='🖨 Gerar Holerites')
-        self.folha_nb.add(self.folha_tab_relatorios, text='📊 Relatórios da Folha')
-        self.folha_nb.add(self.folha_tab_eventos, text='⚙️ Eventos')
+        self.folha_nb.add(self.folha_tab_resumo, text='1. Gerar Folha')
+        self.folha_nb.add(self.folha_tab_lanc, text='2. Lançamentos')
+        self.folha_nb.add(self.folha_tab_holerites, text='3. Holerites')
+        self.folha_nb.add(self.folha_tab_relatorios, text='4. Relatórios')
+        self.folha_nb.add(self.folha_tab_eventos, text='5. Eventos')
 
         self._build_folha_resumo_tab()
         self._build_folha_lancamentos_tab()
@@ -4134,7 +4144,7 @@ class App(tk.Tk):
         painel.grid(row=0, column=0, columnspan=2, sticky='ew', padx=8, pady=8)
         for c in range(8): painel.columnconfigure(c, weight=1)
         self.folha_mostrar_lista = tk.IntVar(value=0)
-        ttk.Label(painel, text='Painel da competência: gere a folha, confira resultados, filtre por funcionário/setor/função e emita relatórios sem carregar todos os funcionários na tela.').grid(row=0, column=0, columnspan=8, sticky='w', padx=8, pady=(6,2))
+        ttk.Label(painel, text='Gerar Folha: selecione a competência no topo, gere a folha, confira totais e depois siga para Lançamentos, Holerites e Relatórios.').grid(row=0, column=0, columnspan=8, sticky='w', padx=8, pady=(6,2))
         ttk.Checkbutton(painel, text='Mostrar funcionários na tela', variable=self.folha_mostrar_lista, command=self.carregar_folha_preview).grid(row=1, column=0, sticky='w', padx=8, pady=6)
         ttk.Label(painel, text='Filtro').grid(row=1, column=1, sticky='e', padx=6, pady=6)
         self.folha_filtro_tipo = tk.StringVar(value='Todos')
@@ -4145,6 +4155,9 @@ class App(tk.Tk):
         ttk.Button(painel, text='Atualizar filtros', command=self.atualizar_filtros_resumo_folha).grid(row=1, column=5, sticky='ew', padx=6, pady=6)
         ttk.Button(painel, text='Ver folha gerada', command=self.carregar_folha_preview).grid(row=1, column=6, sticky='ew', padx=6, pady=6)
         ttk.Button(painel, text='Relatório líquidos', command=self.gerar_relatorio_liquidos_folha).grid(row=1, column=7, sticky='ew', padx=6, pady=6)
+        ttk.Button(painel, text='Ir para lançamentos', command=lambda: self.folha_nb.select(self.folha_tab_lanc)).grid(row=2, column=0, columnspan=2, sticky='ew', padx=8, pady=(0,6))
+        ttk.Button(painel, text='Ir para holerites', command=lambda: self.folha_nb.select(self.folha_tab_holerites)).grid(row=2, column=2, columnspan=2, sticky='ew', padx=8, pady=(0,6))
+        ttk.Button(painel, text='Ir para relatórios', command=lambda: self.folha_nb.select(self.folha_tab_relatorios)).grid(row=2, column=4, columnspan=2, sticky='ew', padx=8, pady=(0,6))
 
         self.folha_tree = ttk.Treeview(f, columns=('id','nome','setor','funcao','salario','prov','desc','liq','status'), show='headings', height=14)
         cols=[('id','ID',55),('nome','Funcionário',260),('setor','Setor',120),('funcao','Função',150),('salario','Salário',100),('prov','Proventos',110),('desc','Descontos',110),('liq','Líquido',110),('status','Status',110)]
@@ -4161,7 +4174,7 @@ class App(tk.Tk):
     def _build_folha_lancamentos_tab(self):
         f = self.folha_tab_lanc
         f.columnconfigure(0, weight=1); f.rowconfigure(1, weight=1)
-        form = ttk.LabelFrame(f, text='Menu de Lançamentos - individual, setor, função ou todos')
+        form = ttk.LabelFrame(f, text='Lançamentos variáveis da competência - individual, lote por setor/função ou todos')
         form.grid(row=0, column=0, sticky='ew', padx=8, pady=8)
         for c in range(10): form.columnconfigure(c, weight=1)
         ttk.Label(form, text='Evento').grid(row=0, column=0, sticky='w', padx=6, pady=5)
@@ -4173,12 +4186,12 @@ class App(tk.Tk):
         ttk.Entry(form, textvariable=self.folha_lanc_ref).grid(row=0, column=6, sticky='ew', padx=6, pady=5)
 
         ttk.Label(form, text='Modo de cálculo').grid(row=1, column=0, sticky='w', padx=6, pady=5)
-        self.folha_lanc_forma = tk.StringVar(value='Valor fixo R$')
+        self.folha_lanc_forma = tk.StringVar(value='Valor informado (R$)')
         ttk.Combobox(form, textvariable=self.folha_lanc_forma, values=['Valor informado (R$)','Percentual sobre salário base','Percentual sobre proventos atuais','Automático do evento'], state='readonly', width=20).grid(row=1, column=1, columnspan=2, sticky='ew', padx=6, pady=5)
         ttk.Label(form, text='Valor / Percentual').grid(row=1, column=3, sticky='w', padx=6, pady=5)
         self.folha_lanc_valor = tk.StringVar()
         ttk.Entry(form, textvariable=self.folha_lanc_valor).grid(row=1, column=4, sticky='ew', padx=6, pady=5)
-        ttk.Label(form, text='Informe valor em R$ ou percentual. Ex.: 212,00 ou 10 para 10%. Eventos automáticos usam a referência/quantidade.').grid(row=1, column=5, columnspan=2, sticky='w', padx=6, pady=5)
+        ttk.Label(form, text='Escolha Valor, Percentual sobre salário ou Percentual sobre proventos. O valor calculado será gravado no lançamento.').grid(row=1, column=5, columnspan=2, sticky='w', padx=6, pady=5)
 
         ttk.Label(form, text='Aplicar para').grid(row=2, column=0, sticky='w', padx=6, pady=5)
         self.folha_aplicar_tipo = tk.StringVar(value='Funcionário')
@@ -4189,11 +4202,12 @@ class App(tk.Tk):
         self.folha_alvo_combo.grid(row=2, column=3, columnspan=3, sticky='ew', padx=6, pady=5)
         ttk.Button(form, text='Atualizar alvos', command=self.atualizar_alvos_folha).grid(row=2, column=6, sticky='ew', padx=6, pady=5)
         ttk.Button(form, text='✅ Aplicar lançamento', command=self.aplicar_lancamento_folha).grid(row=2, column=7, sticky='ew', padx=6, pady=5)
-        ttk.Button(form, text='🗑 Excluir selecionado', command=self.excluir_lancamento_folha).grid(row=2, column=8, columnspan=2, sticky='ew', padx=6, pady=5)
+        ttk.Button(form, text='🗑 Excluir selecionado', command=self.excluir_lancamento_folha).grid(row=2, column=8, sticky='ew', padx=6, pady=5)
+        ttk.Button(form, text='🧹 Excluir evento do alvo', command=self.excluir_lancamentos_evento_alvo_folha).grid(row=2, column=9, sticky='ew', padx=6, pady=5)
         lista = ttk.LabelFrame(f, text='Lançamentos aplicados na competência atual')
         lista.grid(row=1, column=0, sticky='nsew', padx=8, pady=(0,8))
         lista.columnconfigure(0, weight=1); lista.rowconfigure(0, weight=1)
-        self.folha_lanc_tree = ttk.Treeview(lista, columns=('id','func','codigo','desc','ref','tipo','valor','origem'), show='headings', height=14)
+        self.folha_lanc_tree = ttk.Treeview(lista, columns=('id','func','codigo','desc','ref','tipo','valor','origem'), show='headings', height=14, selectmode='extended')
         for col, txt, w in [('id','ID',55),('func','Funcionário',230),('codigo','Código',70),('desc','Descrição',220),('ref','Ref.',80),('tipo','Tipo',90),('valor','Valor',100),('origem','Origem',100)]:
             self.folha_lanc_tree.heading(col, text=txt); self.folha_lanc_tree.column(col, width=w, minwidth=50)
         self.folha_lanc_tree.grid(row=0, column=0, sticky='nsew')
@@ -4566,6 +4580,34 @@ class App(tk.Tk):
             for iid in sel: db.execute('UPDATE folha_lancamentos SET ativo=0 WHERE id=?',(int(iid),))
         self.carregar_folha_lancamentos(); self.carregar_folha_preview()
 
+    def excluir_lancamentos_evento_alvo_folha(self):
+        """Exclui, em lote, o evento selecionado para o alvo atual (funcionário, setor, função ou todos).
+        Mantém apenas lançamentos manuais/percentuais e preserva cálculos automáticos.
+        """
+        evento = self._folha_evento_selecionado()
+        if not evento:
+            messagebox.showwarning('Folha', 'Selecione o evento que deseja excluir.'); return
+        funcs = self._folha_funcionarios_por_alvo()
+        if not funcs:
+            messagebox.showwarning('Folha', 'Nenhum funcionário encontrado para o alvo selecionado.'); return
+        cod = evento[0]
+        nomes = ', '.join([f.get('nome','') for f in funcs[:3]])
+        if len(funcs) > 3:
+            nomes += f' e mais {len(funcs)-3}'
+        if not messagebox.askyesno('Confirmar exclusão', f'Excluir o evento {cod} para {len(funcs)} funcionário(s)?\n{nomes}'):
+            return
+        comp_id = self._folha_get_competencia_id()
+        ids = [int(f['id']) for f in funcs]
+        qtd = 0
+        with con() as db:
+            for fid in ids:
+                cur = db.execute('''UPDATE folha_lancamentos SET ativo=0
+                                    WHERE competencia_id=? AND funcionario_id=? AND codigo=? AND ativo=1
+                                    AND COALESCE(origem,'') LIKE 'Manual%' ''', (comp_id, fid, cod))
+                qtd += cur.rowcount if cur.rowcount is not None else 0
+        self.carregar_folha_lancamentos(); self.carregar_folha_preview(); self.carregar_holerites_funcionarios()
+        messagebox.showinfo('Folha', f'{qtd} lançamento(s) excluído(s).')
+
     def _folha_calcular_funcionario(self, f):
         salario=float(f.get('salario') or 0); proventos=[('10000','Salário mensalista','30',salario,'Cálculo automático')]; descontos=[]
         comp_id = self._folha_get_competencia_id() if hasattr(self,'folha_mes') else None
@@ -4621,7 +4663,7 @@ class App(tk.Tk):
                 for cod,desc,ref,val,origem in des:
                     if origem != 'Cálculo automático': continue
                     db.execute('INSERT INTO folha_lancamentos(competencia_id,funcionario_id,codigo,descricao,referencia,tipo,valor,origem,ativo) VALUES(?,?,?,?,?,?,?,?,1)', (comp_id, f['id'], cod, desc, ref, 'Desconto', val, origem))
-        self.carregar_folha_preview(); self.carregar_folha_lancamentos(); messagebox.showinfo('Folha de Pagamento','Folha calculada para a competência selecionada, preservando lançamentos manuais.')
+        self.carregar_folha_preview(); self.carregar_folha_lancamentos(); self.carregar_holerites_funcionarios(); messagebox.showinfo('Folha de Pagamento','Folha gerada para a competência selecionada. Lançamentos manuais foram preservados. Agora confira em Holerites ou Relatórios.')
 
     def _gerar_holerite_pdf(self, f, destino):
         # Gera holerite no modelo SCI: 2 vias por folha A4.
