@@ -290,6 +290,31 @@ def init_db():
             FOREIGN KEY(competencia_id) REFERENCES folha_competencias(id),
             FOREIGN KEY(funcionario_id) REFERENCES funcionarios(id))''')
 
+        db.execute('''CREATE TABLE IF NOT EXISTS folha_eventos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, codigo TEXT UNIQUE NOT NULL, descricao TEXT NOT NULL,
+            tipo TEXT NOT NULL DEFAULT 'Provento', referencia_padrao TEXT, valor_padrao REAL DEFAULT 0,
+            incide_inss INTEGER DEFAULT 1, incide_fgts INTEGER DEFAULT 1, incide_irrf INTEGER DEFAULT 1,
+            formula TEXT, ativo INTEGER DEFAULT 1)''')
+        _eventos_padrao = [
+            ('10000','Salário mensalista','Provento','30',0,1,1,1,'SALARIO'),
+            ('00603','Horas extras 50%','Provento','Horas',0,1,1,1,'HE50'),
+            ('00604','Horas extras 100%','Provento','Horas',0,1,1,1,'HE100'),
+            ('00541','DSR horas extras','Provento','Valor',0,1,1,1,'VALOR'),
+            ('00203','Adicional insalubridade','Provento','Valor',0,1,1,1,'VALOR'),
+            ('00204','Adicional periculosidade','Provento','Valor',0,1,1,1,'VALOR'),
+            ('00309','Assiduidade','Provento','Valor',0,1,1,1,'VALOR'),
+            ('095005','Salário família','Provento','Qtd',0,0,0,0,'VALOR'),
+            ('00826','Desc Vale alimentação','Desconto','Valor',0,0,0,0,'VALOR'),
+            ('00827','Desc Vale transporte','Desconto','Valor',0,0,0,0,'VALOR'),
+            ('00953','Adiantamento salarial','Desconto','Valor',0,0,0,0,'VALOR'),
+            ('03055','Pensão alimentícia','Desconto','Valor',0,0,0,0,'VALOR'),
+            ('091005','INSS','Desconto','%',0,0,0,0,'AUTO'),
+            ('091505','IRRF','Desconto','%',0,0,0,0,'AUTO')
+        ]
+        for _ev in _eventos_padrao:
+            db.execute('''INSERT OR IGNORE INTO folha_eventos(codigo,descricao,tipo,referencia_padrao,valor_padrao,incide_inss,incide_fgts,incide_irrf,formula,ativo)
+                          VALUES(?,?,?,?,?,?,?,?,?,1)''', _ev)
+
         # Migração V1.3.7: campos financeiros e de saldo no módulo Férias.
         cols_ferias = [r[1] for r in db.execute('PRAGMA table_info(ferias_controle)').fetchall()]
         for _col, _sql in {
@@ -435,7 +460,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v3.4 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v3.6 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1397,7 +1422,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v3.5 Holerite SCI')
+        self.title(APP_NAME + ' - Enterprise v3.6 Folha')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -4055,39 +4080,136 @@ class App(tk.Tk):
         self.ai_text.delete('1.0','end'); self.ai_text.insert('end','\n'.join(out))
 
 
+
     def build_folha_pagamento(self):
-        """Módulo inicial de folha de pagamento: competência, cálculo simples e holerite PDF."""
+        # Módulo de folha com competências, lançamentos, eventos, cálculo e holerites.
         frame = self.tab_folha
         frame.columnconfigure(0, weight=1)
         frame.rowconfigure(1, weight=1)
 
         top = ttk.LabelFrame(frame, text='Competência da folha')
-        top.grid(row=0, column=0, sticky='ew', padx=14, pady=12)
-        for c in range(10): top.columnconfigure(c, weight=1)
+        top.grid(row=0, column=0, sticky='ew', padx=14, pady=10)
+        for c in range(10):
+            top.columnconfigure(c, weight=1)
         ttk.Label(top, text='Mês').grid(row=0, column=0, sticky='w', padx=6, pady=8)
         self.folha_mes = tk.IntVar(value=datetime.now().month)
         ttk.Combobox(top, textvariable=self.folha_mes, values=list(range(1,13)), state='readonly', width=8).grid(row=0, column=1, sticky='ew', padx=6, pady=8)
         ttk.Label(top, text='Ano').grid(row=0, column=2, sticky='w', padx=6, pady=8)
         self.folha_ano = tk.IntVar(value=datetime.now().year)
         ttk.Entry(top, textvariable=self.folha_ano, width=10).grid(row=0, column=3, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Carregar funcionários', command=self.carregar_folha_preview).grid(row=0, column=4, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='Atualizar', command=self.carregar_folha_preview).grid(row=0, column=4, sticky='ew', padx=6, pady=8)
         ttk.Button(top, text='Calcular folha', command=self.calcular_folha_competencia).grid(row=0, column=5, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Gerar holerite selecionado', command=self.gerar_holerite_selecionado).grid(row=0, column=6, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Gerar holerites todos', command=self.gerar_holerites_folha).grid(row=0, column=7, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='Holerite selecionado', command=self.gerar_holerite_selecionado).grid(row=0, column=6, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='Holerites todos', command=self.gerar_holerites_folha).grid(row=0, column=7, sticky='ew', padx=6, pady=8)
         ttk.Button(top, text='Abrir pasta', command=lambda:self._open(os.path.join(PDF_DIR, 'folha_pagamento'))).grid(row=0, column=8, sticky='ew', padx=6, pady=8)
 
-        info = ttk.LabelFrame(frame, text='Resumo')
-        info.grid(row=1, column=0, sticky='nsew', padx=14, pady=(0,12))
-        info.columnconfigure(0, weight=1); info.rowconfigure(0, weight=1)
-        self.folha_tree = ttk.Treeview(info, columns=('id','nome','salario','prov','desc','liq','status'), show='headings', height=20)
-        cols=[('id','ID',55),('nome','Funcionário',300),('salario','Salário',110),('prov','Proventos',120),('desc','Descontos',120),('liq','Líquido',120),('status','Status',120)]
-        for col,txt,w in cols:
-            self.folha_tree.heading(col, text=txt); self.folha_tree.column(col, width=w, minwidth=60)
-        self.folha_tree.grid(row=0, column=0, sticky='nsew')
-        ttk.Scrollbar(info, orient='vertical', command=self.folha_tree.yview).grid(row=0, column=1, sticky='ns')
-        self.folha_tree.configure(yscrollcommand=lambda *a: None)
-        ttk.Label(frame, text='Base inicial da Folha: salário base + integração futura de férias/ocorrências + INSS/IRRF. Os holerites são salvos em PDFs/folha_pagamento.', font=('Arial',9)).grid(row=2, column=0, sticky='w', padx=14, pady=(0,8))
+        self.folha_nb = ttk.Notebook(frame)
+        self.folha_nb.grid(row=1, column=0, sticky='nsew', padx=14, pady=(0,12))
+        self.folha_tab_resumo = ttk.Frame(self.folha_nb)
+        self.folha_tab_lanc = ttk.Frame(self.folha_nb)
+        self.folha_tab_eventos = ttk.Frame(self.folha_nb)
+        self.folha_tab_holerites = ttk.Frame(self.folha_nb)
+        self.folha_nb.add(self.folha_tab_resumo, text='Resumo')
+        self.folha_nb.add(self.folha_tab_lanc, text='Lançamentos')
+        self.folha_nb.add(self.folha_tab_eventos, text='Eventos')
+        self.folha_nb.add(self.folha_tab_holerites, text='Holerites')
+
+        self._build_folha_resumo_tab()
+        self._build_folha_lancamentos_tab()
+        self._build_folha_eventos_tab()
+        self._build_folha_holerites_tab()
         self.carregar_folha_preview()
+        self.carregar_folha_lancamentos()
+        self.carregar_folha_eventos()
+
+    def _build_folha_resumo_tab(self):
+        f = self.folha_tab_resumo
+        f.columnconfigure(0, weight=1); f.rowconfigure(0, weight=1)
+        self.folha_tree = ttk.Treeview(f, columns=('id','nome','setor','funcao','salario','prov','desc','liq','status'), show='headings', height=18)
+        cols=[('id','ID',55),('nome','Funcionário',260),('setor','Setor',120),('funcao','Função',150),('salario','Salário',100),('prov','Proventos',110),('desc','Descontos',110),('liq','Líquido',110),('status','Status',110)]
+        for col,txt,w in cols:
+            self.folha_tree.heading(col, text=txt); self.folha_tree.column(col, width=w, minwidth=50)
+        self.folha_tree.grid(row=0, column=0, sticky='nsew')
+        sb = ttk.Scrollbar(f, orient='vertical', command=self.folha_tree.yview)
+        sb.grid(row=0, column=1, sticky='ns')
+        self.folha_tree.configure(yscrollcommand=sb.set)
+        ttk.Label(f, text='Resumo da competência com lançamentos automáticos e manuais. Os valores manuais podem ser aplicados por funcionário, setor, função ou todos.', font=('Arial',9)).grid(row=1, column=0, sticky='w', padx=4, pady=6)
+
+    def _build_folha_lancamentos_tab(self):
+        f = self.folha_tab_lanc
+        f.columnconfigure(0, weight=1); f.rowconfigure(1, weight=1)
+        form = ttk.LabelFrame(f, text='Novo lançamento da competência')
+        form.grid(row=0, column=0, sticky='ew', padx=8, pady=8)
+        for c in range(8): form.columnconfigure(c, weight=1)
+        ttk.Label(form, text='Evento').grid(row=0, column=0, sticky='w', padx=6, pady=5)
+        self.folha_evento_var = tk.StringVar()
+        self.folha_evento_combo = ttk.Combobox(form, textvariable=self.folha_evento_var, state='readonly')
+        self.folha_evento_combo.grid(row=0, column=1, columnspan=3, sticky='ew', padx=6, pady=5)
+        ttk.Label(form, text='Quantidade/Ref.').grid(row=0, column=4, sticky='w', padx=6, pady=5)
+        self.folha_lanc_ref = tk.StringVar()
+        ttk.Entry(form, textvariable=self.folha_lanc_ref).grid(row=0, column=5, sticky='ew', padx=6, pady=5)
+        ttk.Label(form, text='Valor').grid(row=0, column=6, sticky='w', padx=6, pady=5)
+        self.folha_lanc_valor = tk.StringVar()
+        ttk.Entry(form, textvariable=self.folha_lanc_valor).grid(row=0, column=7, sticky='ew', padx=6, pady=5)
+        ttk.Label(form, text='Aplicar para').grid(row=1, column=0, sticky='w', padx=6, pady=5)
+        self.folha_aplicar_tipo = tk.StringVar(value='Funcionário')
+        ttk.Combobox(form, textvariable=self.folha_aplicar_tipo, values=['Funcionário','Setor','Função','Todos'], state='readonly', width=14).grid(row=1, column=1, sticky='ew', padx=6, pady=5)
+        ttk.Label(form, text='Alvo').grid(row=1, column=2, sticky='w', padx=6, pady=5)
+        self.folha_alvo_var = tk.StringVar()
+        self.folha_alvo_combo = ttk.Combobox(form, textvariable=self.folha_alvo_var)
+        self.folha_alvo_combo.grid(row=1, column=3, columnspan=2, sticky='ew', padx=6, pady=5)
+        ttk.Button(form, text='Atualizar alvos', command=self.atualizar_alvos_folha).grid(row=1, column=5, sticky='ew', padx=6, pady=5)
+        ttk.Button(form, text='Aplicar lançamento', command=self.aplicar_lancamento_folha).grid(row=1, column=6, sticky='ew', padx=6, pady=5)
+        ttk.Button(form, text='Excluir selecionado', command=self.excluir_lancamento_folha).grid(row=1, column=7, sticky='ew', padx=6, pady=5)
+        lista = ttk.LabelFrame(f, text='Lançamentos manuais da competência')
+        lista.grid(row=1, column=0, sticky='nsew', padx=8, pady=(0,8))
+        lista.columnconfigure(0, weight=1); lista.rowconfigure(0, weight=1)
+        self.folha_lanc_tree = ttk.Treeview(lista, columns=('id','func','codigo','desc','ref','tipo','valor','origem'), show='headings', height=14)
+        for col, txt, w in [('id','ID',55),('func','Funcionário',230),('codigo','Código',70),('desc','Descrição',220),('ref','Ref.',80),('tipo','Tipo',90),('valor','Valor',100),('origem','Origem',100)]:
+            self.folha_lanc_tree.heading(col, text=txt); self.folha_lanc_tree.column(col, width=w, minwidth=50)
+        self.folha_lanc_tree.grid(row=0, column=0, sticky='nsew')
+        sb = ttk.Scrollbar(lista, orient='vertical', command=self.folha_lanc_tree.yview)
+        sb.grid(row=0, column=1, sticky='ns')
+        self.folha_lanc_tree.configure(yscrollcommand=sb.set)
+        self.folha_aplicar_tipo.trace_add('write', lambda *a: self.atualizar_alvos_folha())
+        self.atualizar_eventos_combo_folha()
+        self.atualizar_alvos_folha()
+
+    def _build_folha_eventos_tab(self):
+        f = self.folha_tab_eventos
+        f.columnconfigure(0, weight=1); f.rowconfigure(1, weight=1)
+        form = ttk.LabelFrame(f, text='Cadastro rápido de evento')
+        form.grid(row=0, column=0, sticky='ew', padx=8, pady=8)
+        for c in range(8): form.columnconfigure(c, weight=1)
+        self.ev_codigo=tk.StringVar(); self.ev_desc=tk.StringVar(); self.ev_tipo=tk.StringVar(value='Provento'); self.ev_ref=tk.StringVar(value='Valor'); self.ev_valor=tk.StringVar(value='0,00')
+        ttk.Label(form,text='Código').grid(row=0,column=0,sticky='w',padx=6,pady=5); ttk.Entry(form,textvariable=self.ev_codigo).grid(row=0,column=1,sticky='ew',padx=6,pady=5)
+        ttk.Label(form,text='Descrição').grid(row=0,column=2,sticky='w',padx=6,pady=5); ttk.Entry(form,textvariable=self.ev_desc).grid(row=0,column=3,columnspan=2,sticky='ew',padx=6,pady=5)
+        ttk.Label(form,text='Tipo').grid(row=0,column=5,sticky='w',padx=6,pady=5); ttk.Combobox(form,textvariable=self.ev_tipo,values=['Provento','Desconto'],state='readonly').grid(row=0,column=6,sticky='ew',padx=6,pady=5)
+        ttk.Button(form,text='Salvar evento',command=self.salvar_evento_folha).grid(row=0,column=7,sticky='ew',padx=6,pady=5)
+        ttk.Label(form,text='Referência padrão').grid(row=1,column=0,sticky='w',padx=6,pady=5); ttk.Entry(form,textvariable=self.ev_ref).grid(row=1,column=1,sticky='ew',padx=6,pady=5)
+        ttk.Label(form,text='Valor padrão').grid(row=1,column=2,sticky='w',padx=6,pady=5); ttk.Entry(form,textvariable=self.ev_valor).grid(row=1,column=3,sticky='ew',padx=6,pady=5)
+        self.ev_inss=tk.IntVar(value=1); self.ev_fgts=tk.IntVar(value=1); self.ev_irrf=tk.IntVar(value=1)
+        ttk.Checkbutton(form,text='INSS',variable=self.ev_inss).grid(row=1,column=4,sticky='w',padx=6,pady=5)
+        ttk.Checkbutton(form,text='FGTS',variable=self.ev_fgts).grid(row=1,column=5,sticky='w',padx=6,pady=5)
+        ttk.Checkbutton(form,text='IRRF',variable=self.ev_irrf).grid(row=1,column=6,sticky='w',padx=6,pady=5)
+        ttk.Button(form,text='Atualizar lista',command=self.carregar_folha_eventos).grid(row=1,column=7,sticky='ew',padx=6,pady=5)
+        lista=ttk.LabelFrame(f,text='Eventos cadastrados')
+        lista.grid(row=1,column=0,sticky='nsew',padx=8,pady=(0,8)); lista.columnconfigure(0,weight=1); lista.rowconfigure(0,weight=1)
+        self.folha_eventos_tree=ttk.Treeview(lista,columns=('codigo','desc','tipo','ref','valor','inss','fgts','irrf'),show='headings',height=14)
+        for col,txt,w in [('codigo','Código',80),('desc','Descrição',260),('tipo','Tipo',90),('ref','Referência',100),('valor','Valor',90),('inss','INSS',60),('fgts','FGTS',60),('irrf','IRRF',60)]:
+            self.folha_eventos_tree.heading(col,text=txt); self.folha_eventos_tree.column(col,width=w,minwidth=50)
+        self.folha_eventos_tree.grid(row=0,column=0,sticky='nsew')
+        sb=ttk.Scrollbar(lista,orient='vertical',command=self.folha_eventos_tree.yview); sb.grid(row=0,column=1,sticky='ns'); self.folha_eventos_tree.configure(yscrollcommand=sb.set)
+
+    def _build_folha_holerites_tab(self):
+        f=self.folha_tab_holerites
+        f.columnconfigure(0,weight=1); f.rowconfigure(1,weight=1)
+        ttk.Label(f,text='Holerites',style='Title.TLabel').grid(row=0,column=0,sticky='w',padx=8,pady=8)
+        botoes=ttk.Frame(f); botoes.grid(row=0,column=1,sticky='e',padx=8,pady=8)
+        ttk.Button(botoes,text='Gerar selecionado',command=self.gerar_holerite_selecionado).pack(side='left',padx=4)
+        ttk.Button(botoes,text='Gerar todos',command=self.gerar_holerites_folha).pack(side='left',padx=4)
+        ttk.Button(botoes,text='Abrir pasta',command=lambda:self._open(os.path.join(PDF_DIR,'folha_pagamento'))).pack(side='left',padx=4)
+        ttk.Label(f,text='O holerite segue o modelo enviado: duas vias por página, tabela de eventos, totais, salário líquido, bases e assinatura.').grid(row=1,column=0,columnspan=2,sticky='nw',padx=8,pady=8)
 
     def _folha_get_competencia_id(self):
         mes=int(self.folha_mes.get()); ano=int(self.folha_ano.get())
@@ -4098,29 +4220,137 @@ class App(tk.Tk):
                            (mes,ano, f'{MESES[mes-1]}/{ano}', 'Aberta', datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
             return cur.lastrowid
 
-    def _folha_calcular_funcionario(self, f):
-        salario=float(f.get('salario') or 0)
-        proventos=[('10000','Salário base','30',salario)]
-        descontos=[]
-        # Integra férias concluídas da competência, quando houver lançamento no período.
+    def _folha_eventos(self):
         try:
-            mes=int(self.folha_mes.get()); ano=int(self.folha_ano.get())
-            ini=date(ano,mes,1); fim=date(ano,mes,calendar.monthrange(ano,mes)[1])
             with con() as db:
-                ferias=db.execute("""SELECT inicio,fim,liquido_estimado,total_bruto FROM ferias_controle
-                                  WHERE funcionario_id=? AND ativo=1 AND COALESCE(status,'')='Concluída'
-                                  AND date(inicio)<=date(?) AND date(fim)>=date(?)""", (f['id'], fim.isoformat(), ini.isoformat())).fetchone()
-            if ferias:
-                proventos.append(('30000','Férias na competência','',float(ferias[3] or 0)))
+                rows=db.execute("SELECT codigo,descricao,tipo,referencia_padrao,valor_padrao,incide_inss,incide_fgts,incide_irrf,COALESCE(formula,'VALOR') FROM folha_eventos WHERE ativo=1 ORDER BY tipo,codigo").fetchall()
         except Exception:
-            pass
-        total_prov=sum(v for _,_,_,v in proventos)
-        inss=calcular_inss_estimado(total_prov)
-        irrf=calcular_irrf_estimado(total_prov, inss)
-        if inss>0: descontos.append(('91015','INSS','',inss))
-        if irrf>0: descontos.append(('92001','IRRF','',irrf))
-        total_desc=sum(v for _,_,_,v in descontos)
-        liquido=total_prov-total_desc
+            rows=[]
+        return rows
+
+    def atualizar_eventos_combo_folha(self):
+        if not hasattr(self,'folha_evento_combo'): return
+        vals=[f'{r[0]} - {r[1]} ({r[2]})' for r in self._folha_eventos() if str(r[8]).upper()!='AUTO']
+        self.folha_evento_combo['values']=vals
+        if vals and not self.folha_evento_var.get(): self.folha_evento_var.set(vals[0])
+
+    def atualizar_alvos_folha(self):
+        if not hasattr(self,'folha_alvo_combo'): return
+        tipo=self.folha_aplicar_tipo.get(); vals=[]; funcs=get_funcionarios(True)
+        if tipo=='Funcionário': vals=[f'{f["id"]} - {f["nome"]}' for f in funcs]
+        elif tipo=='Setor': vals=get_setores(True)
+        elif tipo=='Função': vals=sorted({(f.get('funcao') or '').strip() for f in funcs if (f.get('funcao') or '').strip()})
+        else: vals=['TODOS']
+        self.folha_alvo_combo['values']=vals; self.folha_alvo_var.set(vals[0] if vals else '')
+
+    def carregar_folha_eventos(self):
+        if not hasattr(self,'folha_eventos_tree'): return
+        self.folha_eventos_tree.delete(*self.folha_eventos_tree.get_children())
+        for cod,desc,tipo,ref,val,inss,fgts,irrf,formula in self._folha_eventos():
+            self.folha_eventos_tree.insert('', 'end', values=(cod,desc,tipo,ref,moeda_br(val), 'Sim' if inss else 'Não', 'Sim' if fgts else 'Não', 'Sim' if irrf else 'Não'))
+        self.atualizar_eventos_combo_folha()
+
+    def salvar_evento_folha(self):
+        cod=self.ev_codigo.get().strip(); desc=self.ev_desc.get().strip()
+        if not cod or not desc:
+            messagebox.showwarning('Eventos','Informe código e descrição.'); return
+        with con() as db:
+            db.execute('''INSERT OR REPLACE INTO folha_eventos(codigo,descricao,tipo,referencia_padrao,valor_padrao,incide_inss,incide_fgts,incide_irrf,formula,ativo)
+                          VALUES(?,?,?,?,?,?,?,?,?,1)''', (cod,desc,self.ev_tipo.get(),self.ev_ref.get(),parse_moeda_br(self.ev_valor.get()),self.ev_inss.get(),self.ev_fgts.get(),self.ev_irrf.get(),'VALOR'))
+        self.carregar_folha_eventos(); messagebox.showinfo('Eventos','Evento salvo.')
+
+    def _folha_funcionarios_por_alvo(self):
+        tipo=self.folha_aplicar_tipo.get(); alvo=self.folha_alvo_var.get().strip(); funcs=get_funcionarios(True)
+        if tipo=='Funcionário':
+            try: fid=int(alvo.split(' - ')[0]); return [f for f in funcs if int(f['id'])==fid]
+            except Exception: return []
+        if tipo=='Setor': return [f for f in funcs if (f.get('setor') or '').strip().upper()==alvo.upper()]
+        if tipo=='Função': return [f for f in funcs if (f.get('funcao') or '').strip().upper()==alvo.upper()]
+        return funcs
+
+    def _folha_evento_selecionado(self):
+        txt=self.folha_evento_var.get(); cod=txt.split(' - ')[0].strip() if txt else ''
+        for r in self._folha_eventos():
+            if r[0]==cod: return r
+        return None
+
+    def _folha_calcular_valor_evento(self, evento, funcionario):
+        cod,desc,tipo,ref_padrao,val_padrao,inc_inss,inc_fgts,inc_irrf,formula=evento
+        valor=parse_moeda_br(self.folha_lanc_valor.get()); ref_txt=self.folha_lanc_ref.get().strip() or (ref_padrao or '')
+        if valor > 0: return ref_txt, round(valor,2)
+        salario=float(funcionario.get('salario') or 0)
+        try: qtd=float(str(ref_txt).replace(',','.'))
+        except Exception: qtd=0.0
+        form=str(formula or '').upper()
+        if form=='HE50': valor=(salario/220.0)*1.5*qtd
+        elif form=='HE100': valor=(salario/220.0)*2.0*qtd
+        elif form=='SALARIO': valor=salario
+        else: valor=float(val_padrao or 0)
+        return ref_txt, round(valor,2)
+
+    def aplicar_lancamento_folha(self):
+        evento=self._folha_evento_selecionado()
+        if not evento:
+            messagebox.showwarning('Folha','Selecione um evento.'); return
+        funcs=self._folha_funcionarios_por_alvo()
+        if not funcs:
+            messagebox.showwarning('Folha','Nenhum funcionário encontrado para o alvo selecionado.'); return
+        comp_id=self._folha_get_competencia_id(); cod,desc,tipo,*_=evento; qtd=0
+        with con() as db:
+            for f in funcs:
+                ref, valor = self._folha_calcular_valor_evento(evento, f)
+                if valor <= 0: continue
+                db.execute('''INSERT INTO folha_lancamentos(competencia_id,funcionario_id,codigo,descricao,referencia,tipo,valor,origem,ativo)
+                              VALUES(?,?,?,?,?,?,?,?,1)''', (comp_id,f['id'],cod,desc,ref,tipo,valor,'Manual'))
+                qtd += 1
+        self.carregar_folha_lancamentos(); self.carregar_folha_preview(); messagebox.showinfo('Folha', f'Lançamento aplicado para {qtd} funcionário(s).')
+
+    def carregar_folha_lancamentos(self):
+        if not hasattr(self,'folha_lanc_tree'): return
+        self.folha_lanc_tree.delete(*self.folha_lanc_tree.get_children()); comp_id=self._folha_get_competencia_id()
+        with con() as db:
+            rows=db.execute('''SELECT l.id,f.nome,l.codigo,l.descricao,l.referencia,l.tipo,l.valor,l.origem
+                               FROM folha_lancamentos l JOIN funcionarios f ON f.id=l.funcionario_id
+                               WHERE l.competencia_id=? AND l.ativo=1 AND COALESCE(l.origem,'')='Manual'
+                               ORDER BY f.nome,l.id''',(comp_id,)).fetchall()
+        for r in rows:
+            self.folha_lanc_tree.insert('', 'end', iid=str(r[0]), values=(r[0],r[1],r[2],r[3],r[4],r[5],moeda_br(r[6]),r[7]))
+
+    def excluir_lancamento_folha(self):
+        sel=self.folha_lanc_tree.selection() if hasattr(self,'folha_lanc_tree') else []
+        if not sel:
+            messagebox.showwarning('Folha','Selecione um lançamento manual.'); return
+        if not messagebox.askyesno('Confirmar','Excluir lançamento selecionado?'): return
+        with con() as db:
+            for iid in sel: db.execute('UPDATE folha_lancamentos SET ativo=0 WHERE id=?',(int(iid),))
+        self.carregar_folha_lancamentos(); self.carregar_folha_preview()
+
+    def _folha_calcular_funcionario(self, f):
+        salario=float(f.get('salario') or 0); proventos=[('10000','Salário mensalista','30',salario,'Cálculo automático')]; descontos=[]
+        comp_id = self._folha_get_competencia_id() if hasattr(self,'folha_mes') else None
+        try:
+            mes=int(self.folha_mes.get()); ano=int(self.folha_ano.get()); ini=date(ano,mes,1); fim=date(ano,mes,calendar.monthrange(ano,mes)[1])
+            with con() as db:
+                ferias=db.execute('''SELECT inicio,fim,liquido_estimado,total_bruto FROM ferias_controle
+                                  WHERE funcionario_id=? AND ativo=1 AND COALESCE(status,'')='Concluída'
+                                  AND date(inicio)<=date(?) AND date(fim)>=date(?)''', (f['id'], fim.isoformat(), ini.isoformat())).fetchone()
+            if ferias: proventos.append(('30000','Férias na competência','',float(ferias[3] or 0),'Cálculo automático'))
+        except Exception: pass
+        try:
+            with con() as db:
+                rows=db.execute('''SELECT codigo,descricao,referencia,tipo,valor,origem FROM folha_lancamentos
+                                   WHERE competencia_id=? AND funcionario_id=? AND ativo=1 AND COALESCE(origem,'')='Manual' ''', (comp_id, f['id'])).fetchall()
+            for cod,desc,ref,tipo,val,origem in rows:
+                item=(cod,desc,ref,float(val or 0),origem or 'Manual')
+                if str(tipo).lower().startswith('desc'): descontos.append(item)
+                else: proventos.append(item)
+        except Exception: pass
+        total_prov=sum(item[3] for item in proventos); inss=calcular_inss_estimado(total_prov); irrf=calcular_irrf_estimado(total_prov, inss)
+        if inss>0:
+            pct=(inss/total_prov*100) if total_prov else 0; descontos.append(('91005','INSS',f'{pct:.4f}%',inss,'Cálculo automático'))
+        if irrf>0:
+            pct=(irrf/max(1,total_prov-inss)*100) if total_prov else 0; descontos.append(('91505','IRRF',f'{pct:.2f}%',irrf,'Cálculo automático'))
+        total_desc=sum(item[3] for item in descontos); liquido=total_prov-total_desc
         return proventos, descontos, total_prov, total_desc, liquido
 
     def carregar_folha_preview(self):
@@ -4128,192 +4358,77 @@ class App(tk.Tk):
         self.folha_tree.delete(*self.folha_tree.get_children())
         for f in get_funcionarios(True):
             pro, des, tp, td, liq = self._folha_calcular_funcionario(f)
-            self.folha_tree.insert('', 'end', iid=str(f['id']), values=(f['id'], f['nome'], moeda_br(f.get('salario')), moeda_br(tp), moeda_br(td), moeda_br(liq), 'Prévia'))
+            self.folha_tree.insert('', 'end', iid=str(f['id']), values=(f['id'], f['nome'], f.get('setor') or '', f.get('funcao') or '', moeda_br(f.get('salario')), moeda_br(tp), moeda_br(td), moeda_br(liq), 'Prévia'))
+        if hasattr(self,'folha_lanc_tree'): self.carregar_folha_lancamentos()
 
     def calcular_folha_competencia(self):
         comp_id=self._folha_get_competencia_id()
         with con() as db:
-            db.execute('DELETE FROM folha_lancamentos WHERE competencia_id=?',(comp_id,))
+            db.execute("DELETE FROM folha_lancamentos WHERE competencia_id=? AND COALESCE(origem,'')='Cálculo automático'",(comp_id,))
             for f in get_funcionarios(True):
                 pro, des, tp, td, liq = self._folha_calcular_funcionario(f)
-                for cod,desc,ref,val in pro:
-                    db.execute('INSERT INTO folha_lancamentos(competencia_id,funcionario_id,codigo,descricao,referencia,tipo,valor,origem,ativo) VALUES(?,?,?,?,?,?,?,?,1)',
-                               (comp_id, f['id'], cod, desc, ref, 'Provento', val, 'Cálculo automático'))
-                for cod,desc,ref,val in des:
-                    db.execute('INSERT INTO folha_lancamentos(competencia_id,funcionario_id,codigo,descricao,referencia,tipo,valor,origem,ativo) VALUES(?,?,?,?,?,?,?,?,1)',
-                               (comp_id, f['id'], cod, desc, ref, 'Desconto', val, 'Cálculo automático'))
-        self.carregar_folha_preview()
-        messagebox.showinfo('Folha de Pagamento','Folha calculada para a competência selecionada.')
+                for cod,desc,ref,val,origem in pro:
+                    if origem != 'Cálculo automático': continue
+                    db.execute('INSERT INTO folha_lancamentos(competencia_id,funcionario_id,codigo,descricao,referencia,tipo,valor,origem,ativo) VALUES(?,?,?,?,?,?,?,?,1)', (comp_id, f['id'], cod, desc, ref, 'Provento', val, origem))
+                for cod,desc,ref,val,origem in des:
+                    if origem != 'Cálculo automático': continue
+                    db.execute('INSERT INTO folha_lancamentos(competencia_id,funcionario_id,codigo,descricao,referencia,tipo,valor,origem,ativo) VALUES(?,?,?,?,?,?,?,?,1)', (comp_id, f['id'], cod, desc, ref, 'Desconto', val, origem))
+        self.carregar_folha_preview(); self.carregar_folha_lancamentos(); messagebox.showinfo('Folha de Pagamento','Folha calculada para a competência selecionada, preservando lançamentos manuais.')
 
     def _gerar_holerite_pdf(self, f, destino):
-        """Gera holerite no modelo SCI: 2 vias por folha A4.
-        Estrutura visual baseada no recibo de pagamento enviado pelo usuário.
-        """
-        os.makedirs(os.path.dirname(destino), exist_ok=True)
-        emp = get_empresa()
-        pro, des, total_p, total_d, liquido = self._folha_calcular_funcionario(f)
-        mes = int(self.folha_mes.get()); ano = int(self.folha_ano.get())
-        competencia = f'{MESES[mes-1]}/{ano}'
-        c = canvas.Canvas(destino, pagesize=A4)
-        W, H = A4
-        L, R = 18, W - 18
-        block_w = R - L
-        block_h = 315
-        y1 = H - 20 - block_h
-        y2 = 70
-
-        def m(v):
-            return money(v)
-
+        # Gera holerite no modelo SCI: 2 vias por folha A4.
+        os.makedirs(os.path.dirname(destino), exist_ok=True); emp = get_empresa(); pro, des, total_p, total_d, liquido = self._folha_calcular_funcionario(f)
+        mes = int(self.folha_mes.get()); ano = int(self.folha_ano.get()); competencia = f'{MESES[mes-1]}/{ano}'
+        c = canvas.Canvas(destino, pagesize=A4); W, H = A4; L, R = 18, W - 18; block_w = R - L; block_h = 315; y1 = H - 20 - block_h; y2 = 70
+        def m(v): return money(v)
         def txt(x, y, t, size=7.0, bold=False, align='left'):
-            c.setFont('Helvetica-Bold' if bold else 'Helvetica', size)
-            t = '' if t is None else str(t)
-            if align == 'center':
-                c.drawCentredString(x, y, t)
-            elif align == 'right':
-                c.drawRightString(x, y, t)
-            else:
-                c.drawString(x, y, t)
-
-        def line(x1, y1, x2, y2, lw=0.6):
-            c.setLineWidth(lw); c.line(x1, y1, x2, y2)
-
-        def rect(x, y, w, h, lw=0.6):
-            c.setLineWidth(lw); c.rect(x, y, w, h, fill=0, stroke=1)
-
-        def safe_width_text(x, y, t, max_w, size=7.0, bold=False, align='left'):
-            font = 'Helvetica-Bold' if bold else 'Helvetica'
-            t = '' if t is None else str(t)
-            s = size
-            while s > 5.0 and c.stringWidth(t, font, s) > max_w:
-                s -= 0.3
-            txt(x, y, t, s, bold, align)
-
+            c.setFont('Helvetica-Bold' if bold else 'Helvetica', size); t='' if t is None else str(t)
+            if align=='center': c.drawCentredString(x,y,t)
+            elif align=='right': c.drawRightString(x,y,t)
+            else: c.drawString(x,y,t)
+        def line(x1,y1,x2,y2,lw=0.6): c.setLineWidth(lw); c.line(x1,y1,x2,y2)
+        def rect(x,y,w,h,lw=0.6): c.setLineWidth(lw); c.rect(x,y,w,h,fill=0,stroke=1)
+        def safe_width_text(x,y,t,max_w,size=7.0,bold=False,align='left'):
+            font='Helvetica-Bold' if bold else 'Helvetica'; t='' if t is None else str(t); s=size
+            while s>5.0 and c.stringWidth(t,font,s)>max_w: s-=0.3
+            txt(x,y,t,s,bold,align)
         def draw_via(y0):
-            x0 = L
-            top = y0 + block_h
-            rect(x0, y0, block_w, block_h)
-
-            # Cabeçalho
-            txt(x0 + 8, top - 12, f'00017 {emp.get("nome", "IZZANT SERVIÇOS LTDA")}', 7.8, True)
-            txt(R - 8, top - 12, 'RECIBO DE PAGAMENTO DE SALÁRIO', 8.5, True, 'right')
-            txt(x0 + 8, top - 26, f'{emp.get("endereco", "")} , {emp.get("numero", "")}    {emp.get("cidade", "")}/{emp.get("uf", "")}', 7.2)
-            txt(x0 + 8, top - 40, f'CNPJ: {emp.get("cnpj", "")}', 7.2)
-            txt(R - 8, top - 40, f'Referente ao mês:   {competencia}', 7.6, True, 'right')
-            line(x0, top - 46, R, top - 46)
-
-            # Dados do colaborador
-            txt(x0 + 10, top - 58, 'Código  Nome do Colaborador', 7.0)
-            safe_width_text(x0 + 10, top - 72, f'{int(f.get("id") or 0):06d} {f.get("nome", "")}', 330, 8.0, True)
-            txt(R - 8, top - 72, f'Admissão: {fmt_data(f.get("admissao"))}', 7.4, False, 'right')
-            linha = f'CBO: {f.get("cbo") or ""}    Função: {f.get("funcao") or ""}'
-            txt(x0 + 48, top - 87, linha, 7.2)
-            txt(x0 + 290, top - 87, f'CPF: {f.get("cpf") or ""}', 7.2)
-            txt(x0 + 405, top - 87, f'PIS: {f.get("pis") if f.get("pis") else ""}', 7.2)
-            txt(R - 8, top - 87, f'CTPS: {f.get("ctps") or ""}', 7.2, False, 'right')
-            line(x0, top - 96, R, top - 96)
-
-            # Tabela de lançamentos
-            table_top = top - 96
-            header_h = 12
-            table_bottom = y0 + 84
-            col_cod = x0 + 40
-            col_desc = x0 + 315
-            col_ref = x0 + 385
-            col_prov = x0 + 470
-            rect(x0, table_bottom, block_w, table_top - table_bottom)
-            line(x0 + 40, table_bottom, x0 + 40, table_top)
-            line(x0 + 315, table_bottom, x0 + 315, table_top)
-            line(x0 + 385, table_bottom, x0 + 385, table_top)
-            line(x0 + 470, table_bottom, x0 + 470, table_top)
-            line(x0, table_top - header_h, R, table_top - header_h)
-            txt(x0 + 3, table_top - 9, 'CÓDIGOS', 6.8)
-            txt(x0 + 43, table_top - 9, 'DESCRIÇÕES', 6.8)
-            txt(x0 + 382, table_top - 9, 'REFERÊNCIAS', 6.8, False, 'right')
-            txt(x0 + 467, table_top - 9, 'PROVENTOS', 6.8, False, 'right')
-            txt(R - 4, table_top - 9, 'DESCONTOS', 6.8, False, 'right')
-
-            rows = []
-            for cod, desc, ref, val in pro:
-                rows.append((cod, desc, ref, val, ''))
-            for cod, desc, ref, val in des:
-                rows.append((cod, desc, ref, '', val))
-            row_y = table_top - header_h - 11
-            max_rows = 12
-            for i, (cod, desc, ref, prov, descv) in enumerate(rows[:max_rows]):
-                txt(x0 + 36, row_y, cod, 7.0, False, 'right')
-                safe_width_text(x0 + 44, row_y, desc, 245, 7.0)
-                if ref:
-                    txt(x0 + 382, row_y, ref, 7.0, False, 'right')
-                if prov not in ('', None):
-                    txt(x0 + 467, row_y, m(prov), 7.0, False, 'right')
-                if descv not in ('', None):
-                    txt(R - 5, row_y, m(descv), 7.0, False, 'right')
-                row_y -= 12
-            if len(rows) > max_rows:
-                txt(x0 + 44, table_bottom + 13, 'Continua em demonstrativo complementar...', 7.2, True)
-
-            # Totais e líquido
-            totals_y = y0 + 72
-            line(x0, totals_y + 26, R, totals_y + 26)
-            line(x0 + 385, totals_y + 26, x0 + 385, totals_y)
-            line(x0 + 470, totals_y + 26, x0 + 470, totals_y)
-            txt(x0 + 382, totals_y + 12, 'Totais', 7, False, 'right')
-            txt(x0 + 467, totals_y + 12, m(total_p), 7, False, 'right')
-            txt(R - 5, totals_y + 12, m(total_d), 7, False, 'right')
-            line(x0, totals_y, R, totals_y)
-            line(x0 + 385, totals_y, x0 + 385, totals_y - 26)
-            line(x0 + 470, totals_y, x0 + 470, totals_y - 26)
-            txt(x0 + 392, totals_y - 17, 'SALÁRIO LÍQUIDO', 9, True)
-            txt(R - 5, totals_y - 17, f'R$ {m(liquido)}', 9, True, 'right')
-
-            # Bases
-            base_y = y0 + 35
-            line(x0, base_y + 11, R, base_y + 11)
-            salario = float(f.get('salario') or 0)
-            base_inss = total_p
-            base_fgts = total_p
-            valor_fgts = round(base_fgts * 0.08, 2)
-            inss = sum(v for _, d, _, v in des if 'INSS' in str(d).upper())
-            base_irrf = max(0, total_p - inss)
-            bases = [
-                ('Salário base', salario), ('Base INSS', base_inss), ('Base FGTS', base_fgts), ('Valor FGTS', valor_fgts), ('Base IRRF', base_irrf)
-            ]
-            step = block_w / 5
-            for i, (label, value) in enumerate(bases):
-                cx = x0 + step * i + step / 2
-                txt(cx, base_y + 2, label, 7, False, 'center')
-                txt(cx, base_y - 10, m(value), 7, False, 'center')
-
-            # Declaração e assinatura
-            dec_y = y0 + 12
-            line(x0, dec_y + 15, R, dec_y + 15)
-            txt(x0 + 8, dec_y + 4, 'Declaro ter recebido o valor líquido deste recibo.', 7.0)
-            txt(x0 + 25, y0 + 5, '     /      /          Assinatura do Colaborador:', 7.0)
-            txt(x0 + 8, y0 - 10, 'Sistema Gestão Izzant', 6)
-            txt(R - 8, y0 - 10, datetime.now().strftime('%d/%m/%Y %H:%M'), 6, False, 'right')
-
-        draw_via(y1)
-        draw_via(y2)
-        c.save()
-        return total_p, total_d, liquido
+            x0=L; top=y0+block_h; rect(x0,y0,block_w,block_h)
+            txt(x0+8,top-12,f'00017 {emp.get("nome","IZZANT SERVIÇOS LTDA")}',7.8,True); txt(R-8,top-12,'RECIBO DE PAGAMENTO DE SALÁRIO',8.5,True,'right')
+            txt(x0+8,top-26,f'{emp.get("endereco","")}, {emp.get("numero","")}    {emp.get("cidade","")}/{emp.get("uf","")}',7.2); txt(x0+8,top-40,f'CNPJ: {emp.get("cnpj","")}',7.2); txt(R-8,top-40,f'Referente ao mês:   {competencia}',7.6,True,'right'); line(x0,top-46,R,top-46)
+            txt(x0+10,top-58,'Código  Nome do Colaborador',7.0); safe_width_text(x0+10,top-72,f'{int(f.get("id") or 0):06d} {f.get("nome","")}',330,8.0,True); txt(R-8,top-72,f'Admissão: {fmt_data(f.get("admissao"))}',7.4,False,'right')
+            safe_width_text(x0+48,top-87,f'CBO: {f.get("cbo") or ""}    Função: {f.get("funcao") or ""}',250,7.2); txt(x0+290,top-87,f'CPF: {f.get("cpf") or ""}',7.2); txt(x0+405,top-87,f'PIS: {f.get("pis") if f.get("pis") else ""}',7.2); txt(R-8,top-87,f'CTPS: {f.get("ctps") or ""}',7.2,False,'right'); line(x0,top-96,R,top-96)
+            table_top=top-96; header_h=12; table_bottom=y0+84; rect(x0,table_bottom,block_w,table_top-table_bottom); line(x0+40,table_bottom,x0+40,table_top); line(x0+315,table_bottom,x0+315,table_top); line(x0+385,table_bottom,x0+385,table_top); line(x0+470,table_bottom,x0+470,table_top); line(x0,table_top-header_h,R,table_top-header_h)
+            txt(x0+3,table_top-9,'CÓDIGOS',6.8); txt(x0+43,table_top-9,'DESCRIÇÕES',6.8); txt(x0+382,table_top-9,'REFERÊNCIAS',6.8,False,'right'); txt(x0+467,table_top-9,'PROVENTOS',6.8,False,'right'); txt(R-4,table_top-9,'DESCONTOS',6.8,False,'right')
+            rows=[]
+            for cod,desc,ref,val,origem in pro: rows.append((cod,desc,ref,val,''))
+            for cod,desc,ref,val,origem in des: rows.append((cod,desc,ref,'',val))
+            row_y=table_top-header_h-11; max_rows=12
+            for cod,desc,ref,prov,descv in rows[:max_rows]:
+                txt(x0+36,row_y,cod,7.0,False,'right'); safe_width_text(x0+44,row_y,desc,245,7.0)
+                if ref: txt(x0+382,row_y,ref,7.0,False,'right')
+                if prov not in ('',None): txt(x0+467,row_y,m(prov),7.0,False,'right')
+                if descv not in ('',None): txt(R-5,row_y,m(descv),7.0,False,'right')
+                row_y-=12
+            if len(rows)>max_rows: txt(x0+44,table_bottom+13,'Continua em demonstrativo complementar...',7.2,True)
+            totals_y=y0+72; line(x0,totals_y+26,R,totals_y+26); line(x0+385,totals_y+26,x0+385,totals_y); line(x0+470,totals_y+26,x0+470,totals_y)
+            txt(x0+382,totals_y+12,'Totais',7,False,'right'); txt(x0+467,totals_y+12,m(total_p),7,False,'right'); txt(R-5,totals_y+12,m(total_d),7,False,'right'); line(x0,totals_y,R,totals_y); line(x0+385,totals_y,x0+385,totals_y-26); line(x0+470,totals_y,x0+470,totals_y-26); txt(x0+392,totals_y-17,'SALÁRIO LÍQUIDO',9,True); txt(R-5,totals_y-17,f'R$ {m(liquido)}',9,True,'right')
+            base_y=y0+35; line(x0,base_y+11,R,base_y+11); salario=float(f.get('salario') or 0); base_inss=total_p; base_fgts=total_p; valor_fgts=round(base_fgts*0.08,2); inss=sum(v for _,d,_,v,_ in des if 'INSS' in str(d).upper()); base_irrf=max(0,total_p-inss)
+            for i,(label,value) in enumerate([('Salário base',salario),('Base INSS',base_inss),('Base FGTS',base_fgts),('Valor FGTS',valor_fgts),('Base IRRF',base_irrf)]):
+                cx=x0+(block_w/5)*i+(block_w/10); txt(cx,base_y+2,label,7,False,'center'); txt(cx,base_y-10,m(value),7,False,'center')
+            dec_y=y0+12; line(x0,dec_y+15,R,dec_y+15); txt(x0+8,dec_y+4,'Declaro ter recebido o valor líquido deste recibo.',7.0); txt(x0+25,y0+5,'     /      /          Assinatura do Colaborador:',7.0); txt(x0+8,y0-10,'Sistema Gestão Izzant',6); txt(R-8,y0-10,datetime.now().strftime('%d/%m/%Y %H:%M'),6,False,'right')
+        draw_via(y1); draw_via(y2); c.save(); return total_p,total_d,liquido
 
     def gerar_holerite_selecionado(self):
         sel=self.folha_tree.selection() if hasattr(self,'folha_tree') else []
-        if not sel:
-            messagebox.showwarning('Folha','Selecione um funcionário.'); return
+        if not sel: messagebox.showwarning('Folha','Selecione um funcionário.'); return
         fid=int(sel[0]); funcs=[f for f in get_funcionarios(True) if int(f['id'])==fid]
-        if not funcs: return
-        self._gerar_holerite_func(funcs[0])
+        if funcs: self._gerar_holerite_func(funcs[0])
 
     def _gerar_holerite_func(self, f):
-        comp_id=self._folha_get_competencia_id(); mes=int(self.folha_mes.get()); ano=int(self.folha_ano.get())
-        pasta=os.path.join(PDF_DIR,'folha_pagamento',str(ano),f'{mes:02d}')
-        arquivo=os.path.join(pasta, f'Holerite_{safe_name(f["nome"])}_{mes:02d}_{ano}.pdf')
+        comp_id=self._folha_get_competencia_id(); mes=int(self.folha_mes.get()); ano=int(self.folha_ano.get()); pasta=os.path.join(PDF_DIR,'folha_pagamento',str(ano),f'{mes:02d}'); arquivo=os.path.join(pasta, f'Holerite_{safe_name(f["nome"])}_{mes:02d}_{ano}.pdf')
         tp,td,liq=self._gerar_holerite_pdf(f, arquivo)
-        with con() as db:
-            db.execute('INSERT INTO folha_holerites(competencia_id,funcionario_id,arquivo,total_proventos,total_descontos,liquido,gerado_em) VALUES(?,?,?,?,?,?,?)',
-                       (comp_id,f['id'],arquivo,tp,td,liq,datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        with con() as db: db.execute('INSERT INTO folha_holerites(competencia_id,funcionario_id,arquivo,total_proventos,total_descontos,liquido,gerado_em) VALUES(?,?,?,?,?,?,?)',(comp_id,f['id'],arquivo,tp,td,liq,datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         try:
             if os.name=='nt': os.startfile(arquivo)
         except Exception: pass
@@ -4321,8 +4436,7 @@ class App(tk.Tk):
 
     def gerar_holerites_folha(self):
         qtd=0
-        for f in get_funcionarios(True):
-            self._gerar_holerite_func(f); qtd+=1
+        for f in get_funcionarios(True): self._gerar_holerite_func(f); qtd+=1
         messagebox.showinfo('Folha de Pagamento', f'{qtd} holerite(s) gerado(s).')
 
     def build_backup(self):

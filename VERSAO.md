@@ -1,5 +1,5 @@
 # Sistema Gestão Izzant
 
-Versão: v3.5
-Módulo: Folha de Pagamento
-Status: Base com holerite no modelo SCI
+Versão atual: v3.6
+
+Folha de Pagamento Enterprise com lançamentos por funcionário, setor, função ou todos, eventos configuráveis e holerite no modelo SCI.
