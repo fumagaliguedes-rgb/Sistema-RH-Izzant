@@ -1,27 +1,22 @@
 # Sistema RH Izzant
 
-Sistema interno de gestão de RH da Izzant Serviços.
+Sistema local de gestão de RH, folha de ponto, férias, documentos, feriados e cadastros.
 
-## Versão estável atual
+## Versão atual
 
-**v1.5.2 LTS**
+v1.5.4 DEV - Modo Desenvolvedor
 
-## Módulos principais
+## Como executar
 
-- Cadastro de funcionários
-- Empresas
-- Setores
-- Jornadas
-- Ocorrências
-- Feriados
-- Férias
-- Geração de folha de ponto em PDF
-- Documentos inteligentes
-- Backup
+1. Rode `INSTALAR_BIBLIOTECAS.bat` uma vez.
+2. Rode `INICIAR_PROGRAMA.bat`.
 
-## Regra de desenvolvimento
+## Modo Desenvolvedor
 
-- `main`: versão estável homologada.
-- `develop`: desenvolvimento e testes.
+Acesse pelo menu:
 
-A folha de ponto homologada não deve ser alterada sem aprovação expressa.
+**Ferramentas > Modo Desenvolvedor**
+
+ou pela aba lateral **Modo Desenvolvedor**.
+
+Ele permite diagnosticar banco, pastas, dependências, modelos Word e geração técnica de PDF.

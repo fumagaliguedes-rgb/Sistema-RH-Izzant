@@ -1,27 +1,12 @@
-# Python
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
-*.pyd
-.venv/
-venv/
+*.log
+logs/*.log
+*.tmp
+*.bak
 .env
-
-# Banco e backups locais
-*.db-journal
-*.sqlite-journal
-backups/*.zip
-backups/*.bak
-
-# Arquivos gerados
-PDFs/*.pdf
-documentos_gerados/*
-relatorios/*
-
-# Windows
+venv/
+.venv/
+.DS_Store
 Thumbs.db
-Desktop.ini
-
-# IDE
-.vscode/
-.idea/

@@ -12,6 +12,11 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import webbrowser
 
+try:
+    from modulos.desenvolvedor import build_modo_desenvolvedor
+except Exception:
+    build_modo_desenvolvedor = None
+
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
@@ -1332,7 +1337,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v1.5 Estabilização')
+        self.title(APP_NAME + ' - Enterprise v1.5.4 Modo Desenvolvedor')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -1371,6 +1376,11 @@ class App(tk.Tk):
         cad.add_command(label='Exportar funcionários para Excel', command=self.exportar_excel)
         cad.add_command(label='Exportar funcionários CSV', command=self.exportar_csv)
         self.menu.add_cascade(label='Cadastros', menu=cad)
+        ferramentas = tk.Menu(self.menu, tearoff=0)
+        ferramentas.add_command(label='Modo Desenvolvedor', command=lambda: self.nb.select(self.tab_dev))
+        ferramentas.add_command(label='Abrir pasta do projeto', command=self.open_base)
+        ferramentas.add_command(label='Abrir pasta de logs', command=lambda: self._abrir_pasta_generica(os.path.join(BASE_DIR, 'logs')))
+        self.menu.add_cascade(label='Ferramentas', menu=ferramentas)
         self.config(menu=self.menu)
 
         main=ttk.Frame(self)
@@ -1381,7 +1391,7 @@ class App(tk.Tk):
         tk.Label(sidebar, text='SISTEMA RH\nIZZANT', bg='#1f2937', fg='white', font=('Arial',18,'bold'), justify='left').pack(anchor='w', padx=18, pady=(22,18))
         self.nb=ttk.Notebook(main)
         self.nb.pack(side='right', fill='both', expand=True, padx=10, pady=10)
-        self.tab_inicio=ttk.Frame(self.nb); self.tab_empresa=ttk.Frame(self.nb); self.tab_func=ttk.Frame(self.nb); self.tab_setores=ttk.Frame(self.nb); self.tab_jornadas=ttk.Frame(self.nb); self.tab_escalas=ttk.Frame(self.nb); self.tab_feriados=ttk.Frame(self.nb); self.tab_ocorrencias=ttk.Frame(self.nb); self.tab_ferias=ttk.Frame(self.nb); self.tab_banco=ttk.Frame(self.nb); self.tab_documentos=ttk.Frame(self.nb); self.tab_epis=ttk.Frame(self.nb); self.tab_exames=ttk.Frame(self.nb); self.tab_agenda=ttk.Frame(self.nb); self.tab_central_pdfs=ttk.Frame(self.nb); self.tab_assistente=ttk.Frame(self.nb); self.tab_pdf=ttk.Frame(self.nb); self.tab_backup=ttk.Frame(self.nb); self.tab_rel=ttk.Frame(self.nb); self.tab_logs=ttk.Frame(self.nb); self.tab_usuarios=ttk.Frame(self.nb); self.tab_atualizador=ttk.Frame(self.nb)
+        self.tab_inicio=ttk.Frame(self.nb); self.tab_empresa=ttk.Frame(self.nb); self.tab_func=ttk.Frame(self.nb); self.tab_setores=ttk.Frame(self.nb); self.tab_jornadas=ttk.Frame(self.nb); self.tab_escalas=ttk.Frame(self.nb); self.tab_feriados=ttk.Frame(self.nb); self.tab_ocorrencias=ttk.Frame(self.nb); self.tab_ferias=ttk.Frame(self.nb); self.tab_banco=ttk.Frame(self.nb); self.tab_documentos=ttk.Frame(self.nb); self.tab_epis=ttk.Frame(self.nb); self.tab_exames=ttk.Frame(self.nb); self.tab_agenda=ttk.Frame(self.nb); self.tab_central_pdfs=ttk.Frame(self.nb); self.tab_assistente=ttk.Frame(self.nb); self.tab_pdf=ttk.Frame(self.nb); self.tab_backup=ttk.Frame(self.nb); self.tab_rel=ttk.Frame(self.nb); self.tab_logs=ttk.Frame(self.nb); self.tab_usuarios=ttk.Frame(self.nb); self.tab_atualizador=ttk.Frame(self.nb); self.tab_dev=ttk.Frame(self.nb)
         self.nb.add(self.tab_inicio, text='Início')
         self.nb.add(self.tab_empresa, text='Empresa')
         self.nb.add(self.tab_func, text='Funcionários')
@@ -1404,11 +1414,38 @@ class App(tk.Tk):
         self.nb.add(self.tab_logs, text='Auditoria')
         self.nb.add(self.tab_usuarios, text='Usuários')
         self.nb.add(self.tab_atualizador, text='Atualizador')
-        for txt_btn, tab in [('Início',self.tab_inicio),('Empresa',self.tab_empresa),('Funcionários',self.tab_func),('Setores',self.tab_setores),('Jornadas',self.tab_jornadas),('Escalas',self.tab_escalas),('Feriados',self.tab_feriados),('Ocorrências',self.tab_ocorrencias),('Férias',self.tab_ferias),('Banco de Horas',self.tab_banco),('Documentos',self.tab_documentos),('EPIs',self.tab_epis),('Exames',self.tab_exames),('Agenda RH',self.tab_agenda),('Central PDFs',self.tab_central_pdfs),('Assistente',self.tab_assistente),('Gerar PDFs',self.tab_pdf),('Backup',self.tab_backup),('Relatórios',self.tab_rel),('Auditoria',self.tab_logs),('Usuários',self.tab_usuarios),('Atualizador',self.tab_atualizador)]:
+        self.nb.add(self.tab_dev, text='Modo Desenvolvedor')
+        for txt_btn, tab in [('Início',self.tab_inicio),('Empresa',self.tab_empresa),('Funcionários',self.tab_func),('Setores',self.tab_setores),('Jornadas',self.tab_jornadas),('Escalas',self.tab_escalas),('Feriados',self.tab_feriados),('Ocorrências',self.tab_ocorrencias),('Férias',self.tab_ferias),('Banco de Horas',self.tab_banco),('Documentos',self.tab_documentos),('EPIs',self.tab_epis),('Exames',self.tab_exames),('Agenda RH',self.tab_agenda),('Central PDFs',self.tab_central_pdfs),('Assistente',self.tab_assistente),('Gerar PDFs',self.tab_pdf),('Backup',self.tab_backup),('Relatórios',self.tab_rel),('Auditoria',self.tab_logs),('Usuários',self.tab_usuarios),('Atualizador',self.tab_atualizador),('Modo Desenvolvedor',self.tab_dev)]:
             tk.Button(sidebar, text=txt_btn, anchor='w', bg='#374151', fg='white', activebackground='#4b5563', activeforeground='white', bd=0, padx=16, pady=10, command=lambda t=tab:self.nb.select(t)).pack(fill='x', padx=12, pady=4)
         tk.Label(sidebar, text='Folha aprovada mantida\nsem alteração de layout.', bg='#1f2937', fg='#d1d5db', font=('Arial',9), justify='left').pack(side='bottom', anchor='w', padx=18, pady=18)
-        self.build_inicio(); self.build_empresa(); self.build_func(); self.build_setores(); self.build_jornadas(); self.build_escalas(); self.build_feriados(); self.build_ocorrencias(); self.build_ferias(); self.build_banco_horas(); self.build_documentos(); self.build_epis(); self.build_exames(); self.build_agenda(); self.build_central_pdfs(); self.build_assistente(); self.build_pdf(); self.build_backup(); self.build_relatorios(); self.build_logs(); self.build_usuarios(); self.build_atualizador()
+        self.build_inicio(); self.build_empresa(); self.build_func(); self.build_setores(); self.build_jornadas(); self.build_escalas(); self.build_feriados(); self.build_ocorrencias(); self.build_ferias(); self.build_banco_horas(); self.build_documentos(); self.build_epis(); self.build_exames(); self.build_agenda(); self.build_central_pdfs(); self.build_assistente(); self.build_pdf(); self.build_backup(); self.build_relatorios(); self.build_logs(); self.build_usuarios(); self.build_atualizador(); self.build_dev()
         self.nb.bind('<<NotebookTabChanged>>', self.on_tab_changed)
+
+    def _abrir_pasta_generica(self, caminho):
+        try:
+            os.makedirs(caminho, exist_ok=True)
+            webbrowser.open(caminho)
+        except Exception as e:
+            messagebox.showerror('Abrir pasta', str(e))
+
+    def build_dev(self):
+        contexto = {
+            'APP_NAME': APP_NAME,
+            'BASE_DIR': BASE_DIR,
+            'DATA_DIR': DATA_DIR,
+            'PDF_DIR': PDF_DIR,
+            'BACKUP_DIR': BACKUP_DIR,
+            'RELATORIO_DIR': RELATORIO_DIR,
+            'MODELOS_DIR': MODELOS_DIR,
+            'DOCS_GERADOS_DIR': DOCS_GERADOS_DIR,
+            'ASSETS_DIR': ASSETS_DIR,
+            'DB_PATH': DB_PATH,
+            'LOGO_APP': LOGO_APP,
+        }
+        if build_modo_desenvolvedor:
+            build_modo_desenvolvedor(self, self.tab_dev, contexto)
+        else:
+            ttk.Label(self.tab_dev, text='Modo Desenvolvedor indisponível.', style='Title.TLabel').pack(padx=20, pady=20)
 
     def on_tab_changed(self, event=None):
         try:
