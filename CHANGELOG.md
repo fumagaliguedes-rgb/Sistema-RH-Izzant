@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.7.2 - Correção do PDF de férias
+- Redesenhado o PDF de férias com posições fixas.
+- Corrigido o posicionamento dos lançamentos contábeis no aviso de férias.
+- Separados corretamente proventos, descontos e líquido.
+- Ajustado recibo inferior para seguir melhor o modelo enviado.
+- Preservada a interface atual e as regras já aprovadas.
+
 ## v1.7.1
 - Melhorada a interface do módulo Férias.
 - Criadas abas mais claras para Programação/Cálculos, Documentos, Histórico e Calendário.

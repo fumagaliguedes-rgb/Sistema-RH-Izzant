@@ -1,9 +1,9 @@
 # Sistema Gestão Izzant
 
-Versão: v1.7.1
+Versão: v1.7.2
 
-Alterações:
-- Central de Férias reorganizada em abas maiores.
-- Histórico e documentos com melhor visualização.
-- PDF de férias no padrão do modelo enviado, com aviso e recibo na mesma página.
-- Marca d'água com logo da empresa quando disponível.
+## Correção
+- PDF de férias redesenhado no padrão oficial de Aviso + Recibo.
+- Lançamentos, proventos, descontos e líquido posicionados em áreas fixas.
+- Correção de sobreposição/lançamentos em locais errados no arquivo gerado.
+- Mantida marca d'água da empresa quando houver logo em assets/izzant_logo.png.
