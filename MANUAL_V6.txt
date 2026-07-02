@@ -1,0 +1,20 @@
+MANUAL RÁPIDO - V6
+
+1. CADASTRAR FUNCIONÁRIO
+Abra a aba Funcionários, preencha os dados incluindo o SETOR, e clique em Salvar / Atualizar.
+
+2. GERAR PDF POR SETOR
+Aba Gerar PDFs > selecione o setor > Gerar PDF por setor.
+
+3. GERAR PDFS INDIVIDUAIS
+Aba Gerar PDFs > Gerar PDFs individuais de todos.
+Os arquivos serão salvos em PDFs/ANO/MÊS/INDIVIDUAIS/SETOR.
+
+4. EXPORTAR EXCEL
+Aba Funcionários ou menu Cadastros > Exportar funcionários para Excel.
+
+5. IMPORTAR EXCEL
+Aba Funcionários > Importar Excel. O sistema tenta localizar nomes automaticamente.
+
+6. BACKUP
+O sistema faz backup automático ao fechar e também permite backup manual na aba Backup.

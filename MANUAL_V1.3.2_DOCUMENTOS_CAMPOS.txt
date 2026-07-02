@@ -1,0 +1,27 @@
+SISTEMA RH IZZANT - DOCUMENTOS COM CAMPOS POR MODELO
+
+Como usar:
+1. Abra a aba Documentos.
+2. Selecione o funcionário.
+3. Escolha o modelo: Contrato, Advertência, Suspensão, Declaração, Férias, EPI, Uniforme etc.
+4. O sistema exibirá campos específicos para o modelo escolhido.
+5. Preencha os campos desejados.
+6. Clique em Gerar preenchido.
+7. O documento será gerado na pasta documentos_gerados.
+
+Placeholders:
+Os modelos Word usam marcadores entre chaves, por exemplo:
+{{FUNCIONARIO}}
+{{CPF}}
+{{EMPRESA}}
+{{DATA_DOCUMENTO}}
+{{MOTIVO}}
+{{DATA_INICIO}}
+{{DATA_FIM}}
+{{VALOR}}
+{{EPI_ITEM}}
+
+Na aba Documentos, use o botão "Ver placeholders" para ver todos os campos disponíveis para o modelo selecionado.
+
+Observação:
+Se você criar um modelo Word personalizado, basta inserir os placeholders desejados no texto do documento.

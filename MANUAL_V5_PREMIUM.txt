@@ -1,0 +1,14 @@
+
+MANUAL RÁPIDO - PONTO SAÚDE V5 PREMIUM
+
+1. Execute INSTALAR_BIBLIOTECAS.bat uma vez.
+2. Abra INICIAR_PROGRAMA.bat.
+3. Login inicial: admin / admin.
+4. Cadastre empresa e funcionários.
+5. Informe o campo SETOR em cada funcionário.
+6. Em Gerar PDFs, escolha: todos, individual, por setor ou todos separados por setor.
+7. Os PDFs ficam na pasta PDFs, organizados por ano e mês.
+8. Relatórios ficam na pasta relatorios.
+9. Backups ficam na pasta backups.
+
+Observação: a folha de ponto aprovada foi preservada sem alteração.

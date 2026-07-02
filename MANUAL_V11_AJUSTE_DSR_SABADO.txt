@@ -1,0 +1,11 @@
+V11 - Ajuste visual no PDF para sábado e DSR
+
+Alterações:
+- No cabeçalho da folha, "HORÁRIO AOS SÁBADOS" foi reduzido para "SÁBADOS".
+- "DESCANSO SEMANAL" foi reduzido para "DSR".
+- Nas linhas diárias do PDF:
+  - Descanso semanal passa a aparecer como "DSR".
+  - Sábado compensado passa a aparecer como "COMP." para caber na coluna.
+- A regra de prioridade foi ajustada para que descanso/compensação da jornada não seja sobrescrito por feriado.
+
+A folha aprovada foi preservada, com ajuste apenas nos textos que não cabiam nas colunas.

@@ -1,0 +1,17 @@
+MANUAL - SISTEMA RH IZZANT ENTERPRISE v1.5 ESTABILIZAÇÃO
+
+Principais ajustes:
+- Domingo em jornada comum: preencherá DSR na folha de ponto.
+- Sábado compensado: preencherá COMPENSADO/COMP. quando a jornada indicar compensação.
+- Jornada 12x36: sábados e domingos continuam sem bloqueio automático, seguindo escala.
+- Feriados não sobrescrevem DSR/compensado.
+- Módulo Férias calcula o período em dias corridos, sem considerar feriados no retorno.
+- Consulta de feriados aceita e normaliza datas em DD/MM/AAAA ou AAAA-MM-DD.
+
+Como iniciar:
+1. Extraia a pasta do ZIP.
+2. Execute INICIAR_PROGRAMA.bat.
+3. Login inicial: admin / admin.
+
+Observação:
+A pasta modulos foi criada para iniciar a organização profissional do projeto, mas a execução principal permanece em app.py para evitar regressões.

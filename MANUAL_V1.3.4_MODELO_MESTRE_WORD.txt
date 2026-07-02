@@ -1,0 +1,22 @@
+Sistema RH Izzant v1.3.4 - Modelos Word inteligentes
+
+Implementações:
+- O arquivo "Arquivo base nova logo.docx" foi incorporado como modelo mestre: modelos_documentos/00_Modelo_Mestre_Izzant.docx.
+- Todos os modelos padrão foram recriados usando a identidade visual do modelo mestre: logo, marca d'água, moldura e rodapé.
+- O módulo Documentos agora identifica automaticamente placeholders {{CAMPO}} existentes no Word.
+- Campos conhecidos, como {{FUNCIONARIO}}, {{CPF}}, {{SETOR}}, {{ADMISSAO}} e {{PERIODO_AQUISITIVO}}, são preenchidos automaticamente.
+- Campos desconhecidos, como {{MOTIVO}}, {{DESCRICAO_FATO}}, {{VALOR}} etc., aparecem como campos editáveis na tela.
+- Mantido o cálculo automático do período aquisitivo de férias pela admissão do funcionário.
+
+Como usar:
+1. Abra Documentos.
+2. Selecione o funcionário.
+3. Selecione o modelo.
+4. Preencha os campos exibidos.
+5. Clique em Gerar preenchido.
+
+Para criar novos modelos:
+- Abra a pasta modelos_documentos.
+- Use o arquivo 00_Modelo_Mestre_Izzant.docx como base visual.
+- Insira marcadores como {{FUNCIONARIO}}, {{CPF}}, {{MOTIVO}}, {{DATA_INICIO}}.
+- Importe o Word no tipo desejado pelo botão Importar modelo Word.

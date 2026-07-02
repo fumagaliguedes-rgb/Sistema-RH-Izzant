@@ -1,0 +1,22 @@
+V8 - Ocorrências com Abono e Bloco de Escrita
+
+Implementações desta versão:
+
+1. Campo "Abona o dia?" no lançamento de ocorrências.
+   - Férias, Atestado, Licença, Folga, Curso/Treinamento e Trabalho Externo vêm como abonados por padrão.
+   - Falta Injustificada e Suspensão vêm como não abonados por padrão.
+   - O usuário pode alterar manualmente conforme a política da empresa.
+
+2. Observação virou bloco de escrita.
+   - Agora o campo permite escrever justificativas maiores.
+   - Útil para registrar número de atestado, motivo da falta, observações da licença etc.
+
+3. Lista de ocorrências atualizada.
+   - Exibe Funcionário, Tipo, Início, Fim, Abona, Observação e Status.
+
+4. A folha de ponto aprovada foi preservada.
+   - Nenhum ajuste visual foi feito no layout aprovado.
+   - As ocorrências continuam preenchendo automaticamente os dias correspondentes.
+
+5. Atualização automática do banco.
+   - Bancos antigos recebem automaticamente o novo campo de abono, sem perda de dados.

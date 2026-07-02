@@ -1,0 +1,8 @@
+VERSÃO 1.5.1 - CORREÇÃO DSR/COMPENSADO
+
+Ajustes realizados:
+- Sábados passam a aparecer como COMP. na folha gerada quando a jornada/funcionário estiver configurado como sábado compensado.
+- Domingos passam a aparecer como DSR quando o descanso semanal estiver configurado como domingo.
+- A regra também funciona para funcionários sem jornada cadastrada vinculada, usando os campos do cadastro do funcionário.
+- Jornadas 12x36 continuam seguindo a escala e não recebem DSR/COMPENSADO automático.
+- A folha de ponto aprovada não teve seu layout alterado.

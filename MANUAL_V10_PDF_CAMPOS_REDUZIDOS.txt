@@ -1,0 +1,8 @@
+
+MANUAL_V10_PDF_CAMPOS_REDUZIDOS.txt
+
+Correção aplicada:
+- Ajustado o campo HORÁRIO AOS SÁBADOS no PDF para caber informações maiores.
+- Ajustado o campo DESCANSO SEMANAL no PDF para caber textos como CONFORME ESCALA 12X36.
+- Criado ajuste automático de fonte e quebra em até 2 linhas nesses campos do cabeçalho.
+- Mantida a folha de ponto aprovada, sem alterar a estrutura principal.

@@ -1,0 +1,17 @@
+V10 - CORREÇÃO PDF / JORNADAS / SÁBADO E DOMINGO
+
+Correção implementada:
+
+1. A geração do PDF agora consulta a jornada cadastrada do funcionário também para as linhas de sábado e domingo.
+
+2. Regras aplicadas no PDF:
+   - Jornada 12x36: sábados, domingos e descanso semanal ficam conforme escala, sem bloqueio automático da linha.
+   - Sábado compensado: o sábado será preenchido automaticamente como COMPENSADO.
+   - Descanso semanal em domingo: o domingo será preenchido como DESCANSO SEMANAL.
+   - Descanso semanal em sábado e domingo: ambos serão preenchidos como DESCANSO SEMANAL.
+   - Sábado não compensado/trabalhado: a linha fica normal para preenchimento/assinatura.
+
+3. A folha de ponto aprovada foi preservada. A alteração foi apenas na regra de preenchimento automático dos dias conforme a jornada.
+
+4. Recomendação:
+   Após cadastrar ou alterar uma jornada, use o botão "Atualizar jornadas dos funcionários" e gere/visualize novamente o PDF.

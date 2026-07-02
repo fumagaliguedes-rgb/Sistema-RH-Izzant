@@ -1,0 +1,9 @@
+Sistema RH Izzant v1.4.4 - Visualização ampliada de feriados
+
+Alterações:
+- Tabela de feriados com fonte maior e linhas mais altas.
+- Colunas ampliadas para Data, Nome do feriado, Tipo, Setor e Ativo.
+- Cores por tipo de feriado: Nacional, Municipal, Estadual, Interno e Inativo.
+- Lista detalhada maior para conferência.
+- Contador de total e ativos em destaque.
+- Mantida a regra já aprovada da folha de ponto.

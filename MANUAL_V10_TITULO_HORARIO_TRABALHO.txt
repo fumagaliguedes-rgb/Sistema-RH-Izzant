@@ -1,0 +1,6 @@
+V10 - Correção do PDF
+
+Alteração aplicada:
+- No PDF da folha de ponto, o título "HORÁRIO DE TRABALHO DE SEGUNDA A SEXTA-FEIRA" foi substituído por "HORÁRIO DE TRABALHO".
+- A folha aprovada foi preservada, sem alteração de colunas, linhas ou quadro de assinatura.
+- O horário continua sendo preenchido conforme a jornada/horário de trabalho selecionado no cadastro do funcionário.

@@ -1,0 +1,29 @@
+SISTEMA RH IZZANT – ENTERPRISE V1.2
+
+Esta versão foi criada preservando a última versão estável do sistema.
+A folha de ponto aprovada não foi alterada.
+
+Novos módulos adicionados:
+1. Documentos RH
+2. EPIs
+3. Exames / ASO
+4. Agenda RH
+5. Central de PDFs
+6. Assistente RH Izzant
+
+Também permanecem disponíveis:
+- Login e usuários
+- Auditoria
+- Dashboard
+- Controle de férias
+- Banco de horas
+- Escalas
+- Jornadas
+- Feriados Brasil/Itajaí
+- Importação/exportação Excel
+- Backup e restauração
+
+Para abrir:
+1. Extraia o ZIP.
+2. Execute INSTALAR_BIBLIOTECAS.bat uma vez.
+3. Depois execute INICIAR_PROGRAMA.bat.

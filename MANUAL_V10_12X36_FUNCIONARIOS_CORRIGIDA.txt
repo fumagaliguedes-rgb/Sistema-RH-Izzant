@@ -1,0 +1,22 @@
+V10 - CORREÇÃO 12X36 NO CADASTRO DOS FUNCIONÁRIOS
+
+Esta versão corrige a aplicação da jornada 12x36 no cadastro dos funcionários.
+
+Alterações implementadas:
+
+1. Ao selecionar uma jornada 12x36 no cadastro do funcionário, os campos são preenchidos automaticamente:
+   - Sábado: CONFORME ESCALA
+   - Descanso semanal: CONFORME ESCALA 12X36
+
+2. Ao salvar ou atualizar funcionário, o sistema recalcula os campos Sábado e Descanso conforme a jornada escolhida.
+
+3. Na importação Excel, funcionários com jornada 12x36 também passam a receber automaticamente:
+   - Sábado conforme escala
+   - DSR conforme escala 12x36
+
+4. Foi incluído o botão:
+   - Atualizar jornadas dos funcionários
+
+Esse botão corrige cadastros antigos já existentes no banco, aplicando a regra da jornada cadastrada sem alterar a folha de ponto aprovada.
+
+A folha de ponto permanece no layout aprovado.

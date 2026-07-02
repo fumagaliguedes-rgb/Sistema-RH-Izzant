@@ -1,0 +1,30 @@
+V10 CORRIGIDA - CADASTRO DE JORNADAS
+
+Melhorias implementadas:
+
+1. Campo Sábado no cadastro de jornadas:
+   - COMPENSADO
+   - NÃO COMPENSADO
+   - TRABALHADO
+   - NÃO SE APLICA
+
+2. Campo Descanso semanal no cadastro de jornadas:
+   - DOMINGO
+   - SÁBADO E DOMINGO
+   - dias específicos da semana
+   - ESCALA 12X36
+   - CONFORME ESCALA
+
+3. A folha de ponto aprovada foi mantida.
+   O sistema apenas passa a preencher os campos "Horário aos sábados" e "Descanso semanal" conforme a jornada cadastrada e vinculada ao funcionário.
+
+4. Bancos de dados antigos são atualizados automaticamente ao abrir o programa, sem perder cadastros existentes.
+
+Fluxo recomendado:
+- Acesse Cadastros > Jornadas.
+- Cadastre ou edite a jornada.
+- Defina o tratamento do sábado.
+- Defina o descanso semanal.
+- Salve.
+- No cadastro do funcionário, selecione a jornada cadastrada.
+- Gere a folha normalmente.

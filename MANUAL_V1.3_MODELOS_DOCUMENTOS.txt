@@ -1,0 +1,29 @@
+SISTEMA RH IZZANT - V1.3 - MODELOS DE DOCUMENTOS
+
+Esta versão inclui modelos editáveis em Word (.docx) dentro da pasta:
+modelos_documentos
+
+Modelos incluídos:
+1. Contrato de Trabalho
+2. Advertência Disciplinar
+3. Suspensão Disciplinar
+4. Declaração de Vínculo Empregatício
+5. Ficha de Registro de Empregado
+6. Termo de Entrega de EPI
+7. Termo de Entrega de Uniforme
+8. Aviso de Férias
+9. Recibo de Férias
+10. Termo de Banco de Horas
+11. Recibo de Pagamento
+12. Termo de Confidencialidade
+
+Como usar no programa:
+1. Abra a aba Documentos.
+2. Selecione um funcionário.
+3. Escolha o tipo do documento.
+4. Clique em Gerar cópia do modelo.
+5. O arquivo será salvo em documentos_gerados.
+6. Edite os campos com marcadores como {{FUNCIONARIO}}, {{EMPRESA}}, {{CPF}}, {{DATA}} etc.
+
+Observação:
+Os modelos são bases administrativas e devem ser revisados antes do uso definitivo.

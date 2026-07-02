@@ -1,0 +1,11 @@
+V10 - HORÁRIO DE TRABALHO EDITÁVEL/SELECIONÁVEL
+
+Implementado:
+- Novo campo "Horário de trabalho" no cadastro de funcionários.
+- Ao selecionar uma jornada, o sistema preenche automaticamente o horário correspondente.
+- O campo permanece editável, permitindo ajuste específico para o funcionário quando necessário.
+- O PDF passa a usar o horário do cadastro do funcionário; se estiver em branco, busca o horário da jornada.
+- O botão "Atualizar jornadas dos funcionários" também atualiza o horário de trabalho conforme a jornada vinculada.
+- Importação/exportação Excel e CSV passam a conter a coluna "Horário de Trabalho".
+
+A folha de ponto aprovada foi mantida sem alteração de layout.

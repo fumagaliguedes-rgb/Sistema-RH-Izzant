@@ -1,0 +1,11 @@
+V10 - Correção Jornada 12x36
+
+Alteração realizada:
+- Jornada 12x36 agora trata o sábado como CONFORME ESCALA.
+- Descanso semanal da jornada 12x36 passa a aparecer como CONFORME ESCALA 12X36.
+- Ao salvar uma jornada cujo tipo ou nome contenha 12x36, o sistema ajusta automaticamente:
+  * Sábado: CONFORME ESCALA
+  * Descanso semanal: CONFORME ESCALA 12X36
+  * Dias trabalhados: CONFORME ESCALA 12X36
+
+A folha de ponto aprovada não foi alterada. Apenas os dados exibidos nos campos de jornada foram corrigidos.

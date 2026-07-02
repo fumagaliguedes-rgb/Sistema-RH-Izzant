@@ -1,0 +1,17 @@
+Sistema RH Izzant v1.3.5 - Correção Documentos/Férias
+
+Correção aplicada:
+- Ao selecionar o funcionário no módulo Documentos, os campos de período aquisitivo são preenchidos automaticamente com base na data de admissão.
+- Nos modelos de Férias, os campos abaixo passam a ser calculados automaticamente:
+  {{PERIODO_AQUISITIVO}}
+  {{PERIODO_AQUISITIVO_INICIO}}
+  {{PERIODO_AQUISITIVO_FIM}}
+  {{PERIODO_AQUISITIVO_COMPLETO}}
+- Ao informar Data Início e Data Fim das férias, o sistema também calcula:
+  {{PERIODO}}
+  {{DIAS_FERIAS}}
+  {{DATA_RETORNO}}
+
+Observação:
+- A folha de ponto aprovada não foi alterada.
+- A correção foi feita apenas no módulo Documentos.

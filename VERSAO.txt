@@ -1,0 +1,2 @@
+Sistema RH Izzant Enterprise v1.5.2
+Correção: restabelecida regra estável de sábado compensado e DSR aos domingos em jornadas comuns, sem afetar 12x36.

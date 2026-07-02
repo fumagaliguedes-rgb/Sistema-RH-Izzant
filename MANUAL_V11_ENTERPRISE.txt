@@ -1,0 +1,38 @@
+PONTO SAÚDE - V11 ENTERPRISE
+
+Base: V10 aprovada.
+
+IMPORTANTE:
+- O layout da folha de ponto aprovada foi mantido.
+- As alterações desta versão são no sistema e nos cadastros.
+
+Novidades da V11:
+1. Menu Escalas
+   - Cadastro de escalas 5x2, 6x1, 12x36, plantão, revezamento e personalizada.
+   - Ativar/inativar escalas.
+   - Campo de regra/dias da escala.
+
+2. Menu Feriados
+   - Cadastro de feriados nacionais, estaduais, municipais e internos.
+   - Data no padrão DD/MM/AAAA.
+   - Aplicação por setor ou para todos.
+   - Ativar/inativar feriados.
+
+3. Dashboard ampliado
+   - Funcionários ativos.
+   - Setores ativos.
+   - Jornadas ativas.
+   - Ocorrências do mês.
+   - Feriados ativos.
+   - Backups.
+
+4. Auditoria mantida
+   - Registros de criação/alteração de escalas e feriados.
+
+5. Banco de dados atualizado automaticamente
+   - Ao abrir, o sistema cria as novas tabelas sem apagar os dados já existentes.
+
+Próximas etapas sugeridas:
+- Fazer a geração da folha considerar automaticamente os feriados cadastrados.
+- Vincular escala diretamente ao funcionário.
+- Criar controle completo de férias com período aquisitivo e concessivo.

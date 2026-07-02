@@ -1,0 +1,26 @@
+PONTO SAÚDE - V7 SETORES E INATIVAÇÃO
+
+Esta versão mantém a folha de ponto aprovada e altera somente o programa.
+
+Novidades:
+1. Menu Setores
+   - Cadastrar setor
+   - Editar descrição do setor
+   - Inativar setor
+   - Reativar setor
+
+2. Cadastro de Funcionários
+   - O campo Setor agora é uma lista cadastrada.
+   - Para aparecer no funcionário, o setor deve estar ativo no menu Setores.
+   - Botão Inativar funcionário incluído no cadastro.
+   - Funcionário inativado não aparece na geração de PDFs.
+   - Para reativar, marque "Mostrar inativos", selecione o funcionário e clique em Reativar selecionado.
+
+3. PDFs
+   - Geração por setor continua funcionando.
+   - Setores inativos não aparecem no filtro de geração.
+   - A folha de ponto aprovada não foi alterada.
+
+Login inicial:
+Usuário: admin
+Senha: admin

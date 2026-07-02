@@ -1,0 +1,12 @@
+Sistema RH Izzant – Enterprise v1.4
+
+Correção/Melhoria do módulo Feriados:
+
+- Adicionada área "Consulta de feriados cadastrados" no próprio módulo Feriados.
+- Agora os feriados cadastrados aparecem na tela para consulta.
+- Inclusão de filtro por ano.
+- Inclusão de filtro por tipo: Nacional, Estadual, Municipal ou Interno.
+- Inclusão de contador na tela: total de feriados cadastrados e total de ativos.
+- Botões: Consultar e Limpar filtros.
+- A alteração não muda o layout da folha de ponto aprovada.
+- A alteração não muda a regra da escala 12x36/DSR; apenas melhora a consulta do cadastro de feriados.

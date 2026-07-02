@@ -1,0 +1,44 @@
+SISTEMA RH IZZANT - v1.3.3
+
+DOCUMENTOS RH - PERÍODO AQUISITIVO E MODELOS WORD
+
+1. Período aquisitivo automático
+Ao gerar documentos do tipo Férias, o sistema calcula automaticamente o período aquisitivo com base na data de admissão do funcionário.
+
+Placeholders disponíveis:
+{{PERIODO_AQUISITIVO}}
+{{PERIODO_AQUISITIVO_INICIO}}
+{{PERIODO_AQUISITIVO_FIM}}
+{{PERIODO_AQUISITIVO_COMPLETO}}
+
+Exemplo:
+Admissão: 15/03/2023
+Documento gerado em 2026:
+Período aquisitivo: 15/03/2025 a 14/03/2026
+
+Se o campo DATA_INICIO das férias estiver preenchido, ele será usado como referência para calcular o período aquisitivo correto.
+
+2. Retorno e dias de férias automáticos
+Se informar DATA_INICIO e DATA_FIM, o sistema pode preencher automaticamente:
+{{PERIODO}}
+{{DATA_RETORNO}}
+{{DIAS_FERIAS}}
+
+3. Importar modelo Word
+Na aba Documentos, selecione o tipo de documento e clique em "Importar modelo Word".
+O arquivo .docx escolhido passa a ser o modelo daquele tipo.
+
+Use placeholders dentro do Word, por exemplo:
+{{FUNCIONARIO}}
+{{CPF}}
+{{ADMISSAO}}
+{{FUNCAO}}
+{{SETOR}}
+{{DATA_DOCUMENTO}}
+{{PERIODO_AQUISITIVO}}
+{{DATA_INICIO}}
+{{DATA_FIM}}
+{{DATA_RETORNO}}
+
+4. Observação
+A folha de ponto aprovada não foi alterada.

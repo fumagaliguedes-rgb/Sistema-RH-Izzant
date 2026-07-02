@@ -1,0 +1,32 @@
+VERSÃO V8 - OCORRÊNCIAS, FÉRIAS E AFASTAMENTOS
+
+Base: V7/V6 aprovada, mantendo a folha de ponto no mesmo layout aprovado.
+
+Novidade principal:
+- Novo menu: Ocorrências.
+- Permite lançar FÉRIAS, ATESTADO, LICENÇA, FOLGA, SUSPENSÃO, FALTA JUSTIFICADA e FALTA INJUSTIFICADA.
+- Informe funcionário, data inicial, data final e observação.
+
+Como aparece na folha:
+- Nos dias lançados como ocorrência, a linha da folha é preenchida automaticamente.
+- Exemplo: FÉRIAS aparece na primeira coluna de horário.
+- As demais colunas ficam com traço.
+- A coluna de assinatura/rubrica fica como DISPENSADO.
+- O layout da folha não foi redesenhado; apenas os campos dos dias são preenchidos.
+
+Formato das datas:
+- Use AAAA-MM-DD. Exemplo: 2026-07-10.
+
+Para testar:
+1. Abra o programa.
+2. Cadastre ou selecione um funcionário.
+3. Vá em Ocorrências.
+4. Lance férias de 2026-07-10 a 2026-07-20.
+5. Vá em Gerar PDFs.
+6. Clique em Visualizar PDF antes de gerar.
+
+
+ATUALIZAÇÃO - DATAS NO PADRÃO BRASILEIRO
+- O módulo Ocorrências agora usa DD/MM/AAAA.
+- Exemplo: 01/07/2026 a 30/07/2026.
+- Internamente o banco continua seguro; a tela mostra o formato brasileiro.

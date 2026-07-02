@@ -1,0 +1,17 @@
+
+V11.1 - FERIADOS BRASIL + ITAJAÍ-SC
+
+Implementado:
+- Botão "Importar Brasil + Itajaí-SC" no menu Feriados.
+- Botão "Importar 2026-2030" para carregar vários anos de uma vez.
+- Feriados nacionais buscados pela BrasilAPI quando houver internet.
+- Fallback local automático quando não houver internet.
+- Feriados municipais de Itajaí-SC incluídos automaticamente:
+  * Sexta-feira Santa
+  * Corpus Christi
+  * Aniversário do Município de Itajaí - 15/06
+  * Nossa Senhora da Imaculada Conceição - 08/12
+- Ao gerar a folha, os feriados cadastrados aparecem automaticamente como FERIADO na linha do dia, sem alterar o layout aprovado.
+
+Observação:
+O sistema já inicia com feriados de 2026 a 2030 cadastrados. O usuário pode importar novamente; registros duplicados são evitados.

@@ -1,0 +1,29 @@
+Sistema RH Izzant v1.3.9 - Motor de Documentos Inteligente
+
+Implementações:
+
+1. Template Mestre de Documentos
+- Modelo mestre com identidade visual da Izzant.
+- Quadro padronizado de identificação do colaborador.
+- Campos preenchidos automaticamente via marcadores {{CAMPO}}.
+
+2. Formatação Automática
+- Nome do funcionário, matrícula, CPF, cargo, setor, jornada e empresa em negrito.
+- Datas, períodos e valores monetários em negrito.
+- Mantém o restante do texto sem destaque, facilitando a conferência.
+
+3. Quadros Padronizados
+- Dados do Colaborador.
+- Dados das Férias.
+- Resumo Financeiro Estimado.
+
+4. Férias Integrado
+- Aviso de Férias, Recibo de Férias, Comunicação de Férias e Termo de Ciência são gerados pelo módulo Férias.
+- O módulo Férias fornece período aquisitivo, período concessivo, datas, retorno, dias e valores calculados.
+
+5. Documentos Gerais
+- Contrato, advertência, suspensão, declarações, ficha de registro, EPI, uniforme, banco de horas, recibos e termos continuam no módulo Documentos.
+- Todos utilizam quadro de identificação padronizado.
+
+Observação:
+O modelo Word pode ser editado livremente, desde que os campos sejam mantidos no formato {{NOME}}, {{CPF}}, {{DATA_DOCUMENTO}}, etc.

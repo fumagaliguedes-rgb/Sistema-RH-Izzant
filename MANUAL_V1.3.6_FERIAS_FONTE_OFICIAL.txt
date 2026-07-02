@@ -1,0 +1,36 @@
+Sistema RH Izzant - v1.3.6
+Módulo Férias como fonte oficial dos períodos aquisitivos
+
+Alterações implementadas:
+
+1. O módulo Controle de Férias passou a calcular automaticamente os períodos aquisitivos a partir da data de admissão do funcionário.
+2. Ao selecionar o funcionário no módulo Férias, o sistema exibe uma lista de períodos aquisitivos calculados, com concessivo e status:
+   - Disponível
+   - Em aquisição
+   - Futuro
+   - Já lançado
+3. Ao escolher um período, o sistema preenche automaticamente:
+   - Período aquisitivo início
+   - Período aquisitivo fim
+   - Limite concessivo
+4. Se o usuário lançar férias sem preencher manualmente o período aquisitivo, o sistema calcula pelo início das férias e pela admissão.
+5. O módulo Documentos passa a buscar os dados de férias a partir do Controle de Férias, em vez de recalcular isoladamente.
+6. Foi criado botão "Enviar dados para Documentos" no módulo Férias.
+7. Ao gerar documento do tipo Férias, o sistema usa o último registro ativo de férias do funcionário para preencher:
+   - PERIODO_AQUISITIVO
+   - PERIODO_AQUISITIVO_INICIO
+   - PERIODO_AQUISITIVO_FIM
+   - PERIODO_AQUISITIVO_COMPLETO
+   - PERIODO_CONCESSIVO
+   - PERIODO_CONCESSIVO_FIM
+   - DATA_INICIO
+   - DATA_FIM
+   - DATA_RETORNO
+   - DIAS_FERIAS
+   - PERIODO
+
+Regra adotada:
+O módulo Férias é a fonte oficial das informações de férias.
+O módulo Documentos apenas consome esses dados para preencher os modelos Word.
+
+A folha de ponto aprovada não foi alterada.

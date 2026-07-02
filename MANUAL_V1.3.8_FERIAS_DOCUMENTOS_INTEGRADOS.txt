@@ -1,0 +1,18 @@
+Sistema RH Izzant - v1.3.8
+Módulo Férias com documentos integrados
+
+Alterações:
+- Documentos de férias foram removidos do fluxo principal da aba Documentos.
+- O módulo Férias passa a concentrar todo o processo: cálculos, períodos, valores, histórico, documentos e conclusão.
+- Novos botões no módulo Férias:
+  * Gerar Aviso de Férias
+  * Gerar Recibo de Férias
+  * Gerar Comunicação/Termo
+  * Concluir Férias
+  * Abrir documentos de férias
+- Os documentos são salvos em: documentos_gerados/ferias
+- A aba Documentos fica reservada para documentos gerais: contrato, advertência, suspensão, declaração, EPI, uniforme, banco de horas e recibos gerais.
+- O botão Concluir Férias marca o registro como concluído e cria a ocorrência FÉRIAS para refletir na folha de ponto.
+
+Observação:
+A folha de ponto aprovada não foi alterada.

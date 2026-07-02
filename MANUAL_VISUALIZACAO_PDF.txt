@@ -1,0 +1,15 @@
+VISUALIZAÇÃO DE PDF NO PROGRAMA
+
+Foi incluído o botão "Visualizar PDF antes de gerar" na aba Gerar PDFs.
+
+Como funciona:
+1. Selecione mês, ano, funcionário ou setor.
+2. Clique em Visualizar PDF antes de gerar.
+3. O programa cria um PDF temporário na pasta preview.
+4. Uma janela interna abre mostrando a folha.
+5. Use Anterior/Próxima para navegar e Zoom +/- para ajustar.
+
+Importante:
+- A folha de ponto aprovada foi mantida sem alteração de layout.
+- A visualização não registra histórico e não substitui o botão Gerar PDF.
+- Para funcionar dentro do programa, execute INSTALAR_BIBLIOTECAS.bat uma vez.

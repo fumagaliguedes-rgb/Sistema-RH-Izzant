@@ -1,0 +1,20 @@
+MODELOS DE DOCUMENTOS - SISTEMA RH IZZANT
+
+Estes modelos usam marcadores como {{FUNCIONARIO}}, {{EMPRESA}}, {{CPF}}, {{DATA}} e outros.
+Eles servem como base para edição e impressão pelo RH.
+
+Modelos incluídos:
+1. Contrato de Trabalho
+2. Advertência Disciplinar
+3. Suspensão Disciplinar
+4. Declaração de Vínculo
+5. Ficha de Registro
+6. Termo de Entrega de EPI
+7. Termo de Entrega de Uniforme
+8. Aviso de Férias
+9. Recibo de Férias
+10. Termo de Banco de Horas
+11. Recibo de Pagamento
+12. Termo de Confidencialidade
+
+Revise juridicamente os modelos antes de uso definitivo.

@@ -1,0 +1,14 @@
+V11 - FERIADOS COM REGRA 12X36 CORRIGIDA
+
+Alteração aplicada:
+- Funcionários vinculados a jornadas 12x36 não terão a palavra FERIADO preenchida automaticamente na folha de ponto.
+- A regra evita que feriados nacionais/municipais sobrescrevam a escala 12x36.
+- Para jornadas comuns, os feriados continuam sendo exibidos normalmente.
+
+Regra de prioridade da folha:
+1. Ocorrências cadastradas.
+2. Regra da jornada/escala.
+3. Feriados, exceto em jornada 12x36.
+4. Dia normal.
+
+A folha de ponto aprovada foi preservada.

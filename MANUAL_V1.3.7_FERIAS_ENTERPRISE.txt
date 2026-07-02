@@ -1,0 +1,49 @@
+Sistema RH Izzant - v1.3.7 Férias Enterprise
+
+Implementado no módulo Controle de Férias:
+
+1. Cálculo automático de datas
+- O usuário informa início das férias e dias a gozar.
+- O sistema calcula automaticamente fim das férias.
+- O sistema calcula automaticamente data de retorno.
+
+2. Período aquisitivo
+- O período aquisitivo continua sendo calculado a partir da data de admissão.
+- O módulo Férias permanece como fonte oficial destes dados.
+
+3. Dias de férias
+- Campo Dias a gozar.
+- Campo Dias de abono.
+- Cálculo de dias restantes no período.
+
+4. Valores estimados
+- Salário-base buscado do cadastro do funcionário.
+- Campo de médias/variáveis.
+- Valor das férias.
+- 1/3 constitucional.
+- Abono pecuniário + 1/3 quando informado.
+- Adiantamento de 13º opcional.
+- Total bruto.
+- INSS estimado.
+- IRRF estimado.
+- Líquido estimado.
+
+5. Integração com documentos
+Novos campos disponíveis para modelos Word:
+{{DIAS_FERIAS}}
+{{DIAS_GOZADOS}}
+{{DIAS_ABONO}}
+{{DIAS_RESTANTES}}
+{{SALARIO_BASE}}
+{{MEDIA_VARIAVEIS}}
+{{VALOR_FERIAS}}
+{{VALOR_UM_TERCO}}
+{{VALOR_ABONO}}
+{{ADIANTAMENTO_13}}
+{{VALOR_13}}
+{{TOTAL_BRUTO}}
+{{INSS_ESTIMADO}}
+{{IRRF_ESTIMADO}}
+{{LIQUIDO_ESTIMADO}}
+
+Observação: os cálculos financeiros são estimativos para controle interno e conferência. Conferir regras vigentes, bases, médias e descontos antes de utilizar como valor definitivo de folha de pagamento.

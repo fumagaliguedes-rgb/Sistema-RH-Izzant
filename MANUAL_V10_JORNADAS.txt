@@ -1,0 +1,32 @@
+PONTO SAÚDE - V10 JORNADAS
+
+Implementações desta versão:
+
+1. Novo menu Cadastros > Jornadas.
+2. Nova aba Jornadas no programa.
+3. Cadastro de jornada com:
+   - Código da jornada
+   - Nome da jornada
+   - Entrada 1
+   - Saída 1
+   - Entrada 2
+   - Saída 2
+   - Horas diárias
+   - Horas semanais
+   - Intervalo em minutos
+   - Dias trabalhados
+   - Tipo de jornada
+   - Observações
+   - Situação ativa/inativa
+4. Botões:
+   - Nova
+   - Salvar jornada
+   - Duplicar jornada
+   - Inativar jornada
+   - Reativar jornada
+5. No cadastro do funcionário, o campo Jornada agora é uma lista das jornadas cadastradas.
+6. A folha de ponto aprovada não foi alterada visualmente.
+7. Jornadas inativas deixam de aparecer para novos cadastros, mas os registros já salvos permanecem preservados.
+
+Observação:
+A jornada escolhida no cadastro do funcionário continuará sendo impressa no campo Jornada/Horário da folha de ponto, sem modificar o layout aprovado.

@@ -1,0 +1,37 @@
+PONTO SAÚDE - V9 IMPORTAÇÃO DE FUNCIONÁRIOS
+
+Novas funcionalidades implementadas:
+
+1. Botão "Baixar Modelo"
+   - Disponível na tela inicial, no menu Cadastros e na tela Funcionários.
+   - Gera automaticamente uma planilha Excel padrão para preenchimento do cadastro.
+
+2. Importar Funcionários do Excel
+   - Lê a aba "Funcionarios" ou a primeira aba do arquivo selecionado.
+   - Importa novos funcionários.
+   - Atualiza funcionários existentes quando encontrar matrícula/CTPS, CPF ou nome já cadastrado.
+   - Cria automaticamente setores que ainda não existirem.
+   - Reconhece status Ativo/Inativo.
+   - Aceita datas em DD/MM/AAAA.
+
+3. Campos esperados na planilha
+   - Matrícula
+   - Nome Completo
+   - CPF
+   - RG/CTPS
+   - Data de Nascimento
+   - Data de Admissão
+   - Cargo/Função
+   - Setor
+   - CBO
+   - Jornada
+   - Salário
+   - Empresa
+   - Telefone
+   - E-mail
+   - Status
+
+4. Observações
+   - O campo Nome Completo é obrigatório.
+   - Se o setor informado não existir, ele será criado automaticamente.
+   - A folha de ponto aprovada não foi alterada.

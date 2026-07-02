@@ -1,0 +1,14 @@
+Sistema RH Izzant - Enterprise v1.1
+
+Como iniciar:
+1. Execute INSTALAR_BIBLIOTECAS.bat uma vez.
+2. Execute INICIAR_PROGRAMA.bat.
+3. Login inicial: admin / admin
+
+A folha de ponto aprovada foi preservada.
+Esta versão acrescenta módulos independentes de Férias, Banco de Horas e Atualizador.
+
+Importante:
+- Os dados ficam na pasta dados.
+- Os PDFs ficam na pasta PDFs.
+- Os backups ficam na pasta backups.
