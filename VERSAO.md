@@ -1,8 +1,9 @@
-Sistema Gestão Izzant
-Versão 3.7
+# Sistema Gestão Izzant
 
-Folha de Pagamento
-- Ajusta quadro do salário líquido no holerite.
-- Mantém espaço padrão do holerite conforme modelo.
-- Reorganiza resumo da folha para não carregar todos os funcionários automaticamente.
-- Inclui relatório de líquidos da competência em PDF e CSV.
+Versão: v3.8
+Data: 02/07/2026
+
+## Folha de Pagamento
+- Lançamentos reorganizados como menu principal da folha.
+- Lançamentos podem ser informados em valor fixo ou percentual.
+- Ajustes no quadro do holerite e salário líquido.
