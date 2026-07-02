@@ -1,8 +1,7 @@
-# Changelog v3.8
+# v3.9 - Folha lançamentos estilo SCI/Domínio
 
-## Folha de Pagamento
-- Reorganiza a navegação para destacar **Lançamentos da Folha** como menu principal.
-- Adiciona opção de lançamento por **Valor R$**, **Percentual do salário** ou **Percentual dos proventos**.
-- Ao usar percentual, o sistema calcula o valor do lançamento para cada funcionário conforme o alvo selecionado.
-- Mantém aplicação de lançamentos por funcionário, setor, função ou todos.
-- Ajusta espaçamentos do holerite, reduzindo área vazia e corrigindo o quadro do salário líquido/bases.
+- Cria aba/menu exclusivo para lançamentos da folha.
+- Melhora lançamentos por funcionário, setor, função ou todos.
+- Permite lançamentos em valor fixo, percentual do salário, percentual dos proventos atuais ou cálculo automático do evento.
+- Corrige inclusão de lançamentos percentuais no cálculo da folha e no holerite.
+- Ajusta quadros do holerite, especialmente salário líquido e bases.

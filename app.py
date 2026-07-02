@@ -460,7 +460,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v3.8 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v3.9 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1422,7 +1422,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v3.8 Folha')
+        self.title(APP_NAME + ' - Enterprise v3.9 Folha')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -4110,7 +4110,7 @@ class App(tk.Tk):
         self.folha_tab_lanc = ttk.Frame(self.folha_nb)
         self.folha_tab_eventos = ttk.Frame(self.folha_nb)
         self.folha_tab_holerites = ttk.Frame(self.folha_nb)
-        self.folha_nb.add(self.folha_tab_lanc, text='➕ Lançamentos da Folha')
+        self.folha_nb.add(self.folha_tab_lanc, text='➕ Lançamentos')
         self.folha_nb.add(self.folha_tab_resumo, text='📊 Resumo')
         self.folha_nb.add(self.folha_tab_eventos, text='⚙️ Eventos')
         self.folha_nb.add(self.folha_tab_holerites, text='🖨 Holerites')
@@ -4158,24 +4158,24 @@ class App(tk.Tk):
     def _build_folha_lancamentos_tab(self):
         f = self.folha_tab_lanc
         f.columnconfigure(0, weight=1); f.rowconfigure(1, weight=1)
-        form = ttk.LabelFrame(f, text='Novo lançamento da competência')
+        form = ttk.LabelFrame(f, text='Menu exclusivo de lançamentos da folha - valor, percentual, setor, função ou todos')
         form.grid(row=0, column=0, sticky='ew', padx=8, pady=8)
         for c in range(10): form.columnconfigure(c, weight=1)
         ttk.Label(form, text='Evento').grid(row=0, column=0, sticky='w', padx=6, pady=5)
         self.folha_evento_var = tk.StringVar()
         self.folha_evento_combo = ttk.Combobox(form, textvariable=self.folha_evento_var, state='readonly')
         self.folha_evento_combo.grid(row=0, column=1, columnspan=4, sticky='ew', padx=6, pady=5)
-        ttk.Label(form, text='Quantidade/Ref.').grid(row=0, column=5, sticky='w', padx=6, pady=5)
+        ttk.Label(form, text='Referência / Qtd.').grid(row=0, column=5, sticky='w', padx=6, pady=5)
         self.folha_lanc_ref = tk.StringVar()
         ttk.Entry(form, textvariable=self.folha_lanc_ref).grid(row=0, column=6, sticky='ew', padx=6, pady=5)
 
-        ttk.Label(form, text='Forma').grid(row=1, column=0, sticky='w', padx=6, pady=5)
-        self.folha_lanc_forma = tk.StringVar(value='Valor R$')
-        ttk.Combobox(form, textvariable=self.folha_lanc_forma, values=['Valor R$','Percentual do salário','Percentual dos proventos'], state='readonly', width=20).grid(row=1, column=1, columnspan=2, sticky='ew', padx=6, pady=5)
-        ttk.Label(form, text='Valor ou %').grid(row=1, column=3, sticky='w', padx=6, pady=5)
+        ttk.Label(form, text='Modo de cálculo').grid(row=1, column=0, sticky='w', padx=6, pady=5)
+        self.folha_lanc_forma = tk.StringVar(value='Valor fixo R$')
+        ttk.Combobox(form, textvariable=self.folha_lanc_forma, values=['Valor fixo R$','Percentual do salário','Percentual dos proventos atuais','Automático do evento'], state='readonly', width=20).grid(row=1, column=1, columnspan=2, sticky='ew', padx=6, pady=5)
+        ttk.Label(form, text='Valor / Percentual').grid(row=1, column=3, sticky='w', padx=6, pady=5)
         self.folha_lanc_valor = tk.StringVar()
         ttk.Entry(form, textvariable=self.folha_lanc_valor).grid(row=1, column=4, sticky='ew', padx=6, pady=5)
-        ttk.Label(form, text='Ex.: 212,00 ou 10 para 10%').grid(row=1, column=5, columnspan=2, sticky='w', padx=6, pady=5)
+        ttk.Label(form, text='Ex.: 212,00 ou 10 para 10%. Em automático, use a referência/qtd.').grid(row=1, column=5, columnspan=2, sticky='w', padx=6, pady=5)
 
         ttk.Label(form, text='Aplicar para').grid(row=2, column=0, sticky='w', padx=6, pady=5)
         self.folha_aplicar_tipo = tk.StringVar(value='Funcionário')
@@ -4187,7 +4187,7 @@ class App(tk.Tk):
         ttk.Button(form, text='Atualizar alvos', command=self.atualizar_alvos_folha).grid(row=2, column=6, sticky='ew', padx=6, pady=5)
         ttk.Button(form, text='Aplicar lançamento', command=self.aplicar_lancamento_folha).grid(row=2, column=7, sticky='ew', padx=6, pady=5)
         ttk.Button(form, text='Excluir selecionado', command=self.excluir_lancamento_folha).grid(row=2, column=8, columnspan=2, sticky='ew', padx=6, pady=5)
-        lista = ttk.LabelFrame(f, text='Lançamentos manuais da competência')
+        lista = ttk.LabelFrame(f, text='Lançamentos aplicados na competência')
         lista.grid(row=1, column=0, sticky='nsew', padx=8, pady=(0,8))
         lista.columnconfigure(0, weight=1); lista.rowconfigure(0, weight=1)
         self.folha_lanc_tree = ttk.Treeview(lista, columns=('id','func','codigo','desc','ref','tipo','valor','origem'), show='headings', height=14)
@@ -4344,21 +4344,31 @@ class App(tk.Tk):
         except Exception:
             qtd=0.0
 
-        # Lançamento em percentual: o campo "Valor ou %" representa a porcentagem.
-        # O valor calculado é gravado no lançamento para manter o holerite simples e auditável.
+        # Lançamento em percentual: o campo "Valor / Percentual" representa a porcentagem.
+        # O valor calculado é gravado no lançamento para manter o holerite auditável, como em sistemas de folha.
         if forma == 'Percentual do salário' and valor_digitado > 0:
             ref_txt = f'{valor_digitado:.4f}%'.replace('.', ',')
             return ref_txt, round(salario * valor_digitado / 100.0, 2)
-        if forma == 'Percentual dos proventos' and valor_digitado > 0:
+        if forma == 'Percentual dos proventos atuais' and valor_digitado > 0:
             ref_txt = f'{valor_digitado:.4f}%'.replace('.', ',')
-            # Nesta etapa, usa salário base como referência inicial. Após o cálculo da folha,
-            # o valor fica fixado no lançamento para evitar variação inesperada no holerite.
-            return ref_txt, round(salario * valor_digitado / 100.0, 2)
+            base = salario
+            try:
+                comp_id = self._folha_get_competencia_id()
+                with con() as db:
+                    soma = db.execute('''SELECT COALESCE(SUM(valor),0) FROM folha_lancamentos
+                                         WHERE competencia_id=? AND funcionario_id=? AND ativo=1
+                                         AND tipo='Provento' AND COALESCE(origem,'') LIKE 'Manual%' ''',
+                                      (comp_id, funcionario.get('id'))).fetchone()[0]
+                base += float(soma or 0)
+            except Exception:
+                pass
+            return ref_txt, round(base * valor_digitado / 100.0, 2)
 
         # Lançamento em valor absoluto informado manualmente.
-        if valor_digitado > 0:
+        if forma == 'Valor fixo R$' and valor_digitado > 0:
             return ref_txt, round(valor_digitado,2)
 
+        # Automático do evento: usa fórmula cadastrada.
         form=str(formula or '').upper()
         if form=='HE50': valor=(salario/220.0)*1.5*qtd
         elif form=='HE100': valor=(salario/220.0)*2.0*qtd
@@ -4379,7 +4389,7 @@ class App(tk.Tk):
                 ref, valor = self._folha_calcular_valor_evento(evento, f)
                 if valor <= 0: continue
                 origem_lanc = 'Manual'
-                if hasattr(self, 'folha_lanc_forma') and self.folha_lanc_forma.get() != 'Valor R$':
+                if hasattr(self, 'folha_lanc_forma') and self.folha_lanc_forma.get() not in ('Valor fixo R$', 'Automático do evento'):
                     origem_lanc = 'Manual - Percentual'
                 db.execute('''INSERT INTO folha_lancamentos(competencia_id,funcionario_id,codigo,descricao,referencia,tipo,valor,origem,ativo)
                               VALUES(?,?,?,?,?,?,?,?,1)''', (comp_id,f['id'],cod,desc,ref,tipo,valor,origem_lanc))
@@ -4503,13 +4513,16 @@ class App(tk.Tk):
             line(x0,totals_y+26,R,totals_y+26); line(x0+385,totals_y+26,x0+385,totals_y); line(x0+470,totals_y+26,x0+470,totals_y)
             txt(x0+382,totals_y+12,'Totais',7,False,'right'); txt(x0+467,totals_y+12,m(total_p),7,False,'right'); txt(R-5,totals_y+12,m(total_d),7,False,'right')
             # Quadro do líquido separado e com largura suficiente para não invadir divisões.
-            line(x0,totals_y,R,totals_y); line(x0+385,totals_y,x0+385,totals_y-28); line(x0+470,totals_y,x0+470,totals_y-28); line(x0,totals_y-28,R,totals_y-28)
-            txt(x0+392,totals_y-18,'SALÁRIO LÍQUIDO',8.4,True); txt(R-8,totals_y-18,f'R$ {m(liquido)}',8.8,True,'right')
-            base_y=y0+52
+            line(x0,totals_y,R,totals_y)
+            line(x0+315,totals_y,x0+315,totals_y-28)
+            line(x0+470,totals_y,x0+470,totals_y-28)
+            line(x0,totals_y-28,R,totals_y-28)
+            txt(x0+392,totals_y-18,'SALÁRIO LÍQUIDO',8.0,True,'center'); txt(R-8,totals_y-18,f'R$ {m(liquido)}',8.8,True,'right')
+            base_y=y0+54
             line(x0,base_y+10,R,base_y+10)
             salario=float(f.get('salario') or 0); base_inss=total_p; base_fgts=total_p; valor_fgts=round(base_fgts*0.08,2); inss=sum(v for _,d,_,v,_ in des if 'INSS' in str(d).upper()); base_irrf=max(0,total_p-inss)
             for i,(label,value) in enumerate([('Salário base',salario),('Base INSS',base_inss),('Base FGTS',base_fgts),('Valor FGTS',valor_fgts),('Base IRRF',base_irrf)]):
-                cx=x0+(block_w/5)*i+(block_w/10); txt(cx,base_y+2,label,6.8,False,'center'); txt(cx,base_y-9,m(value),6.8,False,'center')
+                cx=x0+(block_w/5)*i+(block_w/10); txt(cx,base_y+1,label,6.5,False,'center'); txt(cx,base_y-10,m(value),6.5,False,'center')
             dec_y=y0+22; line(x0,dec_y+14,R,dec_y+14); txt(x0+8,dec_y+4,'Declaro ter recebido o valor líquido deste recibo.',6.8); txt(x0+25,y0+5,'     /      /          Assinatura do Colaborador:',6.8); txt(x0+8,y0-10,'Sistema Gestão Izzant',6); txt(R-8,y0-10,datetime.now().strftime('%d/%m/%Y %H:%M'),6,False,'right')
         draw_via(y1); draw_via(y2); c.save(); return total_p,total_d,liquido
 
