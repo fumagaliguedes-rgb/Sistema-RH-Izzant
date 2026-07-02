@@ -1397,7 +1397,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v3.4 Folha de Pagamento')
+        self.title(APP_NAME + ' - Enterprise v3.5 Holerite SCI')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -4146,35 +4146,157 @@ class App(tk.Tk):
         messagebox.showinfo('Folha de Pagamento','Folha calculada para a competência selecionada.')
 
     def _gerar_holerite_pdf(self, f, destino):
+        """Gera holerite no modelo SCI: 2 vias por folha A4.
+        Estrutura visual baseada no recibo de pagamento enviado pelo usuário.
+        """
         os.makedirs(os.path.dirname(destino), exist_ok=True)
-        emp=get_empresa(); pro, des, total_p, total_d, liquido=self._folha_calcular_funcionario(f)
-        c=canvas.Canvas(destino, pagesize=A4); W,H=A4
-        L,R=40,W-40; y=H-45
-        def rect(x,y,w,h): c.rect(x,y,w,h,fill=0,stroke=1)
-        def txt(x,y,t,size=9,bold=False,align='left'):
+        emp = get_empresa()
+        pro, des, total_p, total_d, liquido = self._folha_calcular_funcionario(f)
+        mes = int(self.folha_mes.get()); ano = int(self.folha_ano.get())
+        competencia = f'{MESES[mes-1]}/{ano}'
+        c = canvas.Canvas(destino, pagesize=A4)
+        W, H = A4
+        L, R = 18, W - 18
+        block_w = R - L
+        block_h = 315
+        y1 = H - 20 - block_h
+        y2 = 70
+
+        def m(v):
+            return money(v)
+
+        def txt(x, y, t, size=7.0, bold=False, align='left'):
             c.setFont('Helvetica-Bold' if bold else 'Helvetica', size)
-            if align=='center': c.drawCentredString(x,y,str(t))
-            elif align=='right': c.drawRightString(x,y,str(t))
-            else: c.drawString(x,y,str(t))
-        rect(L,60,R-L,H-90)
-        txt(W/2,y,emp.get('nome',''),13,True,'center'); y-=16
-        txt(W/2,y,emp.get('cnpj',''),9,False,'center'); y-=20
-        txt(W/2,y,f'HOLERITE - {MESES[int(self.folha_mes.get())-1]}/{self.folha_ano.get()}',12,True,'center'); y-=28
-        txt(L+10,y,f'Funcionário: {f.get("nome","")}',9,True); txt(R-10,y,f'Admissão: {fmt_data(f.get("admissao"))}',9,False,'right'); y-=18
-        txt(L+10,y,f'Função: {f.get("funcao","")}',9); txt(R-10,y,f'Salário base: {moeda_br(f.get("salario"))}',9,False,'right'); y-=26
-        rect(L+10,y-18,R-L-20,20); txt(L+20,y-12,'Código',8,True); txt(L+80,y-12,'Descrição',8,True); txt(R-150,y-12,'Proventos',8,True,'right'); txt(R-20,y-12,'Descontos',8,True,'right'); y-=38
-        for cod,desc,ref,val in pro:
-            txt(L+20,y,cod,8); txt(L+80,y,(desc + (f' ({ref})' if ref else ''))[:55],8); txt(R-150,y,moeda_br(val),8,False,'right'); y-=16
-        for cod,desc,ref,val in des:
-            txt(L+20,y,cod,8); txt(L+80,y,(desc + (f' ({ref})' if ref else ''))[:55],8); txt(R-20,y,moeda_br(val),8,False,'right'); y-=16
-        y-=10; c.line(L+10,y,R-10,y); y-=18
-        txt(L+20,y,'Total de proventos:',9,True); txt(L+170,y,moeda_br(total_p),9,False,'right')
-        txt(L+230,y,'Total de descontos:',9,True); txt(L+390,y,moeda_br(total_d),9,False,'right')
-        txt(R-160,y,'Líquido:',10,True); txt(R-20,y,moeda_br(liquido),10,True,'right')
-        y-=70; c.line(W/2-150,y,W/2+150,y); txt(W/2,y-14,f.get('nome',''),8,False,'center')
-        txt(L+10,75,'Sistema Gestão Izzant',6); txt(R-10,75,datetime.now().strftime('%d/%m/%Y %H:%M'),6,False,'right')
+            t = '' if t is None else str(t)
+            if align == 'center':
+                c.drawCentredString(x, y, t)
+            elif align == 'right':
+                c.drawRightString(x, y, t)
+            else:
+                c.drawString(x, y, t)
+
+        def line(x1, y1, x2, y2, lw=0.6):
+            c.setLineWidth(lw); c.line(x1, y1, x2, y2)
+
+        def rect(x, y, w, h, lw=0.6):
+            c.setLineWidth(lw); c.rect(x, y, w, h, fill=0, stroke=1)
+
+        def safe_width_text(x, y, t, max_w, size=7.0, bold=False, align='left'):
+            font = 'Helvetica-Bold' if bold else 'Helvetica'
+            t = '' if t is None else str(t)
+            s = size
+            while s > 5.0 and c.stringWidth(t, font, s) > max_w:
+                s -= 0.3
+            txt(x, y, t, s, bold, align)
+
+        def draw_via(y0):
+            x0 = L
+            top = y0 + block_h
+            rect(x0, y0, block_w, block_h)
+
+            # Cabeçalho
+            txt(x0 + 8, top - 12, f'00017 {emp.get("nome", "IZZANT SERVIÇOS LTDA")}', 7.8, True)
+            txt(R - 8, top - 12, 'RECIBO DE PAGAMENTO DE SALÁRIO', 8.5, True, 'right')
+            txt(x0 + 8, top - 26, f'{emp.get("endereco", "")} , {emp.get("numero", "")}    {emp.get("cidade", "")}/{emp.get("uf", "")}', 7.2)
+            txt(x0 + 8, top - 40, f'CNPJ: {emp.get("cnpj", "")}', 7.2)
+            txt(R - 8, top - 40, f'Referente ao mês:   {competencia}', 7.6, True, 'right')
+            line(x0, top - 46, R, top - 46)
+
+            # Dados do colaborador
+            txt(x0 + 10, top - 58, 'Código  Nome do Colaborador', 7.0)
+            safe_width_text(x0 + 10, top - 72, f'{int(f.get("id") or 0):06d} {f.get("nome", "")}', 330, 8.0, True)
+            txt(R - 8, top - 72, f'Admissão: {fmt_data(f.get("admissao"))}', 7.4, False, 'right')
+            linha = f'CBO: {f.get("cbo") or ""}    Função: {f.get("funcao") or ""}'
+            txt(x0 + 48, top - 87, linha, 7.2)
+            txt(x0 + 290, top - 87, f'CPF: {f.get("cpf") or ""}', 7.2)
+            txt(x0 + 405, top - 87, f'PIS: {f.get("pis") if f.get("pis") else ""}', 7.2)
+            txt(R - 8, top - 87, f'CTPS: {f.get("ctps") or ""}', 7.2, False, 'right')
+            line(x0, top - 96, R, top - 96)
+
+            # Tabela de lançamentos
+            table_top = top - 96
+            header_h = 12
+            table_bottom = y0 + 84
+            col_cod = x0 + 40
+            col_desc = x0 + 315
+            col_ref = x0 + 385
+            col_prov = x0 + 470
+            rect(x0, table_bottom, block_w, table_top - table_bottom)
+            line(x0 + 40, table_bottom, x0 + 40, table_top)
+            line(x0 + 315, table_bottom, x0 + 315, table_top)
+            line(x0 + 385, table_bottom, x0 + 385, table_top)
+            line(x0 + 470, table_bottom, x0 + 470, table_top)
+            line(x0, table_top - header_h, R, table_top - header_h)
+            txt(x0 + 3, table_top - 9, 'CÓDIGOS', 6.8)
+            txt(x0 + 43, table_top - 9, 'DESCRIÇÕES', 6.8)
+            txt(x0 + 382, table_top - 9, 'REFERÊNCIAS', 6.8, False, 'right')
+            txt(x0 + 467, table_top - 9, 'PROVENTOS', 6.8, False, 'right')
+            txt(R - 4, table_top - 9, 'DESCONTOS', 6.8, False, 'right')
+
+            rows = []
+            for cod, desc, ref, val in pro:
+                rows.append((cod, desc, ref, val, ''))
+            for cod, desc, ref, val in des:
+                rows.append((cod, desc, ref, '', val))
+            row_y = table_top - header_h - 11
+            max_rows = 12
+            for i, (cod, desc, ref, prov, descv) in enumerate(rows[:max_rows]):
+                txt(x0 + 36, row_y, cod, 7.0, False, 'right')
+                safe_width_text(x0 + 44, row_y, desc, 245, 7.0)
+                if ref:
+                    txt(x0 + 382, row_y, ref, 7.0, False, 'right')
+                if prov not in ('', None):
+                    txt(x0 + 467, row_y, m(prov), 7.0, False, 'right')
+                if descv not in ('', None):
+                    txt(R - 5, row_y, m(descv), 7.0, False, 'right')
+                row_y -= 12
+            if len(rows) > max_rows:
+                txt(x0 + 44, table_bottom + 13, 'Continua em demonstrativo complementar...', 7.2, True)
+
+            # Totais e líquido
+            totals_y = y0 + 72
+            line(x0, totals_y + 26, R, totals_y + 26)
+            line(x0 + 385, totals_y + 26, x0 + 385, totals_y)
+            line(x0 + 470, totals_y + 26, x0 + 470, totals_y)
+            txt(x0 + 382, totals_y + 12, 'Totais', 7, False, 'right')
+            txt(x0 + 467, totals_y + 12, m(total_p), 7, False, 'right')
+            txt(R - 5, totals_y + 12, m(total_d), 7, False, 'right')
+            line(x0, totals_y, R, totals_y)
+            line(x0 + 385, totals_y, x0 + 385, totals_y - 26)
+            line(x0 + 470, totals_y, x0 + 470, totals_y - 26)
+            txt(x0 + 392, totals_y - 17, 'SALÁRIO LÍQUIDO', 9, True)
+            txt(R - 5, totals_y - 17, f'R$ {m(liquido)}', 9, True, 'right')
+
+            # Bases
+            base_y = y0 + 35
+            line(x0, base_y + 11, R, base_y + 11)
+            salario = float(f.get('salario') or 0)
+            base_inss = total_p
+            base_fgts = total_p
+            valor_fgts = round(base_fgts * 0.08, 2)
+            inss = sum(v for _, d, _, v in des if 'INSS' in str(d).upper())
+            base_irrf = max(0, total_p - inss)
+            bases = [
+                ('Salário base', salario), ('Base INSS', base_inss), ('Base FGTS', base_fgts), ('Valor FGTS', valor_fgts), ('Base IRRF', base_irrf)
+            ]
+            step = block_w / 5
+            for i, (label, value) in enumerate(bases):
+                cx = x0 + step * i + step / 2
+                txt(cx, base_y + 2, label, 7, False, 'center')
+                txt(cx, base_y - 10, m(value), 7, False, 'center')
+
+            # Declaração e assinatura
+            dec_y = y0 + 12
+            line(x0, dec_y + 15, R, dec_y + 15)
+            txt(x0 + 8, dec_y + 4, 'Declaro ter recebido o valor líquido deste recibo.', 7.0)
+            txt(x0 + 25, y0 + 5, '     /      /          Assinatura do Colaborador:', 7.0)
+            txt(x0 + 8, y0 - 10, 'Sistema Gestão Izzant', 6)
+            txt(R - 8, y0 - 10, datetime.now().strftime('%d/%m/%Y %H:%M'), 6, False, 'right')
+
+        draw_via(y1)
+        draw_via(y2)
         c.save()
-        return total_p,total_d,liquido
+        return total_p, total_d, liquido
 
     def gerar_holerite_selecionado(self):
         sel=self.folha_tree.selection() if hasattr(self,'folha_tree') else []

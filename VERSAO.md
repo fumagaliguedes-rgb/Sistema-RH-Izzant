@@ -1,7 +1,5 @@
 # Sistema Gestão Izzant
 
-Versão: v3.4
-
-Status: Desenvolvimento
-
-Módulo incluído: Folha de Pagamento - base inicial
+Versão: v3.5
+Módulo: Folha de Pagamento
+Status: Base com holerite no modelo SCI

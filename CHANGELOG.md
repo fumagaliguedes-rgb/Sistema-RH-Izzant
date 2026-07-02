@@ -1,12 +1,9 @@
 # Changelog
 
-## v3.4 - Base do módulo Folha de Pagamento
+## v3.5 - Holerite modelo SCI
 
-- Criado módulo inicial de Folha de Pagamento.
-- Incluído cadastro automático de competência mês/ano.
-- Incluída prévia por funcionário com salário, proventos, descontos e líquido.
-- Incluída rotina de cálculo da folha por competência.
-- Incluída geração de holerite individual em PDF.
-- Incluída geração de holerites em lote.
-- Criadas tabelas de apoio: folha_competencias, folha_lancamentos e folha_holerites.
-- Integração inicial com férias concluídas na competência.
+- Ajusta o PDF do holerite para seguir o modelo enviado.
+- Gera duas vias do recibo por folha A4.
+- Reorganiza cabeçalho com empresa, competência e dados do colaborador.
+- Cria tabela de lançamentos com códigos, descrições, referências, proventos e descontos.
+- Inclui totais, salário líquido, bases de cálculo e assinatura.
