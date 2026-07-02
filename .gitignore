@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+
+# Banco e backups locais
+*.db-journal
+*.sqlite-journal
+backups/*.zip
+backups/*.bak
+
+# Arquivos gerados
+PDFs/*.pdf
+documentos_gerados/*
+relatorios/*
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/

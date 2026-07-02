@@ -1,0 +1,8 @@
+Sistema RH Izzant v1.5.3-dev
+
+Melhoria de teste para validar fluxo Git:
+- documentação inicial;
+- roadmap;
+- changelog;
+- gitignore;
+- organização básica de pastas.
