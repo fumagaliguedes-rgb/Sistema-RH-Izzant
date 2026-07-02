@@ -1,12 +1,9 @@
 # Sistema RH Izzant
 
-Versão: v1.5.4 DEV
+Versão: v1.5.9 Navegação por Grupos
 
-Base estável: v1.5.2 LTS
-
-Alteração desta versão:
-- Inclusão do Modo Desenvolvedor.
-- Diagnóstico técnico do banco, pastas, dependências, modelos Word e geração de PDF.
-- Menu Ferramentas com acesso ao Modo Desenvolvedor.
-
-Observação: a folha de ponto aprovada não foi alterada.
+Alteração:
+- Menu lateral passa a exibir apenas grupos principais.
+- Submenus aparecem na tela inicial, em cartões, ao clicar no grupo.
+- Férias passa a ser um grupo único no menu principal.
+- Folha de ponto e regras de jornadas/DSR não foram alteradas.

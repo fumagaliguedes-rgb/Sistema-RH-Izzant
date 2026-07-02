@@ -22,7 +22,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 
 APP_NAME = 'Sistema RH Izzant'
-APP_VERSION = 'v1.5.8 Interface Compacta'
+APP_VERSION = 'v1.5.9 Navegação por Grupos'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'dados')
 PDF_DIR = os.path.join(BASE_DIR, 'PDFs')
@@ -1424,36 +1424,52 @@ class App(tk.Tk):
                              font=('Arial', 10, 'bold') if destaque else ('Arial', 10),
                              command=lambda t=tab:self.nb.select(t))
 
-        def nav_menu(parent, text, itens):
-            mb = tk.Menubutton(parent, text=text + '  ▾', anchor='w', bg='#374151', fg='white',
-                               activebackground='#4b5563', activeforeground='white', bd=0,
-                               padx=14, pady=8, relief='flat', font=('Arial', 10))
-            menu = tk.Menu(mb, tearoff=0)
-            for label, tab in itens:
-                menu.add_command(label=label, command=lambda t=tab:self.nb.select(t))
-            mb.configure(menu=menu)
-            return mb
+        def grupo_button(parent, text, titulo, itens, destaque=False):
+            bg = '#dc2626' if destaque else '#374151'
+            active = '#b91c1c' if destaque else '#4b5563'
+            return tk.Button(parent, text=text, anchor='w', bg=bg, fg='white', activebackground=active,
+                             activeforeground='white', bd=0, padx=14, pady=8,
+                             font=('Arial', 10, 'bold') if destaque else ('Arial', 10),
+                             command=lambda t=titulo, i=itens:self.mostrar_submenus(t, i))
 
-        # Navegação compacta v1.5.8: poucos grupos visíveis e menos botões extensos.
-        nav_button(sidebar, '🏠  Início', self.tab_inicio, True).pack(fill='x', padx=12, pady=(2,6))
-        nav_menu(sidebar, '👥  Cadastros', [
-            ('Empresa', self.tab_empresa), ('Funcionários', self.tab_func), ('Setores', self.tab_setores),
-            ('Jornadas', self.tab_jornadas), ('Escalas', self.tab_escalas), ('Feriados', self.tab_feriados)
+        # Navegação v1.5.9: menu lateral só com grupos. Os submenus aparecem na tela inicial.
+        grupo_button(sidebar, '🏠  Início', 'Início', [
+            ('Dashboard', self.tab_inicio, 'Indicadores e atalhos principais do sistema.')
+        ], True).pack(fill='x', padx=12, pady=(2,6))
+        grupo_button(sidebar, '👥  Cadastros', 'Cadastros', [
+            ('Empresa', self.tab_empresa, 'Dados da empresa e identificação nos documentos.'),
+            ('Funcionários', self.tab_func, 'Cadastro, edição, importação e inativação.'),
+            ('Setores', self.tab_setores, 'Cadastro e organização por setores.'),
+            ('Jornadas', self.tab_jornadas, 'Horários, sábado compensado, DSR e 12x36.'),
+            ('Escalas', self.tab_escalas, 'Escalas de trabalho e revezamento.'),
+            ('Feriados', self.tab_feriados, 'Cadastro e consulta de feriados.')
         ]).pack(fill='x', padx=12, pady=3)
-        nav_button(sidebar, '🏖️  Férias', self.tab_ferias, True).pack(fill='x', padx=12, pady=6)
-        nav_menu(sidebar, '🕒  Ponto e RH', [
-            ('Ocorrências', self.tab_ocorrencias), ('Banco de Horas', self.tab_banco), ('Gerar PDFs', self.tab_pdf),
-            ('Central PDFs', self.tab_central_pdfs), ('Agenda RH', self.tab_agenda)
+        grupo_button(sidebar, '🏖️  Férias', 'Férias', [
+            ('Gestão de Férias', self.tab_ferias, 'Cálculos, períodos, valores, documentos e histórico.'),
+            ('Ocorrências/Afastamentos', self.tab_ocorrencias, 'Lançamentos que refletem na folha de ponto.'),
+            ('Banco de Horas', self.tab_banco, 'Saldos e movimentações relacionados ao RH.'),
+            ('Agenda RH', self.tab_agenda, 'Retornos, vencimentos e lembretes do RH.')
+        ], True).pack(fill='x', padx=12, pady=6)
+        grupo_button(sidebar, '🕒  Folha de Ponto', 'Folha de Ponto', [
+            ('Gerar PDFs', self.tab_pdf, 'Gerar folhas individuais, por setor ou em lote.'),
+            ('Central PDFs', self.tab_central_pdfs, 'Histórico e consulta dos PDFs gerados.'),
+            ('Ocorrências', self.tab_ocorrencias, 'Férias, atestados, faltas e licenças.')
         ]).pack(fill='x', padx=12, pady=3)
-        nav_menu(sidebar, '📄  Documentos', [
-            ('Documentos', self.tab_documentos), ('EPIs', self.tab_epis), ('Exames', self.tab_exames)
+        grupo_button(sidebar, '📄  Documentos', 'Documentos', [
+            ('Modelos e Documentos', self.tab_documentos, 'Modelos Word, contratos, declarações e termos.'),
+            ('EPIs', self.tab_epis, 'Entrega, validade e controle de EPIs.'),
+            ('Exames', self.tab_exames, 'ASO e exames ocupacionais.')
         ]).pack(fill='x', padx=12, pady=3)
-        nav_menu(sidebar, '📊  Gestão', [
-            ('Relatórios', self.tab_rel), ('Assistente', self.tab_assistente), ('Auditoria', self.tab_logs)
+        grupo_button(sidebar, '📊  Gestão', 'Gestão', [
+            ('Relatórios', self.tab_rel, 'Relatórios gerenciais do sistema.'),
+            ('Assistente', self.tab_assistente, 'Consulta inteligente e apoio ao RH.'),
+            ('Auditoria', self.tab_logs, 'Registro de ações e alterações.')
         ]).pack(fill='x', padx=12, pady=3)
-        nav_menu(sidebar, '⚙️  Sistema', [
-            ('Backup', self.tab_backup), ('Usuários', self.tab_usuarios), ('Atualizador', self.tab_atualizador),
-            ('Modo Desenvolvedor', self.tab_dev)
+        grupo_button(sidebar, '⚙️  Sistema', 'Sistema', [
+            ('Backup', self.tab_backup, 'Backup e restauração do banco de dados.'),
+            ('Usuários', self.tab_usuarios, 'Login, usuários e perfis de acesso.'),
+            ('Atualizador', self.tab_atualizador, 'Controle de versões e atualizações.'),
+            ('Modo Desenvolvedor', self.tab_dev, 'Diagnóstico, logs e testes técnicos.')
         ]).pack(fill='x', padx=12, pady=3)
         tk.Label(sidebar, text=f'Folha aprovada mantida\nsem alteração de layout.\n{APP_VERSION}', bg='#1f2937', fg='#d1d5db', font=('Arial',9), justify='left').pack(side='bottom', anchor='w', padx=18, pady=18)
         self.build_inicio(); self.build_empresa(); self.build_func(); self.build_setores(); self.build_jornadas(); self.build_escalas(); self.build_feriados(); self.build_ocorrencias(); self.build_ferias(); self.build_banco_horas(); self.build_documentos(); self.build_epis(); self.build_exames(); self.build_agenda(); self.build_central_pdfs(); self.build_assistente(); self.build_pdf(); self.build_backup(); self.build_relatorios(); self.build_logs(); self.build_usuarios(); self.build_atualizador(); self.build_dev()
@@ -1465,6 +1481,33 @@ class App(tk.Tk):
             webbrowser.open(caminho)
         except Exception as e:
             messagebox.showerror('Abrir pasta', str(e))
+
+    def mostrar_submenus(self, titulo, itens):
+        """Mostra os submenus do grupo na tela inicial, sem expandir setas no menu lateral."""
+        try:
+            self.nb.select(self.tab_inicio)
+            if hasattr(self, 'submenu_titulo'):
+                self.submenu_titulo.config(text=titulo)
+            if hasattr(self, 'submenu_desc'):
+                self.submenu_desc.config(text='Escolha uma opção abaixo para abrir o módulo desejado.')
+            if hasattr(self, 'submenu_grid'):
+                for w in self.submenu_grid.winfo_children():
+                    w.destroy()
+                for idx, item in enumerate(itens):
+                    if len(item) == 3:
+                        label, tab, desc = item
+                    else:
+                        label, tab = item
+                        desc = ''
+                    card = tk.Frame(self.submenu_grid, bg='white', highlightbackground='#d1d5db', highlightthickness=1)
+                    card.grid(row=idx//3, column=idx%3, sticky='nsew', padx=8, pady=8)
+                    tk.Label(card, text=label, bg='white', fg='#111827', font=('Arial', 12, 'bold')).pack(anchor='w', padx=14, pady=(12,4))
+                    tk.Label(card, text=desc, bg='white', fg='#4b5563', font=('Arial', 9), wraplength=230, justify='left').pack(anchor='w', padx=14, pady=(0,10))
+                    ttk.Button(card, text='Abrir', command=lambda t=tab:self.nb.select(t)).pack(anchor='e', padx=14, pady=(0,12))
+                for col in range(3):
+                    self.submenu_grid.columnconfigure(col, weight=1)
+        except Exception as e:
+            messagebox.showerror('Menu', f'Não foi possível abrir o grupo: {e}')
 
     def build_dev(self):
         contexto = {
@@ -1521,16 +1564,32 @@ class App(tk.Tk):
         self.card_ocorrencias=self.card(f,'Ocorrências mês','0',2,row=2)
         self.card_feriados=self.card(f,'Feriados','0',3,row=2)
         actions=ttk.LabelFrame(f, text='Atalhos rápidos')
-        actions.grid(row=3,column=0,columnspan=4,sticky='ew',padx=20,pady=18)
+        actions.grid(row=3,column=0,columnspan=4,sticky='ew',padx=20,pady=(18,8))
         ttk.Button(actions, text='Cadastrar funcionário', command=lambda:(self.nb.select(self.tab_func), self.clear_func())).pack(side='left', padx=8, pady=12)
         ttk.Button(actions, text='Gerar PDF de todos', command=lambda:(self.nb.select(self.tab_pdf), self.gerar_pdf(True))).pack(side='left', padx=8, pady=12)
         ttk.Button(actions, text='Importar Excel', command=self.importar_excel).pack(side='left', padx=8, pady=12)
-        ttk.Button(actions, text='Baixar Modelo', command=self.baixar_modelo_importacao).pack(side='left', padx=8, pady=12)
         ttk.Button(actions, text='Backup agora', command=self.backup_now).pack(side='left', padx=8, pady=12)
+
+        submenu = ttk.LabelFrame(f, text='Menu do módulo')
+        submenu.grid(row=4,column=0,columnspan=4,sticky='nsew',padx=20,pady=8)
+        self.submenu_titulo = ttk.Label(submenu, text='Início', style='Title.TLabel')
+        self.submenu_titulo.grid(row=0,column=0,columnspan=3,sticky='w',padx=12,pady=(10,2))
+        self.submenu_desc = ttk.Label(submenu, text='Clique em um grupo no menu lateral para exibir as opções aqui.', font=('Arial',10))
+        self.submenu_desc.grid(row=1,column=0,columnspan=3,sticky='w',padx=12,pady=(0,6))
+        self.submenu_grid = ttk.Frame(submenu)
+        self.submenu_grid.grid(row=2,column=0,columnspan=3,sticky='nsew',padx=4,pady=(0,8))
+        submenu.columnconfigure(0, weight=1)
+        submenu.rowconfigure(2, weight=1)
+
         info=('Sistema local com salvamento automático em banco SQLite.\n'
               'Os PDFs são salvos automaticamente por ano e mês. A folha de ponto aprovada foi preservada. Férias são calculadas em dias corridos, sem prorrogação por feriados.')
-        ttk.Label(f, text=info, font=('Arial',11), justify='left').grid(row=4,column=0,columnspan=4,sticky='w',padx=20,pady=8)
+        ttk.Label(f, text=info, font=('Arial',10), justify='left').grid(row=5,column=0,columnspan=4,sticky='w',padx=20,pady=8)
         for c in range(4): f.columnconfigure(c, weight=1)
+        f.rowconfigure(4, weight=1)
+        try:
+            self.mostrar_submenus('Início', [('Dashboard', self.tab_inicio, 'Indicadores e atalhos principais do sistema.')])
+        except Exception:
+            pass
 
     def build_empresa(self):
         f=self.tab_empresa
