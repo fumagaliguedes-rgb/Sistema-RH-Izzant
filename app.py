@@ -418,7 +418,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v1.8.3 Férias', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v2.0 Férias Final', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1380,7 +1380,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v1.8.3 Férias')
+        self.title(APP_NAME + ' - Enterprise v2.0 Férias Final')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -2869,8 +2869,12 @@ class App(tk.Tk):
         return self._criar_ferias_registro_da_tela(status_override=status_override)
 
     def _gerar_pdf_ferias_resumo(self, tipo, dados, destino_pdf):
-        """Gera Aviso + Recibo de Férias em PDF com layout fixo e sem sobreposição.
-        Corrigido na v1.8.3: totais, comunicado de concessão, valor por extenso e espaçamentos finais.
+        """Gera Aviso + Recibo de Férias em PDF.
+        v2.0 Final Férias:
+        - demonstrativo inclui venda de férias/abono pecuniário e adiantamento do 13º;
+        - totais respeitam todos os lançamentos calculados;
+        - assinaturas reposicionadas com espaço visual adequado;
+        - layout preservado em uma página A4.
         """
         os.makedirs(os.path.dirname(destino_pdf), exist_ok=True)
         c = canvas.Canvas(destino_pdf, pagesize=A4)
@@ -2889,29 +2893,37 @@ class App(tk.Tk):
                 c.drawString(x, y, text)
 
         def line(x1, y1, x2, y2, lw=0.55):
-            c.setLineWidth(lw); c.line(x1, y1, x2, y2)
+            c.setLineWidth(lw)
+            c.line(x1, y1, x2, y2)
 
         def rect(x, y, w, h, lw=0.55, fill=0):
-            c.setLineWidth(lw); c.rect(x, y, w, h, fill=fill, stroke=1)
+            c.setLineWidth(lw)
+            c.rect(x, y, w, h, fill=fill, stroke=1)
 
         def fill_rect(x, y, w, h, color=colors.HexColor('#e5e7eb')):
-            c.setFillColor(color); c.rect(x, y, w, h, fill=1, stroke=0); c.setFillColor(colors.black); rect(x, y, w, h)
+            c.setFillColor(color)
+            c.rect(x, y, w, h, fill=1, stroke=0)
+            c.setFillColor(colors.black)
+            rect(x, y, w, h)
 
         def wrap_lines(text, chars):
-            words = str(text or '').split(); lines=[]; cur=''
+            words = str(text or '').split()
+            lines, cur = [], ''
             for w in words:
                 cand = (cur + ' ' + w).strip()
                 if len(cand) <= chars:
                     cur = cand
                 else:
-                    if cur: lines.append(cur)
+                    if cur:
+                        lines.append(cur)
                     cur = w
-            if cur: lines.append(cur)
+            if cur:
+                lines.append(cur)
             return lines or ['']
 
         def para(x, y, text, chars=130, size=8, leading=10, max_lines=4):
             for i, ln in enumerate(wrap_lines(text, chars)[:max_lines]):
-                txt(x, y - i*leading, ln, size)
+                txt(x, y - i * leading, ln, size)
 
         def moeda(valor):
             return str(valor or '').replace('R$', '').strip() or '0,00'
@@ -2919,8 +2931,11 @@ class App(tk.Tk):
         def val(k, default=''):
             return dados.get(k) or default
 
-        empresa = (val('EMPRESA','IZZANT SERVIÇOS LTDA')).upper()
-        cnpj = val('CNPJ','44.177.413/0001-11')
+        def fmt_val(v):
+            return moeda_br(v).replace('R$', '').strip()
+
+        empresa = (val('EMPRESA', 'IZZANT SERVIÇOS LTDA')).upper()
+        cnpj = val('CNPJ', '44.177.413/0001-11')
         funcionario = (val('FUNCIONARIO') or val('NOME') or '').upper()
         matricula = val('MATRICULA') or val('CODIGO') or ''
         cargo = (val('CARGO') or val('FUNCAO') or '').upper()
@@ -2931,31 +2946,63 @@ class App(tk.Tk):
         fim = val('TERMINO') or val('DATA_FIM')
         periodo = val('PERIODO') or f'{inicio} a {fim}'
         retorno = val('DATA_RETORNO')
-        dias = val('DIAS_FERIAS') or val('DIAS_GOZADOS') or '30'
-        dias_abono = val('DIAS_ABONO','0')
+        dias = int(float(str(val('DIAS_FERIAS') or val('DIAS_GOZADOS') or '30').replace(',', '.')))
+        dias_abono = int(float(str(val('DIAS_ABONO', '0')).replace(',', '.')))
+
         salario = moeda(val('SALARIO_BASE') or val('SALARIO'))
         media = moeda(val('MEDIA_VARIAVEIS'))
         valor_ferias = moeda(val('VALOR_FERIAS'))
         um_terco = moeda(val('VALOR_UM_TERCO'))
-        abono_valor = moeda(val('VALOR_ABONO'))
+        valor_13 = moeda(val('VALOR_13'))
+        abono_total = moeda(val('VALOR_ABONO'))
         total_bruto = moeda(val('TOTAL_BRUTO'))
         inss = moeda(val('INSS_ESTIMADO'))
+        irrf = moeda(val('IRRF_ESTIMADO'))
         liquido = moeda(val('LIQUIDO_ESTIMADO'))
-        if total_bruto == '0,00':
-            total_bruto = moeda_br(valor_moeda_para_float(valor_ferias) + valor_moeda_para_float(um_terco)).replace('R$','').strip()
-        if liquido == '0,00':
-            liquido = total_bruto
+
+        # Recalcula valores de segurança quando algum campo calculado não veio do banco/tela.
+        salario_num = valor_moeda_para_float(salario)
+        media_num = valor_moeda_para_float(media)
+        base_mensal = salario_num + media_num
+        if valor_moeda_para_float(valor_ferias) <= 0 and dias > 0:
+            valor_ferias = fmt_val(base_mensal / 30.0 * dias)
+        if valor_moeda_para_float(um_terco) <= 0:
+            um_terco = fmt_val(valor_moeda_para_float(valor_ferias) / 3.0)
+
+        # Abono pecuniário: o cálculo interno guarda abono + 1/3 do abono em VALOR_ABONO.
+        abono_total_num = valor_moeda_para_float(abono_total)
+        if dias_abono > 0 and abono_total_num <= 0:
+            abono_base_num = base_mensal / 30.0 * dias_abono
+            abono_terco_num = abono_base_num / 3.0
+            abono_total_num = abono_base_num + abono_terco_num
+        else:
+            abono_base_num = round(abono_total_num * 0.75, 2) if abono_total_num > 0 else 0.0
+            abono_terco_num = round(abono_total_num * 0.25, 2) if abono_total_num > 0 else 0.0
+
+        v13_num = valor_moeda_para_float(valor_13)
+        total_num = valor_moeda_para_float(total_bruto)
+        if total_num <= 0:
+            total_num = valor_moeda_para_float(valor_ferias) + valor_moeda_para_float(um_terco) + abono_total_num + v13_num
+            total_bruto = fmt_val(total_num)
+        inss_num = valor_moeda_para_float(inss)
+        irrf_num = valor_moeda_para_float(irrf)
+        liquido_num = valor_moeda_para_float(liquido)
+        if liquido_num <= 0:
+            liquido_num = max(0, total_num - inss_num - irrf_num)
+            liquido = fmt_val(liquido_num)
         base_calc = total_bruto if total_bruto not in ('', '0,00') else salario
         extenso = val('VALOR_EXTENSO') or val('VALOR_POR_EXTENSO') or valor_por_extenso_reais(liquido)
-        cidade = (val('CIDADE','Itajaí')).upper(); uf = val('UF','SC').upper()
+        cidade = (val('CIDADE', 'Itajaí')).upper()
+        uf = val('UF', 'SC').upper()
         local = f'{cidade} - {uf}'
         hoje = datetime.now().strftime('%d/%m/%Y')
         endereco = val('ENDERECO') or 'Rua ALMIRANTE TAMANDARÉ, 114 - CENTRO - Itajaí / SC'
 
-        # Marca d'água
+        # Marca d'água discreta
         c.saveState()
         try:
-            c.setFillAlpha(0.06); c.setStrokeAlpha(0.06)
+            c.setFillAlpha(0.055)
+            c.setStrokeAlpha(0.055)
         except Exception:
             pass
         try:
@@ -2968,120 +3015,126 @@ class App(tk.Tk):
 
         # AVISO - quadro superior
         aviso_top, aviso_bottom = H - 18, 242
-        rect(L, aviso_bottom, BW, aviso_top-aviso_bottom)
-        txt(W/2, aviso_top-14, f'17 - {empresa}', 12, True, 'center')
-        txt(W/2, aviso_top-28, cnpj, 9.5, False, 'center')
-        txt(W/2, aviso_top-42, 'AVISO DE FÉRIAS', 11, True, 'center')
-        txt(W/2, aviso_top-56, 'NOTIFICAÇÃO', 10, True, 'center')
-        line(L, aviso_top-66, R, aviso_top-66)
+        rect(L, aviso_bottom, BW, aviso_top - aviso_bottom)
+        txt(W/2, aviso_top - 14, f'17 - {empresa}', 12, True, 'center')
+        txt(W/2, aviso_top - 28, cnpj, 9.5, False, 'center')
+        txt(W/2, aviso_top - 42, 'AVISO DE FÉRIAS', 11, True, 'center')
+        txt(W/2, aviso_top - 56, 'NOTIFICAÇÃO', 10, True, 'center')
+        line(L, aviso_top - 66, R, aviso_top - 66)
 
-        y = aviso_top-84
-        txt(L+10, y, f'Colaborador: {matricula + " - " if matricula else ""}{funcionario}', 8.5)
-        txt(R-185, y, f'Admissão: {adm}', 8.5)
-        y -= 16; txt(L+10, y, 'C.Custo......:', 8.5)
-        y -= 16; txt(L+10, y, f'Função.......: {cargo}', 8.5)
-        y -= 16; txt(L+10, y, f'CPF............: {cpf}', 8.5)
-        line(L, y-13, R, y-13)
+        y = aviso_top - 84
+        txt(L + 10, y, f'Colaborador: {matricula + " - " if matricula else ""}{funcionario}', 8.5)
+        txt(R - 185, y, f'Admissão: {adm}', 8.5)
+        y -= 16; txt(L + 10, y, 'C.Custo......:', 8.5)
+        y -= 16; txt(L + 10, y, f'Função.......: {cargo}', 8.5)
+        y -= 16; txt(L + 10, y, f'CPF............: {cpf}', 8.5)
+        line(L, y - 13, R, y - 13)
 
         y -= 28
-        fill_rect(L, y, BW, 16); txt(W/2, y+5, 'PERÍODOS', 9, True, 'center')
+        fill_rect(L, y, BW, 16); txt(W/2, y + 5, 'PERÍODOS', 9, True, 'center')
         y -= 22
-        txt(L+10, y, f'Aquisição........................: {aq}', 8.3)
-        y -= 16; txt(L+10, y, f'Gozo de férias.................: {periodo}', 8.3)
-        y -= 16; txt(L+10, y, f'Dias de abono pecuniário: {dias_abono}', 8.3)
-        y -= 26; txt(L+10, y, f'Retorno...........................: {retorno}', 8.3)
-        line(L, y-12, R, y-12)
+        txt(L + 10, y, f'Aquisição........................: {aq}', 8.3)
+        y -= 16; txt(L + 10, y, f'Gozo de férias.................: {periodo}', 8.3)
+        y -= 16; txt(L + 10, y, f'Dias de abono pecuniário: {dias_abono}', 8.3)
+        y -= 26; txt(L + 10, y, f'Retorno...........................: {retorno}', 8.3)
+        line(L, y - 12, R, y - 12)
 
         y -= 30
-        fill_rect(L, y, BW, 16); txt(W/2, y+5, 'BASE PARA CÁLCULO DA REMUNERAÇÃO DAS FÉRIAS', 8.5, True, 'center')
-        base_y = y-47
-        colw = BW/3
-        for i, (titulo, valor) in enumerate([('Faltas não justificadas','0'), ('Salário base',salario), ('Base de cálculo',base_calc)]):
-            rect(L+i*colw, base_y, colw, 47)
-            txt(L+i*colw+colw/2, base_y+31, titulo, 8, False, 'center')
-            txt(L+i*colw+colw/2, base_y+10, valor, 8.5, False, 'center')
+        fill_rect(L, y, BW, 16); txt(W/2, y + 5, 'BASE PARA CÁLCULO DA REMUNERAÇÃO DAS FÉRIAS', 8.5, True, 'center')
+        base_y = y - 47
+        colw = BW / 3
+        for i, (titulo, valor) in enumerate([('Faltas não justificadas', '0'), ('Salário base', salario), ('Base de cálculo', base_calc)]):
+            rect(L + i * colw, base_y, colw, 47)
+            txt(L + i * colw + colw / 2, base_y + 31, titulo, 8, False, 'center')
+            txt(L + i * colw + colw / 2, base_y + 10, valor, 8.5, False, 'center')
 
-        # Demonstrativo com cabeçalho e linhas fixas
+        # Demonstrativo
         demo_top = base_y - 4
-        fill_rect(L, demo_top-17, BW, 17); txt(W/2, demo_top-12, 'DEMONSTRATIVO DAS FÉRIAS', 8.5, True, 'center')
+        fill_rect(L, demo_top - 17, BW, 17); txt(W/2, demo_top - 12, 'DEMONSTRATIVO DAS FÉRIAS', 8.5, True, 'center')
         table_top = demo_top - 37
-        row_h = 16
-        cols = [L, L+42, L+300, L+372, L+450, R]
+        row_h = 14.5
+        cols = [L, L + 42, L + 300, L + 372, L + 450, R]
         headers = ['Cód.', 'Descrição', 'Ref.', 'Proventos', 'Descontos']
-        rect(L, table_top-row_h, BW, row_h)
-        for x in cols[1:-1]: line(x, table_top-row_h, x, table_top)
-        for i, h in enumerate(headers): txt((cols[i]+cols[i+1])/2, table_top-11, h, 7.8, True, 'center')
-        lancs = [
-            ('30005','Férias', str(dias), valor_ferias, ''),
-        ]
+        rect(L, table_top - row_h, BW, row_h)
+        for x in cols[1:-1]: line(x, table_top - row_h, x, table_top)
+        for i, h in enumerate(headers): txt((cols[i] + cols[i+1]) / 2, table_top - 10.5, h, 7.5, True, 'center')
+
+        lancs = [('30005', 'Férias', str(dias), valor_ferias, '')]
         if valor_moeda_para_float(media) > 0:
-            lancs.append(('30602','Férias médias/variáveis','', media, ''))
-        lancs.append(('30993','1/3 férias','', um_terco, ''))
-        if str(dias_abono).strip() not in ('', '0', '0,00'):
-            lancs.append(('30010','Abono pecuniário', str(dias_abono), abono_valor, ''))
-        lancs.append(('91015','INSS férias','9,00%', '', inss))
+            lancs.append(('30602', 'Férias médias/variáveis', '', media, ''))
+        lancs.append(('30993', '1/3 férias', '', um_terco, ''))
+        if dias_abono > 0 and abono_total_num > 0:
+            lancs.append(('30010', 'Abono pecuniário', str(dias_abono), fmt_val(abono_base_num), ''))
+            lancs.append(('30994', '1/3 abono pecuniário', '', fmt_val(abono_terco_num), ''))
+        if v13_num > 0:
+            lancs.append(('30200', 'Adiantamento 13º salário', '', fmt_val(v13_num), ''))
+        if inss_num > 0:
+            lancs.append(('91015', 'INSS férias', '9,00%', '', inss))
+        if irrf_num > 0:
+            lancs.append(('92001', 'IRRF férias', '', '', irrf))
+
         yrow = table_top - row_h
-        for cod, desc, ref, prov, descv in lancs[:7]:
+        for cod, desc, ref, prov, descv in lancs[:8]:
             yrow -= row_h
             rect(L, yrow, BW, row_h)
-            for x in cols[1:-1]: line(x, yrow, x, yrow+row_h)
-            txt(L+6, yrow+5, cod, 7.7)
-            txt(L+47, yrow+5, desc[:45], 7.7)
-            txt(cols[3]-8, yrow+5, ref, 7.7, False, 'right')
-            txt(cols[4]-8, yrow+5, prov, 7.7, False, 'right')
-            txt(R-8, yrow+5, descv, 7.7, False, 'right')
-        # Totais em linhas separadas e com colunas mais largas para evitar sobreposição.
-        total_y = yrow - 16
-        txt(R-318, total_y, 'Proventos:', 7.8, True)
-        txt(R-235, total_y, total_bruto, 7.8, False, 'right')
-        txt(R-190, total_y, 'Descontos:', 7.8, True)
-        txt(R-8, total_y, inss, 7.8, False, 'right')
-        txt(R-110, total_y-18, 'Líquido:', 8, True)
-        txt(R-8, total_y-18, liquido, 8, True, 'right')
+            for x in cols[1:-1]: line(x, yrow, x, yrow + row_h)
+            txt(L + 6, yrow + 4.8, cod, 7.2)
+            txt(L + 47, yrow + 4.8, desc[:42], 7.2)
+            txt(cols[3] - 8, yrow + 4.8, ref, 7.2, False, 'right')
+            txt(cols[4] - 8, yrow + 4.8, prov, 7.2, False, 'right')
+            txt(R - 8, yrow + 4.8, descv, 7.2, False, 'right')
 
-        # Comunicado de concessão das férias em campo próprio, separado do valor por extenso.
-        comm_top = total_y - 32
+        total_y = yrow - 13
+        txt(R - 318, total_y, 'Proventos:', 7.5, True)
+        txt(R - 235, total_y, total_bruto, 7.5, False, 'right')
+        txt(R - 190, total_y, 'Descontos:', 7.5, True)
+        txt(R - 8, total_y, fmt_val(inss_num + irrf_num), 7.5, False, 'right')
+        txt(R - 110, total_y - 16, 'Líquido:', 7.8, True)
+        txt(R - 8, total_y - 16, liquido, 7.8, True, 'right')
+
+        comm_top = total_y - 28
         line(L, comm_top, R, comm_top)
         texto = (
             f'Pelo presente comunicamos-lhe que serão concedidas férias relativas ao período aquisitivo {aq}, '
             f'para gozo no período de {periodo}, ficando à sua disposição a importância líquida de R$ {liquido}, '
             f'a ser paga adiantadamente.'
         )
-        para(L+10, comm_top-11, texto, 155, 6.8, 8, 3)
+        para(L + 10, comm_top - 10, texto, 155, 6.6, 7.8, 3)
 
-        ext_y = aviso_bottom + 29
-        rect(L+10, ext_y, 92, 23); rect(L+102, ext_y, BW-112, 23)
-        txt(L+56, ext_y+13, 'Valor por', 7, False, 'center'); txt(L+56, ext_y+5, 'extenso', 7, False, 'center')
-        txt(L+112, ext_y+9, extenso[:120], 7.2)
-        ciente_y = aviso_bottom + 18
-        txt(L+10, ciente_y, f'Ciente: {local}, {hoje}', 7.3)
-        sig_y = aviso_bottom + 10
-        line(L+10, sig_y, L+240, sig_y); line(R-250, sig_y, R-10, sig_y)
-        txt(L+125, sig_y-10, funcionario[:42], 7.5, False, 'center')
-        txt(R-130, sig_y-10, empresa[:42], 7.5, False, 'center')
+        ext_y = aviso_bottom + 31
+        rect(L + 10, ext_y, 92, 22); rect(L + 102, ext_y, BW - 112, 22)
+        txt(L + 56, ext_y + 12, 'Valor por', 6.8, False, 'center'); txt(L + 56, ext_y + 4.5, 'extenso', 6.8, False, 'center')
+        txt(L + 112, ext_y + 8, extenso[:120], 7.0)
+        ciente_y = aviso_bottom + 19
+        txt(L + 10, ciente_y, f'Ciente: {local}, {hoje}', 7.2)
+        sig_y = aviso_bottom + 8
+        line(L + 10, sig_y, L + 240, sig_y)
+        line(R - 250, sig_y, R - 10, sig_y)
+        # Nomes mais afastados da linha e centralizados; não encostar no quadro inferior.
+        txt(L + 125, sig_y - 11, funcionario[:42], 7.2, False, 'center')
+        txt(R - 130, sig_y - 11, empresa[:42], 7.2, False, 'center')
 
         # RECIBO - quadro inferior
         recibo_top, recibo_bottom = 232, 34
-        rect(L, recibo_bottom, BW, recibo_top-recibo_bottom)
-        y = recibo_top-15
+        rect(L, recibo_bottom, BW, recibo_top - recibo_bottom)
+        y = recibo_top - 15
         txt(W/2, y, f'17 - {empresa}', 11.5, True, 'center')
         y -= 14; txt(W/2, y, cnpj, 9.5, False, 'center')
         y -= 15; txt(W/2, y, 'RECIBO DE FÉRIAS', 11, True, 'center')
         y -= 12; txt(W/2, y, 'De acordo com o parágrafo único do artigo 145 da C.L.T.', 8, False, 'center')
-        line(L, y-9, R, y-9)
-        y -= 30
+        line(L, y - 9, R, y - 9)
+        y -= 29
         texto2 = f'Recebi da empresa {empresa}, estabelecida na {endereco}, a importância de R$ {liquido}, que me paga antecipadamente por motivo das minhas férias, ora concedidas e que vou gozar de acordo com a descrição acima, tudo conforme o aviso que recebi em tempo, e no qual dei o meu "CIENTE".'
-        para(L+10, y, texto2, 132, 7.6, 9, 5)
-        y -= 55
-        rect(L+10, y, 92, 23); rect(L+102, y, BW-112, 23)
-        txt(L+56, y+13, 'Valor por', 7, False, 'center'); txt(L+56, y+5, 'extenso', 7, False, 'center')
-        txt(L+112, y+9, extenso[:105], 7.6)
-        y -= 38
-        txt(L+10, y, 'Para clareza e documento, firmo o presente recibo, dando plena e legal quitação.', 7.8)
-        y -= 16
-        txt(L+10, y, f'{local}, {fim or hoje}', 7.8)
-        line(R-255, y, R-10, y)
-        txt(R-132, y-13, funcionario[:42], 7.6, False, 'center')
+        para(L + 10, y, texto2, 132, 7.3, 8.5, 5)
+        y -= 52
+        rect(L + 10, y, 92, 22); rect(L + 102, y, BW - 112, 22)
+        txt(L + 56, y + 12, 'Valor por', 6.8, False, 'center'); txt(L + 56, y + 4.5, 'extenso', 6.8, False, 'center')
+        txt(L + 112, y + 8, extenso[:110], 7.0)
+        # Bloco final fixo para garantir espaço de assinatura.
+        txt(L + 10, 86, 'Para clareza e documento, firmo o presente recibo, dando plena e legal quitação.', 7.5)
+        txt(L + 10, 70, f'{local}, {fim or hoje}', 7.5)
+        line(R - 255, 59, R - 10, 59)
+        txt(R - 132, 46, funcionario[:42], 7.3, False, 'center')
         txt(L, 18, 'Sistema Gestão Izzant', 6)
         txt(R, 18, datetime.now().strftime('%d/%m/%Y %H:%M'), 6, False, 'right')
         c.save()

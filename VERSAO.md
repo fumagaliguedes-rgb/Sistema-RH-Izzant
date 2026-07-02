@@ -1,5 +1,11 @@
 # Sistema Gestão Izzant
 
-Versão: v1.8.3
+Versão: v2.0 - Módulo Férias Final
+Status: Patch de estabilização do módulo Férias
 
-Status: Ajuste final de assinaturas no PDF de férias.
+Principais ajustes:
+- PDF de Aviso + Recibo de Férias com venda de férias/abono pecuniário no demonstrativo.
+- Lançamento do adiantamento do 13º salário no demonstrativo quando marcado.
+- Totais de proventos, descontos e líquido ajustados.
+- Assinaturas reposicionadas com melhor espaçamento.
+- Mantida a tela simplificada de férias aprovada.
