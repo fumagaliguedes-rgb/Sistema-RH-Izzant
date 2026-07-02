@@ -1,10 +1,11 @@
 # Changelog
 
-## v2.2 - Férias Enterprise Ajustado
-- Ajustado layout do PDF de férias para evitar sobreposição quando houver venda de férias, 1/3 do abono e adiantamento do 13º.
-- Períodos passam a ser exibidos lado a lado para economizar espaço vertical.
-- Demonstrativo reorganizado com linhas compactas e totais reposicionados.
-- INSS passa a ser exibido como percentual efetivo no demonstrativo.
-- Atualizada lógica de cálculo de INSS 2026 com faixas progressivas.
-- Atualizada lógica de IRRF 2026 com tabela mensal e redutor de isenção/redução.
-- Se houver excesso de lançamentos, o recibo é enviado automaticamente para página seguinte.
+## v2.3 - Férias Enterprise PDF + Cálculos
+- Dados do colaborador reorganizados lado a lado no PDF.
+- Períodos reorganizados lado a lado com melhor espaçamento.
+- Demonstrativo compacto e adaptável.
+- Recibo movido automaticamente para segunda página quando houver muitos lançamentos.
+- INSS 2026 progressivo aplicado sobre férias gozadas + 1/3 férias.
+- Exibição da alíquota nominal correta do INSS no demonstrativo.
+- IRRF 2026 com tabela progressiva e redução legal.
+- Abono pecuniário, 1/3 sobre abono e adiantamento do 13º no demonstrativo.
