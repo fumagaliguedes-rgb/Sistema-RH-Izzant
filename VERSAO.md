@@ -1,2 +1,5 @@
-Sistema Gestão Izzant
-Versão 4.1 - Folha com Holerites e Lançamentos reorganizados
+# Sistema Gestão Izzant
+
+Versão: v4.2
+
+Módulo Folha reorganizado: fluxo gerar/ver folha, lançamentos por valor ou percentual e relatórios.

@@ -460,7 +460,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v4.1 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v4.2 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1422,7 +1422,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v4.1 Folha')
+        self.title(APP_NAME + ' - Enterprise v4.2 Folha')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -4097,8 +4097,8 @@ class App(tk.Tk):
         ttk.Label(top, text='Ano').grid(row=0, column=2, sticky='w', padx=6, pady=8)
         self.folha_ano = tk.IntVar(value=datetime.now().year)
         ttk.Entry(top, textvariable=self.folha_ano, width=10).grid(row=0, column=3, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Atualizar', command=self.carregar_folha_preview).grid(row=0, column=4, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Calcular folha', command=self.calcular_folha_competencia).grid(row=0, column=5, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='Ver folha gerada', command=self.carregar_folha_preview).grid(row=0, column=4, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='Gerar folha', command=self.calcular_folha_competencia).grid(row=0, column=5, sticky='ew', padx=6, pady=8)
         ttk.Button(top, text='Holerite selecionado', command=self.gerar_holerite_selecionado).grid(row=0, column=6, sticky='ew', padx=6, pady=8)
         ttk.Button(top, text='Holerites todos', command=self.gerar_holerites_folha).grid(row=0, column=7, sticky='ew', padx=6, pady=8)
         ttk.Button(top, text='Relatório líquidos', command=self.gerar_relatorio_liquidos_folha).grid(row=0, column=8, sticky='ew', padx=6, pady=8)
@@ -4108,17 +4108,20 @@ class App(tk.Tk):
         self.folha_nb.grid(row=1, column=0, sticky='nsew', padx=14, pady=(0,12))
         self.folha_tab_resumo = ttk.Frame(self.folha_nb)
         self.folha_tab_lanc = ttk.Frame(self.folha_nb)
-        self.folha_tab_eventos = ttk.Frame(self.folha_nb)
         self.folha_tab_holerites = ttk.Frame(self.folha_nb)
-        self.folha_nb.add(self.folha_tab_lanc, text='🧾 Lançamentos')
-        self.folha_nb.add(self.folha_tab_resumo, text='📊 Resumo')
-        self.folha_nb.add(self.folha_tab_eventos, text='⚙️ Eventos')
+        self.folha_tab_relatorios = ttk.Frame(self.folha_nb)
+        self.folha_tab_eventos = ttk.Frame(self.folha_nb)
+        self.folha_nb.add(self.folha_tab_resumo, text='📌 Gerar / Ver Folha')
+        self.folha_nb.add(self.folha_tab_lanc, text='➕ Lançamentos')
         self.folha_nb.add(self.folha_tab_holerites, text='🖨 Holerites')
+        self.folha_nb.add(self.folha_tab_relatorios, text='📊 Relatórios')
+        self.folha_nb.add(self.folha_tab_eventos, text='⚙️ Eventos')
 
         self._build_folha_resumo_tab()
         self._build_folha_lancamentos_tab()
-        self._build_folha_eventos_tab()
         self._build_folha_holerites_tab()
+        self._build_folha_relatorios_tab()
+        self._build_folha_eventos_tab()
         self.carregar_folha_preview()
         self.carregar_folha_lancamentos()
         self.carregar_folha_eventos()
@@ -4127,11 +4130,11 @@ class App(tk.Tk):
         f = self.folha_tab_resumo
         f.columnconfigure(0, weight=1); f.rowconfigure(1, weight=1)
 
-        painel = ttk.LabelFrame(f, text='Painel da competência')
+        painel = ttk.LabelFrame(f, text='Gerar folha / Ver folha gerada')
         painel.grid(row=0, column=0, columnspan=2, sticky='ew', padx=8, pady=8)
         for c in range(8): painel.columnconfigure(c, weight=1)
         self.folha_mostrar_lista = tk.IntVar(value=0)
-        ttk.Label(painel, text='Use os filtros abaixo quando precisar visualizar funcionários. A tela não carrega todos automaticamente.').grid(row=0, column=0, columnspan=8, sticky='w', padx=8, pady=(6,2))
+        ttk.Label(painel, text='Fluxo da competência: gere a folha, visualize por filtro e emita relatórios. A lista completa só aparece quando marcada para manter a tela limpa.').grid(row=0, column=0, columnspan=8, sticky='w', padx=8, pady=(6,2))
         ttk.Checkbutton(painel, text='Mostrar funcionários na tela', variable=self.folha_mostrar_lista, command=self.carregar_folha_preview).grid(row=1, column=0, sticky='w', padx=8, pady=6)
         ttk.Label(painel, text='Filtro').grid(row=1, column=1, sticky='e', padx=6, pady=6)
         self.folha_filtro_tipo = tk.StringVar(value='Todos')
@@ -4140,7 +4143,7 @@ class App(tk.Tk):
         self.folha_filtro_combo = ttk.Combobox(painel, textvariable=self.folha_filtro_valor)
         self.folha_filtro_combo.grid(row=1, column=3, columnspan=2, sticky='ew', padx=6, pady=6)
         ttk.Button(painel, text='Atualizar filtros', command=self.atualizar_filtros_resumo_folha).grid(row=1, column=5, sticky='ew', padx=6, pady=6)
-        ttk.Button(painel, text='Visualizar', command=self.carregar_folha_preview).grid(row=1, column=6, sticky='ew', padx=6, pady=6)
+        ttk.Button(painel, text='Ver folha gerada', command=self.carregar_folha_preview).grid(row=1, column=6, sticky='ew', padx=6, pady=6)
         ttk.Button(painel, text='Relatório líquidos', command=self.gerar_relatorio_liquidos_folha).grid(row=1, column=7, sticky='ew', padx=6, pady=6)
 
         self.folha_tree = ttk.Treeview(f, columns=('id','nome','setor','funcao','salario','prov','desc','liq','status'), show='headings', height=14)
@@ -4158,7 +4161,7 @@ class App(tk.Tk):
     def _build_folha_lancamentos_tab(self):
         f = self.folha_tab_lanc
         f.columnconfigure(0, weight=1); f.rowconfigure(1, weight=1)
-        form = ttk.LabelFrame(f, text='Lançamentos da Folha (estilo SCI/Domínio) - valor, percentual, funcionário, setor, função ou todos')
+        form = ttk.LabelFrame(f, text='Lançamentos da Folha - individual ou lote, por valor, percentual ou cálculo automático')
         form.grid(row=0, column=0, sticky='ew', padx=8, pady=8)
         for c in range(10): form.columnconfigure(c, weight=1)
         ttk.Label(form, text='Evento').grid(row=0, column=0, sticky='w', padx=6, pady=5)
@@ -4171,11 +4174,11 @@ class App(tk.Tk):
 
         ttk.Label(form, text='Modo de cálculo').grid(row=1, column=0, sticky='w', padx=6, pady=5)
         self.folha_lanc_forma = tk.StringVar(value='Valor fixo R$')
-        ttk.Combobox(form, textvariable=self.folha_lanc_forma, values=['Valor fixo R$','Percentual do salário','Percentual dos proventos atuais','Automático do evento'], state='readonly', width=20).grid(row=1, column=1, columnspan=2, sticky='ew', padx=6, pady=5)
+        ttk.Combobox(form, textvariable=self.folha_lanc_forma, values=['Valor informado (R$)','Percentual sobre salário base','Percentual sobre proventos atuais','Automático do evento'], state='readonly', width=20).grid(row=1, column=1, columnspan=2, sticky='ew', padx=6, pady=5)
         ttk.Label(form, text='Valor / Percentual').grid(row=1, column=3, sticky='w', padx=6, pady=5)
         self.folha_lanc_valor = tk.StringVar()
         ttk.Entry(form, textvariable=self.folha_lanc_valor).grid(row=1, column=4, sticky='ew', padx=6, pady=5)
-        ttk.Label(form, text='Valor R$ ou percentual. Ex.: 212,00 / 10 para 10%. Em automático, informe a quantidade/ref.').grid(row=1, column=5, columnspan=2, sticky='w', padx=6, pady=5)
+        ttk.Label(form, text='Informe valor em R$ ou percentual. Ex.: 212,00 ou 10 para 10%. Eventos automáticos usam a referência/quantidade.').grid(row=1, column=5, columnspan=2, sticky='w', padx=6, pady=5)
 
         ttk.Label(form, text='Aplicar para').grid(row=2, column=0, sticky='w', padx=6, pady=5)
         self.folha_aplicar_tipo = tk.StringVar(value='Funcionário')
@@ -4335,6 +4338,55 @@ class App(tk.Tk):
                 qtd += 1
         messagebox.showinfo('Folha de Pagamento', f'{qtd} holerite(s) gerado(s).')
 
+
+    def _build_folha_relatorios_tab(self):
+        f = self.folha_tab_relatorios
+        f.columnconfigure(0, weight=1)
+        f.rowconfigure(1, weight=1)
+        header = ttk.LabelFrame(f, text='Relatórios da Folha')
+        header.grid(row=0, column=0, sticky='ew', padx=8, pady=8)
+        for c in range(4):
+            header.columnconfigure(c, weight=1)
+        ttk.Label(header, text='Gere relatórios da competência selecionada no topo do módulo.').grid(row=0, column=0, columnspan=4, sticky='w', padx=8, pady=(8,4))
+        ttk.Button(header, text='Relatório de líquidos', command=self.gerar_relatorio_liquidos_folha).grid(row=1, column=0, sticky='ew', padx=8, pady=8)
+        ttk.Button(header, text='Resumo da folha', command=self.gerar_relatorio_resumo_folha).grid(row=1, column=1, sticky='ew', padx=8, pady=8)
+        ttk.Button(header, text='Abrir pasta de relatórios', command=lambda:self._open(os.path.join(RELATORIO_DIR, 'folha_pagamento'))).grid(row=1, column=2, sticky='ew', padx=8, pady=8)
+        ttk.Button(header, text='Abrir pasta holerites', command=lambda:self._open(os.path.join(PDF_DIR, 'folha_pagamento'))).grid(row=1, column=3, sticky='ew', padx=8, pady=8)
+        info = tk.Text(f, height=12, wrap='word', font=('Arial', 10))
+        info.grid(row=1, column=0, sticky='nsew', padx=8, pady=(0,8))
+        info.insert('end', 'Relatórios disponíveis:\n\n')
+        info.insert('end', '• Relatório de líquidos: funcionário, setor, função, proventos, descontos e líquido.\n')
+        info.insert('end', '• Resumo da folha: totais gerais da competência para conferência.\n')
+        info.insert('end', '• Os arquivos são salvos em relatorios/folha_pagamento/ano/mês.\n')
+        info.configure(state='disabled')
+
+    def gerar_relatorio_resumo_folha(self):
+        mes=int(self.folha_mes.get()); ano=int(self.folha_ano.get())
+        pasta=os.path.join(RELATORIO_DIR, 'folha_pagamento', str(ano), f'{mes:02d}')
+        os.makedirs(pasta, exist_ok=True)
+        pdf=os.path.join(pasta, f'Resumo_Folha_{mes:02d}_{ano}.pdf')
+        funcs=get_funcionarios(True)
+        total_func=0; total_p=total_d=total_l=base_fgts=valor_fgts=0.0
+        for func in funcs:
+            pro, des, tp, td, liq = self._folha_calcular_funcionario(func)
+            total_func += 1; total_p += tp; total_d += td; total_l += liq; base_fgts += tp; valor_fgts += round(tp*0.08,2)
+        c=canvas.Canvas(pdf, pagesize=A4); W,H=A4; L=42; R=W-42; y=H-50
+        def t(x,y,text,size=9,bold=False,align='left'):
+            c.setFont('Helvetica-Bold' if bold else 'Helvetica', size)
+            if align=='right': c.drawRightString(x,y,str(text))
+            elif align=='center': c.drawCentredString(x,y,str(text))
+            else: c.drawString(x,y,str(text))
+        t(L,y,APP_NAME,14,True); t(R,y,f'Competência: {MESES[mes-1]}/{ano}',10,True,'right')
+        y-=28; t(L,y,'Resumo da Folha de Pagamento',13,True); y-=18; c.line(L,y,R,y); y-=28
+        dados=[('Funcionários',total_func),('Total proventos',moeda_br(total_p)),('Total descontos',moeda_br(total_d)),('Total líquido',moeda_br(total_l)),('Base FGTS',moeda_br(base_fgts)),('Valor FGTS',moeda_br(valor_fgts))]
+        for label,val in dados:
+            t(L,y,label,10,True); t(R,y,val,10,False,'right'); y-=22
+        c.save()
+        try:
+            if os.name=='nt': os.startfile(pdf)
+        except Exception: pass
+        messagebox.showinfo('Folha', f'Resumo da folha gerado:\n{pdf}')
+
     def _folha_get_competencia_id(self):
         mes=int(self.folha_mes.get()); ano=int(self.folha_ano.get())
         with con() as db:
@@ -4444,10 +4496,10 @@ class App(tk.Tk):
 
         # Lançamento em percentual: o campo "Valor / Percentual" representa a porcentagem.
         # O valor calculado é gravado no lançamento para manter o holerite auditável, como em sistemas de folha.
-        if forma == 'Percentual do salário' and valor_digitado > 0:
+        if forma in ('Percentual do salário','Percentual sobre salário base') and valor_digitado > 0:
             ref_txt = f'{valor_digitado:.4f}%'.replace('.', ',')
             return ref_txt, round(salario * valor_digitado / 100.0, 2)
-        if forma == 'Percentual dos proventos atuais' and valor_digitado > 0:
+        if forma in ('Percentual dos proventos atuais','Percentual sobre proventos atuais') and valor_digitado > 0:
             ref_txt = f'{valor_digitado:.4f}%'.replace('.', ',')
             base = salario
             try:
@@ -4463,7 +4515,7 @@ class App(tk.Tk):
             return ref_txt, round(base * valor_digitado / 100.0, 2)
 
         # Lançamento em valor absoluto informado manualmente.
-        if forma == 'Valor fixo R$' and valor_digitado > 0:
+        if forma in ('Valor fixo R$','Valor informado (R$)') and valor_digitado > 0:
             return ref_txt, round(valor_digitado,2)
 
         # Automático do evento: usa fórmula cadastrada.
@@ -4613,11 +4665,11 @@ class App(tk.Tk):
             # Quadro do líquido separado e com largura suficiente para não invadir divisões.
             line(x0,totals_y,R,totals_y)
             # Quadro do salário líquido igual aos sistemas de folha: label e valor em células separadas.
-            line(x0+315,totals_y,x0+315,totals_y-28)
-            line(x0+455,totals_y,x0+455,totals_y-28)
+            line(x0+300,totals_y,x0+300,totals_y-28)
+            line(x0+440,totals_y,x0+440,totals_y-28)
             line(x0,totals_y-28,R,totals_y-28)
-            txt(x0+385,totals_y-18,'SALÁRIO LÍQUIDO',8.2,True,'center')
-            txt(R-10,totals_y-18,f'R$ {m(liquido)}',9.0,True,'right')
+            txt(x0+370,totals_y-18,'SALÁRIO LÍQUIDO',8.0,True,'center')
+            txt(R-12,totals_y-18,f'R$ {m(liquido)}',8.8,True,'right')
             base_y=y0+54
             # Quadro de bases com divisões internas, preservando o espaço padrão do modelo.
             rect(x0, base_y-17, block_w, 27)
