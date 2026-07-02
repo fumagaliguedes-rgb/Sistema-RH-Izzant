@@ -1,7 +1,8 @@
-# Changelog
+# CHANGELOG
 
-## v1.6.2 - Interface de Submenus
-- Melhorados os cards dos submenus exibidos na área principal.
-- Incluídas cores por grupo: Cadastros, Gestão de Pessoas, Jornada, Documentos, Relatórios, Administração e Ferramentas.
-- Melhorada a leitura visual dos módulos.
-- Mantidas intactas as regras homologadas de folha de ponto, DSR, sábado compensado e 12x36.
+## v1.6.3 - Interface Premium
+- Cards dos submenus com visual mais moderno.
+- Cabeçalho dos grupos aprimorado.
+- Indicadores rápidos na área de grupos.
+- Efeito visual de destaque ao passar o mouse.
+- Mantidas as regras estáveis da folha de ponto, DSR e 12x36.
