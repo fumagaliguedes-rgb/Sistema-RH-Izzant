@@ -1,5 +1,7 @@
 # Sistema Gestão Izzant
 
-Versão: v3.3
+Versão: v3.4
 
-Módulo Férias: PDF ajustado, cálculo de INSS/IRRF revisado e documentos separados.
+Status: Desenvolvimento
+
+Módulo incluído: Folha de Pagamento - base inicial
