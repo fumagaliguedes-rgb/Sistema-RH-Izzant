@@ -1,12 +1,11 @@
 # Sistema Gestão Izzant
 
-Versão: v1.6.1 Dashboard Executivo
+Versão: v1.6.2
+Status: Desenvolvimento
+Branch recomendada: develop
 
-Status: Desenvolvimento na branch develop
-
-Alterações:
-- Painel inicial mais profissional e compacto.
-- Cards com indicadores em duas linhas.
-- Central de módulos com cartões de acesso.
-- Atalhos rápidos para funções mais usadas.
-- Nome oficial: Sistema Gestão Izzant.
+## Alteração
+- Melhoria visual dos cards de submenus na área principal.
+- Cabeçalhos por grupo com cores e descrição.
+- Cards com faixa superior colorida, ícone em destaque, hover e ação “Abrir módulo”.
+- Sem alteração na folha de ponto, DSR ou regras de jornada.
