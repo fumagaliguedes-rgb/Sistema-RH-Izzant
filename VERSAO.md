@@ -1,11 +1,11 @@
 # Sistema Gestão Izzant
 
-Versão: v2.0 - Módulo Férias Final
-Status: Patch de estabilização do módulo Férias
+Versão: v2.2 - Férias Enterprise Ajustado
 
-Principais ajustes:
-- PDF de Aviso + Recibo de Férias com venda de férias/abono pecuniário no demonstrativo.
-- Lançamento do adiantamento do 13º salário no demonstrativo quando marcado.
-- Totais de proventos, descontos e líquido ajustados.
-- Assinaturas reposicionadas com melhor espaçamento.
-- Mantida a tela simplificada de férias aprovada.
+Alterações principais:
+- PDF de férias com bloco de períodos em duas colunas.
+- Demonstrativo de férias mais compacto e adaptável.
+- INSS exibido com percentual efetivo em vez de “Tabela 2026”.
+- Cálculo progressivo de INSS 2026 parametrizado no código.
+- IRRF 2026 com tabela mensal e redutor de isenção parcial.
+- Suporte para recibo em segunda página quando houver muitos lançamentos.
