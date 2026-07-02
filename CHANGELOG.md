@@ -1,7 +1,9 @@
-# v3.9 - Folha lançamentos estilo SCI/Domínio
+# v4.0 - Folha de Pagamento Enterprise
 
-- Cria aba/menu exclusivo para lançamentos da folha.
-- Melhora lançamentos por funcionário, setor, função ou todos.
-- Permite lançamentos em valor fixo, percentual do salário, percentual dos proventos atuais ou cálculo automático do evento.
-- Corrige inclusão de lançamentos percentuais no cálculo da folha e no holerite.
-- Ajusta quadros do holerite, especialmente salário líquido e bases.
+- Reorganiza o módulo Folha de Pagamento com menu específico de lançamentos.
+- Mantém a lista de funcionários apenas sob demanda/filtros.
+- Lançamentos podem ser aplicados por funcionário, setor, função ou todos.
+- Lançamentos aceitam valor fixo, percentual do salário, percentual dos proventos atuais ou cálculo automático do evento.
+- Corrige leitura dos lançamentos percentuais no cálculo da folha e no holerite.
+- Ajusta o quadro de Salário Líquido no holerite.
+- Mantém o espaçamento padrão do modelo SCI/Domínio.

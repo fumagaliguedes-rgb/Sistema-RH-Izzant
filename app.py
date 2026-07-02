@@ -460,7 +460,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v3.9 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v4.0 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1422,7 +1422,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v3.9 Folha')
+        self.title(APP_NAME + ' - Enterprise v4.0 Folha')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -4110,7 +4110,7 @@ class App(tk.Tk):
         self.folha_tab_lanc = ttk.Frame(self.folha_nb)
         self.folha_tab_eventos = ttk.Frame(self.folha_nb)
         self.folha_tab_holerites = ttk.Frame(self.folha_nb)
-        self.folha_nb.add(self.folha_tab_lanc, text='➕ Lançamentos')
+        self.folha_nb.add(self.folha_tab_lanc, text='➕ Menu Lançamentos')
         self.folha_nb.add(self.folha_tab_resumo, text='📊 Resumo')
         self.folha_nb.add(self.folha_tab_eventos, text='⚙️ Eventos')
         self.folha_nb.add(self.folha_tab_holerites, text='🖨 Holerites')
@@ -4158,7 +4158,7 @@ class App(tk.Tk):
     def _build_folha_lancamentos_tab(self):
         f = self.folha_tab_lanc
         f.columnconfigure(0, weight=1); f.rowconfigure(1, weight=1)
-        form = ttk.LabelFrame(f, text='Menu exclusivo de lançamentos da folha - valor, percentual, setor, função ou todos')
+        form = ttk.LabelFrame(f, text='Lançamentos da Folha (estilo SCI/Domínio) - valor, percentual, funcionário, setor, função ou todos')
         form.grid(row=0, column=0, sticky='ew', padx=8, pady=8)
         for c in range(10): form.columnconfigure(c, weight=1)
         ttk.Label(form, text='Evento').grid(row=0, column=0, sticky='w', padx=6, pady=5)
@@ -4175,7 +4175,7 @@ class App(tk.Tk):
         ttk.Label(form, text='Valor / Percentual').grid(row=1, column=3, sticky='w', padx=6, pady=5)
         self.folha_lanc_valor = tk.StringVar()
         ttk.Entry(form, textvariable=self.folha_lanc_valor).grid(row=1, column=4, sticky='ew', padx=6, pady=5)
-        ttk.Label(form, text='Ex.: 212,00 ou 10 para 10%. Em automático, use a referência/qtd.').grid(row=1, column=5, columnspan=2, sticky='w', padx=6, pady=5)
+        ttk.Label(form, text='Valor R$ ou percentual. Ex.: 212,00 / 10 para 10%. Em automático, informe a quantidade/ref.').grid(row=1, column=5, columnspan=2, sticky='w', padx=6, pady=5)
 
         ttk.Label(form, text='Aplicar para').grid(row=2, column=0, sticky='w', padx=6, pady=5)
         self.folha_aplicar_tipo = tk.StringVar(value='Funcionário')
@@ -4430,7 +4430,7 @@ class App(tk.Tk):
         try:
             with con() as db:
                 rows=db.execute('''SELECT codigo,descricao,referencia,tipo,valor,origem FROM folha_lancamentos
-                                   WHERE competencia_id=? AND funcionario_id=? AND ativo=1 AND COALESCE(origem,'')='Manual' ''', (comp_id, f['id'])).fetchall()
+                                   WHERE competencia_id=? AND funcionario_id=? AND ativo=1 AND COALESCE(origem,'') LIKE 'Manual%' ''', (comp_id, f['id'])).fetchall()
             for cod,desc,ref,tipo,val,origem in rows:
                 item=(cod,desc,ref,float(val or 0),origem or 'Manual')
                 if str(tipo).lower().startswith('desc'): descontos.append(item)
@@ -4514,10 +4514,12 @@ class App(tk.Tk):
             txt(x0+382,totals_y+12,'Totais',7,False,'right'); txt(x0+467,totals_y+12,m(total_p),7,False,'right'); txt(R-5,totals_y+12,m(total_d),7,False,'right')
             # Quadro do líquido separado e com largura suficiente para não invadir divisões.
             line(x0,totals_y,R,totals_y)
+            # Quadro do salário líquido igual aos sistemas de folha: label e valor em células separadas.
             line(x0+315,totals_y,x0+315,totals_y-28)
-            line(x0+470,totals_y,x0+470,totals_y-28)
+            line(x0+455,totals_y,x0+455,totals_y-28)
             line(x0,totals_y-28,R,totals_y-28)
-            txt(x0+392,totals_y-18,'SALÁRIO LÍQUIDO',8.0,True,'center'); txt(R-8,totals_y-18,f'R$ {m(liquido)}',8.8,True,'right')
+            txt(x0+385,totals_y-18,'SALÁRIO LÍQUIDO',8.2,True,'center')
+            txt(R-10,totals_y-18,f'R$ {m(liquido)}',9.0,True,'right')
             base_y=y0+54
             line(x0,base_y+10,R,base_y+10)
             salario=float(f.get('salario') or 0); base_inss=total_p; base_fgts=total_p; valor_fgts=round(base_fgts*0.08,2); inss=sum(v for _,d,_,v,_ in des if 'INSS' in str(d).upper()); base_irrf=max(0,total_p-inss)
