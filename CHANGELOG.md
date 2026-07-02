@@ -1,8 +1,9 @@
-# CHANGELOG
+# Changelog
 
-## v1.6.3 - Interface Premium
-- Cards dos submenus com visual mais moderno.
-- Cabeçalho dos grupos aprimorado.
-- Indicadores rápidos na área de grupos.
-- Efeito visual de destaque ao passar o mouse.
-- Mantidas as regras estáveis da folha de ponto, DSR e 12x36.
+## v1.6.4 - Cards ajustados
+- Cards dos submenus ampliados.
+- Exibição em duas colunas.
+- Títulos com fonte menor e quebra automática.
+- Descrições com maior largura útil.
+- Botão/ação de abrir mantido no rodapé do card.
+- Folha de ponto e regras de jornada não alteradas.

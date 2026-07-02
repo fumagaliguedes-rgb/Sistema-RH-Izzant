@@ -418,7 +418,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v1.6.3 Interface', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v1.6.4 Interface', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1337,7 +1337,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v1.6.3 Interface')
+        self.title(APP_NAME + ' - Enterprise v1.6.4 Interface')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -1397,7 +1397,7 @@ class App(tk.Tk):
             pass
         tk.Label(logo_box, text='SISTEMA GESTÃO\nIZZANT', bg='#111827', fg='white',
                  font=('Arial',15,'bold'), justify='left').pack(anchor='w')
-        tk.Label(logo_box, text='Enterprise v1.6.3', bg='#111827', fg='#9ca3af',
+        tk.Label(logo_box, text='Enterprise v1.6.4', bg='#111827', fg='#9ca3af',
                  font=('Arial',9), justify='left').pack(anchor='w', pady=(4,0))
 
         self.nb=ttk.Notebook(main, style='Hidden.TNotebook')
@@ -1523,7 +1523,7 @@ class App(tk.Tk):
         header_text = tk.Frame(header, bg=fundo)
         header_text.pack(side='left', fill='both', expand=True, pady=14)
         tk.Label(header_text, text=nome_grupo, bg=fundo, fg='#0f172a', font=('Arial', 23, 'bold')).pack(anchor='w')
-        tk.Label(header_text, text='Selecione um módulo. Os submenus aparecem como cartões executivos para reduzir botões e facilitar a navegação.',
+        tk.Label(header_text, text='Escolha um módulo abaixo. Os cards foram ampliados para melhorar a leitura e evitar textos cortados.',
                  bg=fundo, fg='#475569', font=('Arial', 10), wraplength=820, justify='left').pack(anchor='w', pady=(4,0))
 
         resumo = tk.Frame(header, bg=fundo)
@@ -1550,20 +1550,20 @@ class App(tk.Tk):
             titulo, desc, tab, icone = item[0], item[1], item[2], item[3]
             comando_extra = item[4] if len(item) > 4 else None
             self.make_submenu_card(grid, idx, titulo, desc, tab, icone, comando_extra, cor, cor_escura)
-        for c in range(3):
+        for c in range(2):
             grid.columnconfigure(c, weight=1, uniform='cards')
-        for r in range((len(itens)+2)//3):
+        for r in range((len(itens)+1)//2):
             grid.rowconfigure(r, weight=1)
         self.nb.select(self.tab_grupos)
 
     def make_submenu_card(self, parent, idx, titulo, desc, tab, icone='•', comando_extra=None, cor='#2563eb', cor_escura='#1d4ed8'):
-        r, ccol = divmod(idx, 3)
+        r, ccol = divmod(idx, 2)
         # Moldura externa cria um efeito de sombra sutil sem depender de bibliotecas externas.
         shadow = tk.Frame(parent, bg='#cbd5e1')
-        shadow.grid(row=r, column=ccol, sticky='nsew', padx=12, pady=12)
+        shadow.grid(row=r, column=ccol, sticky='nsew', padx=14, pady=12)
         shadow.grid_propagate(False)
         try:
-            shadow.configure(width=330, height=178)
+            shadow.configure(width=430, height=190)
         except Exception:
             pass
 
@@ -1577,18 +1577,18 @@ class App(tk.Tk):
         conteudo.pack(side='left', fill='both', expand=True)
 
         top = tk.Frame(conteudo, bg='white')
-        top.pack(fill='x', padx=16, pady=(15,6))
-        icon_box = tk.Label(top, text=icone, bg=cor, fg='white', font=('Arial', 20), width=3, height=1)
+        top.pack(fill='x', padx=18, pady=(16,6))
+        icon_box = tk.Label(top, text=icone, bg=cor, fg='white', font=('Arial', 22), width=3, height=1)
         icon_box.pack(side='left')
         text_box = tk.Frame(top, bg='white')
         text_box.pack(side='left', fill='x', expand=True, padx=12)
-        tk.Label(text_box, text=titulo, bg='white', fg='#0f172a', font=('Arial',14,'bold')).pack(anchor='w')
+        tk.Label(text_box, text=titulo, bg='white', fg='#0f172a', font=('Arial',12,'bold'), wraplength=285, justify='left').pack(anchor='w')
         tk.Label(text_box, text='Clique para acessar', bg='white', fg=cor_escura, font=('Arial',8,'bold')).pack(anchor='w', pady=(2,0))
 
-        tk.Label(conteudo, text=desc, bg='white', fg='#475569', font=('Arial',9), wraplength=250, justify='left').pack(anchor='w', padx=17, pady=(4,10))
+        tk.Label(conteudo, text=desc, bg='white', fg='#475569', font=('Arial',9), wraplength=360, justify='left').pack(anchor='w', padx=18, pady=(6,10))
 
         footer = tk.Frame(conteudo, bg='white')
-        footer.pack(fill='x', side='bottom', padx=16, pady=(0,13))
+        footer.pack(fill='x', side='bottom', padx=18, pady=(0,13))
         linha = tk.Frame(footer, bg='#e2e8f0', height=1)
         linha.pack(fill='x', pady=(0,8))
         abrir_lbl = tk.Label(footer, text='Abrir módulo  →', bg='white', fg=cor_escura, font=('Arial',9,'bold'), cursor='hand2')
