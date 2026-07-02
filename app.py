@@ -2412,13 +2412,36 @@ class App(tk.Tk):
         ttk.Button(f,text='Gerar Recibo de Férias',command=lambda:self.gerar_documento_ferias('Recibo de Férias')).grid(row=10,column=5,sticky='ew',padx=8,pady=10)
         ttk.Button(f,text='Gerar Comunicação/Termo',command=lambda:self.gerar_documento_ferias('Comunicação de Férias')).grid(row=10,column=6,sticky='ew',padx=8,pady=10)
         ttk.Button(f,text='Concluir Férias',command=self.concluir_ferias).grid(row=10,column=7,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Atualizar cálculo',command=self.calcular_ferias_tela).grid(row=12,column=6,sticky='ew',padx=8,pady=4)
-        ttk.Button(f,text='Abrir documentos de férias',command=self.abrir_documentos_ferias).grid(row=12,column=7,sticky='ew',padx=8,pady=4)
-        self.fer_tree=ttk.Treeview(f,columns=('func','aq','conc','periodo','ret','dias','rest','total','status'),show='headings')
+        ttk.Button(f,text='Atualizar cálculo',command=self.calcular_ferias_tela).grid(row=12,column=5,sticky='ew',padx=8,pady=4)
+        ttk.Button(f,text='Abrir pasta de documentos',command=self.abrir_documentos_ferias).grid(row=12,column=6,sticky='ew',padx=8,pady=4)
+        ttk.Button(f,text='Abrir documento selecionado',command=self.abrir_documento_ferias_selecionado).grid(row=12,column=7,sticky='ew',padx=8,pady=4)
+
+        historico_box = ttk.LabelFrame(f, text='Histórico de férias')
+        historico_box.grid(row=13,column=0,columnspan=8,sticky='nsew',padx=12,pady=(8,4))
+        historico_box.rowconfigure(0, weight=1)
+        historico_box.columnconfigure(0, weight=1)
+        self.fer_tree=ttk.Treeview(historico_box,columns=('func','aq','conc','periodo','ret','dias','rest','total','status'),show='headings', height=8)
         for col,txt,w in [('func','Funcionário',210),('aq','Aquisitivo',160),('conc','Concessivo até',100),('periodo','Férias',165),('ret','Retorno',85),('dias','Dias',50),('rest','Rest.',50),('total','Total bruto',95),('status','Status',90)]:
             self.fer_tree.heading(col,text=txt); self.fer_tree.column(col,width=w)
-        self.fer_tree.grid(row=13,column=0,columnspan=8,sticky='nsew',padx=12,pady=8)
-        f.rowconfigure(13,weight=1)
+        self.fer_tree.grid(row=0,column=0,sticky='nsew')
+        fer_scroll=ttk.Scrollbar(historico_box, orient='vertical', command=self.fer_tree.yview)
+        fer_scroll.grid(row=0,column=1,sticky='ns')
+        self.fer_tree.configure(yscrollcommand=fer_scroll.set)
+
+        docs_box = ttk.LabelFrame(f, text='Documentos de férias gerados')
+        docs_box.grid(row=14,column=0,columnspan=8,sticky='nsew',padx=12,pady=(4,10))
+        docs_box.rowconfigure(0, weight=1)
+        docs_box.columnconfigure(0, weight=1)
+        self.fer_docs_tree=ttk.Treeview(docs_box,columns=('data','func','tipo','titulo','arquivo'),show='headings', height=6)
+        for col,txt,w in [('data','Data',90),('func','Funcionário',220),('tipo','Tipo',160),('titulo','Título',220),('arquivo','Arquivo',360)]:
+            self.fer_docs_tree.heading(col,text=txt); self.fer_docs_tree.column(col,width=w)
+        self.fer_docs_tree.grid(row=0,column=0,sticky='nsew')
+        docs_scroll=ttk.Scrollbar(docs_box, orient='vertical', command=self.fer_docs_tree.yview)
+        docs_scroll.grid(row=0,column=1,sticky='ns')
+        self.fer_docs_tree.configure(yscrollcommand=docs_scroll.set)
+
+        f.rowconfigure(13,weight=2)
+        f.rowconfigure(14,weight=1)
         for c in range(8): f.columnconfigure(c,weight=1)
 
     def _ferias_func_id(self):
@@ -2669,6 +2692,7 @@ class App(tk.Tk):
             except Exception:
                 pass
             self.carregar_documentos()
+            self.carregar_documentos_ferias()
         except Exception as exc:
             messagebox.showerror('Erro ao gerar documento de férias', str(exc))
             try:
@@ -2681,6 +2705,68 @@ class App(tk.Tk):
         os.makedirs(pasta, exist_ok=True)
         self._open(pasta)
 
+    def carregar_documentos_ferias(self):
+        """Carrega somente documentos gerados no módulo Férias.
+
+        Correção v1.6.5: esta grade não deve consultar feriados nem outros
+        registros administrativos. Ela usa exclusivamente a tabela
+        documentos_rh filtrando documentos com observação de origem do módulo
+        Férias ou tipos de documentos de férias.
+        """
+        if not hasattr(self, 'fer_docs_tree'):
+            return
+        self.fer_docs_tree.delete(*self.fer_docs_tree.get_children())
+        tipos_ferias = (
+            'Aviso de Férias', 'Recibo de Férias', 'Recibo de Abono',
+            'Comunicação de Férias', 'Termo de Ciência',
+            'Recibo de Pagamento das Férias'
+        )
+        placeholders = ','.join(['?'] * len(tipos_ferias))
+        try:
+            with con() as db:
+                rows = db.execute(f"""
+                    SELECT d.id, d.data, COALESCE(f.nome,''), COALESCE(d.tipo,''),
+                           COALESCE(d.titulo,''), COALESCE(d.arquivo,'')
+                    FROM documentos_rh d
+                    LEFT JOIN funcionarios f ON f.id=d.funcionario_id
+                    WHERE d.ativo=1
+                      AND (d.tipo IN ({placeholders})
+                           OR UPPER(COALESCE(d.observacao,'')) LIKE '%MÓDULO FÉRIAS%'
+                           OR UPPER(COALESCE(d.observacao,'')) LIKE '%MODULO FERIAS%'
+                           OR LOWER(COALESCE(d.arquivo,'')) LIKE '%ferias%')
+                    ORDER BY date(d.data) DESC, d.id DESC
+                    LIMIT 300
+                """, tipos_ferias).fetchall()
+            for rid, data_txt, funcionario, tipo, titulo, arquivo in rows:
+                self.fer_docs_tree.insert('', 'end', iid=str(rid), values=(
+                    fmt_data(data_txt), funcionario, tipo, titulo, arquivo
+                ))
+        except Exception as exc:
+            try:
+                log_action(getattr(self, 'usuario', 'sistema'), 'FÉRIAS', f'Erro ao carregar documentos de férias: {exc}')
+            except Exception:
+                pass
+
+    def abrir_documento_ferias_selecionado(self):
+        if not hasattr(self, 'fer_docs_tree'):
+            return
+        sel = self.fer_docs_tree.selection()
+        if not sel:
+            messagebox.showwarning('Férias', 'Selecione um documento de férias na lista.')
+            return
+        try:
+            with con() as db:
+                row = db.execute('SELECT arquivo FROM documentos_rh WHERE id=?', (int(sel[0]),)).fetchone()
+            arquivo = row[0] if row else ''
+            if arquivo and os.path.exists(arquivo):
+                if os.name == 'nt':
+                    os.startfile(arquivo)
+                else:
+                    self._open(arquivo)
+            else:
+                messagebox.showwarning('Férias', 'Arquivo não encontrado. Verifique se ele ainda existe na pasta documentos_gerados/ferias.')
+        except Exception as exc:
+            messagebox.showerror('Férias', f'Não foi possível abrir o documento:\n{exc}')
     def concluir_ferias(self):
         sel=self.fer_tree.selection() if hasattr(self,'fer_tree') else []
         if not sel:
@@ -2716,6 +2802,7 @@ class App(tk.Tk):
                                WHERE fc.ativo=1 ORDER BY date(fc.inicio) DESC, f.nome""").fetchall()
         for rid,nome,aqi,aqf,conc,ini,fim,ret,dias,rest,total,status in rows:
             self.fer_tree.insert('', 'end', iid=str(rid), values=(nome, f'{fmt_data(aqi)} a {fmt_data(aqf)}', fmt_data(conc), f'{fmt_data(ini)} a {fmt_data(fim)}', fmt_data(ret), dias or '', rest or '', moeda_br(total or 0), status))
+        self.carregar_documentos_ferias()
 
     def salvar_ferias(self):
         val=self.ferias_func_var.get().strip()
