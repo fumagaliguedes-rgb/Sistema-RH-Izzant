@@ -418,7 +418,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v1.8.2 Férias', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v1.8.3 Férias', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1380,7 +1380,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v1.8.2 Férias')
+        self.title(APP_NAME + ' - Enterprise v1.8.3 Férias')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -2870,7 +2870,7 @@ class App(tk.Tk):
 
     def _gerar_pdf_ferias_resumo(self, tipo, dados, destino_pdf):
         """Gera Aviso + Recibo de Férias em PDF com layout fixo e sem sobreposição.
-        Corrigido na v1.8.2: totais, comunicado de concessão, valor por extenso e espaçamentos finais.
+        Corrigido na v1.8.3: totais, comunicado de concessão, valor por extenso e espaçamentos finais.
         """
         os.makedirs(os.path.dirname(destino_pdf), exist_ok=True)
         c = canvas.Canvas(destino_pdf, pagesize=A4)
@@ -2967,7 +2967,7 @@ class App(tk.Tk):
         c.setFillColor(colors.black)
 
         # AVISO - quadro superior
-        aviso_top, aviso_bottom = H - 18, 250
+        aviso_top, aviso_bottom = H - 18, 242
         rect(L, aviso_bottom, BW, aviso_top-aviso_bottom)
         txt(W/2, aviso_top-14, f'17 - {empresa}', 12, True, 'center')
         txt(W/2, aviso_top-28, cnpj, 9.5, False, 'center')
@@ -3057,11 +3057,11 @@ class App(tk.Tk):
         txt(L+10, ciente_y, f'Ciente: {local}, {hoje}', 7.3)
         sig_y = aviso_bottom + 10
         line(L+10, sig_y, L+240, sig_y); line(R-250, sig_y, R-10, sig_y)
-        txt(L+125, sig_y-11, funcionario[:42], 7.5, False, 'center')
-        txt(R-130, sig_y-11, empresa[:42], 7.5, False, 'center')
+        txt(L+125, sig_y-10, funcionario[:42], 7.5, False, 'center')
+        txt(R-130, sig_y-10, empresa[:42], 7.5, False, 'center')
 
         # RECIBO - quadro inferior
-        recibo_top, recibo_bottom = 240, 42
+        recibo_top, recibo_bottom = 232, 34
         rect(L, recibo_bottom, BW, recibo_top-recibo_bottom)
         y = recibo_top-15
         txt(W/2, y, f'17 - {empresa}', 11.5, True, 'center')
@@ -3078,10 +3078,10 @@ class App(tk.Tk):
         txt(L+112, y+9, extenso[:105], 7.6)
         y -= 38
         txt(L+10, y, 'Para clareza e documento, firmo o presente recibo, dando plena e legal quitação.', 7.8)
-        y -= 28
+        y -= 16
         txt(L+10, y, f'{local}, {fim or hoje}', 7.8)
         line(R-255, y, R-10, y)
-        txt(R-132, y-12, funcionario[:42], 7.6, False, 'center')
+        txt(R-132, y-13, funcionario[:42], 7.6, False, 'center')
         txt(L, 18, 'Sistema Gestão Izzant', 6)
         txt(R, 18, datetime.now().strftime('%d/%m/%Y %H:%M'), 6, False, 'right')
         c.save()

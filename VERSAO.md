@@ -1,5 +1,5 @@
 # Sistema Gestão Izzant
 
-Versão: v1.8.2
+Versão: v1.8.3
 
-Ajustes no PDF de férias: totais de proventos/descontos sem sobreposição e comunicado de concessão do período de férias corrigido.
+Status: Ajuste final de assinaturas no PDF de férias.
