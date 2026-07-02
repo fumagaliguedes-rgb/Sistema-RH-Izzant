@@ -460,7 +460,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v3.6 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v3.7 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1422,7 +1422,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v3.6 Folha')
+        self.title(APP_NAME + ' - Enterprise v3.7 Folha')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -4101,7 +4101,8 @@ class App(tk.Tk):
         ttk.Button(top, text='Calcular folha', command=self.calcular_folha_competencia).grid(row=0, column=5, sticky='ew', padx=6, pady=8)
         ttk.Button(top, text='Holerite selecionado', command=self.gerar_holerite_selecionado).grid(row=0, column=6, sticky='ew', padx=6, pady=8)
         ttk.Button(top, text='Holerites todos', command=self.gerar_holerites_folha).grid(row=0, column=7, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Abrir pasta', command=lambda:self._open(os.path.join(PDF_DIR, 'folha_pagamento'))).grid(row=0, column=8, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='Relatório líquidos', command=self.gerar_relatorio_liquidos_folha).grid(row=0, column=8, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='Abrir pasta', command=lambda:self._open(os.path.join(PDF_DIR, 'folha_pagamento'))).grid(row=0, column=9, sticky='ew', padx=6, pady=8)
 
         self.folha_nb = ttk.Notebook(frame)
         self.folha_nb.grid(row=1, column=0, sticky='nsew', padx=14, pady=(0,12))
@@ -4124,16 +4125,35 @@ class App(tk.Tk):
 
     def _build_folha_resumo_tab(self):
         f = self.folha_tab_resumo
-        f.columnconfigure(0, weight=1); f.rowconfigure(0, weight=1)
-        self.folha_tree = ttk.Treeview(f, columns=('id','nome','setor','funcao','salario','prov','desc','liq','status'), show='headings', height=18)
+        f.columnconfigure(0, weight=1); f.rowconfigure(1, weight=1)
+
+        painel = ttk.LabelFrame(f, text='Painel da competência')
+        painel.grid(row=0, column=0, columnspan=2, sticky='ew', padx=8, pady=8)
+        for c in range(8): painel.columnconfigure(c, weight=1)
+        self.folha_mostrar_lista = tk.IntVar(value=0)
+        ttk.Label(painel, text='Use os filtros abaixo quando precisar visualizar funcionários. A tela não carrega todos automaticamente.').grid(row=0, column=0, columnspan=8, sticky='w', padx=8, pady=(6,2))
+        ttk.Checkbutton(painel, text='Mostrar funcionários na tela', variable=self.folha_mostrar_lista, command=self.carregar_folha_preview).grid(row=1, column=0, sticky='w', padx=8, pady=6)
+        ttk.Label(painel, text='Filtro').grid(row=1, column=1, sticky='e', padx=6, pady=6)
+        self.folha_filtro_tipo = tk.StringVar(value='Todos')
+        self.folha_filtro_valor = tk.StringVar(value='TODOS')
+        ttk.Combobox(painel, textvariable=self.folha_filtro_tipo, values=['Todos','Funcionário','Setor','Função'], state='readonly', width=14).grid(row=1, column=2, sticky='ew', padx=6, pady=6)
+        self.folha_filtro_combo = ttk.Combobox(painel, textvariable=self.folha_filtro_valor)
+        self.folha_filtro_combo.grid(row=1, column=3, columnspan=2, sticky='ew', padx=6, pady=6)
+        ttk.Button(painel, text='Atualizar filtros', command=self.atualizar_filtros_resumo_folha).grid(row=1, column=5, sticky='ew', padx=6, pady=6)
+        ttk.Button(painel, text='Visualizar', command=self.carregar_folha_preview).grid(row=1, column=6, sticky='ew', padx=6, pady=6)
+        ttk.Button(painel, text='Relatório líquidos', command=self.gerar_relatorio_liquidos_folha).grid(row=1, column=7, sticky='ew', padx=6, pady=6)
+
+        self.folha_tree = ttk.Treeview(f, columns=('id','nome','setor','funcao','salario','prov','desc','liq','status'), show='headings', height=14)
         cols=[('id','ID',55),('nome','Funcionário',260),('setor','Setor',120),('funcao','Função',150),('salario','Salário',100),('prov','Proventos',110),('desc','Descontos',110),('liq','Líquido',110),('status','Status',110)]
         for col,txt,w in cols:
             self.folha_tree.heading(col, text=txt); self.folha_tree.column(col, width=w, minwidth=50)
-        self.folha_tree.grid(row=0, column=0, sticky='nsew')
+        self.folha_tree.grid(row=1, column=0, sticky='nsew', padx=(8,0), pady=(0,8))
         sb = ttk.Scrollbar(f, orient='vertical', command=self.folha_tree.yview)
-        sb.grid(row=0, column=1, sticky='ns')
+        sb.grid(row=1, column=1, sticky='ns', pady=(0,8))
         self.folha_tree.configure(yscrollcommand=sb.set)
-        ttk.Label(f, text='Resumo da competência com lançamentos automáticos e manuais. Os valores manuais podem ser aplicados por funcionário, setor, função ou todos.', font=('Arial',9)).grid(row=1, column=0, sticky='w', padx=4, pady=6)
+        ttk.Label(f, text='Resumo da competência com lançamentos automáticos e manuais. Para conferência geral, use o relatório de líquidos.', font=('Arial',9)).grid(row=2, column=0, sticky='w', padx=8, pady=4)
+        self.folha_filtro_tipo.trace_add('write', lambda *a: self.atualizar_filtros_resumo_folha())
+        self.atualizar_filtros_resumo_folha()
 
     def _build_folha_lancamentos_tab(self):
         f = self.folha_tab_lanc
@@ -4242,6 +4262,39 @@ class App(tk.Tk):
         elif tipo=='Função': vals=sorted({(f.get('funcao') or '').strip() for f in funcs if (f.get('funcao') or '').strip()})
         else: vals=['TODOS']
         self.folha_alvo_combo['values']=vals; self.folha_alvo_var.set(vals[0] if vals else '')
+
+    def atualizar_filtros_resumo_folha(self):
+        if not hasattr(self, 'folha_filtro_combo'):
+            return
+        tipo = self.folha_filtro_tipo.get() if hasattr(self, 'folha_filtro_tipo') else 'Todos'
+        funcs = get_funcionarios(True)
+        if tipo == 'Funcionário':
+            vals = [f'{f["id"]} - {f["nome"]}' for f in funcs]
+        elif tipo == 'Setor':
+            vals = get_setores(True)
+        elif tipo == 'Função':
+            vals = sorted({(f.get('funcao') or '').strip() for f in funcs if (f.get('funcao') or '').strip()})
+        else:
+            vals = ['TODOS']
+        self.folha_filtro_combo['values'] = vals
+        if vals and self.folha_filtro_valor.get() not in vals:
+            self.folha_filtro_valor.set(vals[0])
+
+    def _folha_funcionarios_filtrados(self):
+        funcs = get_funcionarios(True)
+        tipo = self.folha_filtro_tipo.get() if hasattr(self, 'folha_filtro_tipo') else 'Todos'
+        alvo = self.folha_filtro_valor.get() if hasattr(self, 'folha_filtro_valor') else 'TODOS'
+        if tipo == 'Funcionário' and alvo:
+            try:
+                fid = int(str(alvo).split(' - ')[0])
+                funcs = [f for f in funcs if int(f.get('id') or 0) == fid]
+            except Exception:
+                funcs = []
+        elif tipo == 'Setor' and alvo and alvo != 'TODOS':
+            funcs = [f for f in funcs if (f.get('setor') or 'GERAL').strip().upper() == alvo.strip().upper()]
+        elif tipo == 'Função' and alvo and alvo != 'TODOS':
+            funcs = [f for f in funcs if (f.get('funcao') or '').strip().upper() == alvo.strip().upper()]
+        return funcs
 
     def carregar_folha_eventos(self):
         if not hasattr(self,'folha_eventos_tree'): return
@@ -4354,12 +4407,19 @@ class App(tk.Tk):
         return proventos, descontos, total_prov, total_desc, liquido
 
     def carregar_folha_preview(self):
-        if not hasattr(self,'folha_tree'): return
+        if not hasattr(self,'folha_tree'):
+            return
         self.folha_tree.delete(*self.folha_tree.get_children())
-        for f in get_funcionarios(True):
+        # Por padrão, a tela não carrega todos os funcionários para manter o módulo limpo.
+        if hasattr(self, 'folha_mostrar_lista') and not self.folha_mostrar_lista.get():
+            if hasattr(self,'folha_lanc_tree'):
+                self.carregar_folha_lancamentos()
+            return
+        for f in self._folha_funcionarios_filtrados():
             pro, des, tp, td, liq = self._folha_calcular_funcionario(f)
             self.folha_tree.insert('', 'end', iid=str(f['id']), values=(f['id'], f['nome'], f.get('setor') or '', f.get('funcao') or '', moeda_br(f.get('salario')), moeda_br(tp), moeda_br(td), moeda_br(liq), 'Prévia'))
-        if hasattr(self,'folha_lanc_tree'): self.carregar_folha_lancamentos()
+        if hasattr(self,'folha_lanc_tree'):
+            self.carregar_folha_lancamentos()
 
     def calcular_folha_competencia(self):
         comp_id=self._folha_get_competencia_id()
@@ -4411,18 +4471,29 @@ class App(tk.Tk):
                 if descv not in ('',None): txt(R-5,row_y,m(descv),7.0,False,'right')
                 row_y-=12
             if len(rows)>max_rows: txt(x0+44,table_bottom+13,'Continua em demonstrativo complementar...',7.2,True)
-            totals_y=y0+72; line(x0,totals_y+26,R,totals_y+26); line(x0+385,totals_y+26,x0+385,totals_y); line(x0+470,totals_y+26,x0+470,totals_y)
-            txt(x0+382,totals_y+12,'Totais',7,False,'right'); txt(x0+467,totals_y+12,m(total_p),7,False,'right'); txt(R-5,totals_y+12,m(total_d),7,False,'right'); line(x0,totals_y,R,totals_y); line(x0+385,totals_y,x0+385,totals_y-26); line(x0+470,totals_y,x0+470,totals_y-26); txt(x0+392,totals_y-17,'SALÁRIO LÍQUIDO',9,True); txt(R-5,totals_y-17,f'R$ {m(liquido)}',9,True,'right')
-            base_y=y0+35; line(x0,base_y+11,R,base_y+11); salario=float(f.get('salario') or 0); base_inss=total_p; base_fgts=total_p; valor_fgts=round(base_fgts*0.08,2); inss=sum(v for _,d,_,v,_ in des if 'INSS' in str(d).upper()); base_irrf=max(0,total_p-inss)
+            totals_y=y0+72
+            line(x0,totals_y+26,R,totals_y+26); line(x0+385,totals_y+26,x0+385,totals_y); line(x0+470,totals_y+26,x0+470,totals_y)
+            txt(x0+382,totals_y+12,'Totais',7,False,'right'); txt(x0+467,totals_y+12,m(total_p),7,False,'right'); txt(R-5,totals_y+12,m(total_d),7,False,'right')
+            # Quadro do líquido separado e com largura suficiente para não invadir divisões.
+            line(x0,totals_y,R,totals_y); line(x0+385,totals_y,x0+385,totals_y-28); line(x0+470,totals_y,x0+470,totals_y-28); line(x0,totals_y-28,R,totals_y-28)
+            txt(x0+392,totals_y-18,'SALÁRIO LÍQUIDO',8.6,True); txt(R-8,totals_y-18,f'R$ {m(liquido)}',8.8,True,'right')
+            base_y=y0+36
+            line(x0,base_y+10,R,base_y+10)
+            salario=float(f.get('salario') or 0); base_inss=total_p; base_fgts=total_p; valor_fgts=round(base_fgts*0.08,2); inss=sum(v for _,d,_,v,_ in des if 'INSS' in str(d).upper()); base_irrf=max(0,total_p-inss)
             for i,(label,value) in enumerate([('Salário base',salario),('Base INSS',base_inss),('Base FGTS',base_fgts),('Valor FGTS',valor_fgts),('Base IRRF',base_irrf)]):
-                cx=x0+(block_w/5)*i+(block_w/10); txt(cx,base_y+2,label,7,False,'center'); txt(cx,base_y-10,m(value),7,False,'center')
-            dec_y=y0+12; line(x0,dec_y+15,R,dec_y+15); txt(x0+8,dec_y+4,'Declaro ter recebido o valor líquido deste recibo.',7.0); txt(x0+25,y0+5,'     /      /          Assinatura do Colaborador:',7.0); txt(x0+8,y0-10,'Sistema Gestão Izzant',6); txt(R-8,y0-10,datetime.now().strftime('%d/%m/%Y %H:%M'),6,False,'right')
+                cx=x0+(block_w/5)*i+(block_w/10); txt(cx,base_y+2,label,6.8,False,'center'); txt(cx,base_y-9,m(value),6.8,False,'center')
+            dec_y=y0+13; line(x0,dec_y+14,R,dec_y+14); txt(x0+8,dec_y+4,'Declaro ter recebido o valor líquido deste recibo.',6.8); txt(x0+25,y0+5,'     /      /          Assinatura do Colaborador:',6.8); txt(x0+8,y0-10,'Sistema Gestão Izzant',6); txt(R-8,y0-10,datetime.now().strftime('%d/%m/%Y %H:%M'),6,False,'right')
         draw_via(y1); draw_via(y2); c.save(); return total_p,total_d,liquido
 
     def gerar_holerite_selecionado(self):
         sel=self.folha_tree.selection() if hasattr(self,'folha_tree') else []
-        if not sel: messagebox.showwarning('Folha','Selecione um funcionário.'); return
-        fid=int(sel[0]); funcs=[f for f in get_funcionarios(True) if int(f['id'])==fid]
+        funcs=[]
+        if sel:
+            fid=int(sel[0]); funcs=[f for f in get_funcionarios(True) if int(f['id'])==fid]
+        else:
+            funcs=self._folha_funcionarios_filtrados() if hasattr(self, '_folha_funcionarios_filtrados') else []
+            if len(funcs) != 1:
+                messagebox.showwarning('Folha','Selecione um funcionário no filtro ou marque "Mostrar funcionários na tela" e escolha na lista.'); return
         if funcs: self._gerar_holerite_func(funcs[0])
 
     def _gerar_holerite_func(self, f):
@@ -4438,6 +4509,59 @@ class App(tk.Tk):
         qtd=0
         for f in get_funcionarios(True): self._gerar_holerite_func(f); qtd+=1
         messagebox.showinfo('Folha de Pagamento', f'{qtd} holerite(s) gerado(s).')
+
+    def gerar_relatorio_liquidos_folha(self):
+        """Gera relatório de líquidos da competência simulada/calculada em PDF e CSV."""
+        mes=int(self.folha_mes.get()); ano=int(self.folha_ano.get())
+        funcs=get_funcionarios(True)
+        pasta=os.path.join(RELATORIO_DIR, 'folha_pagamento', str(ano), f'{mes:02d}')
+        os.makedirs(pasta, exist_ok=True)
+        pdf=os.path.join(pasta, f'Relatorio_Liquidos_{mes:02d}_{ano}.pdf')
+        csv_path=os.path.join(pasta, f'Relatorio_Liquidos_{mes:02d}_{ano}.csv')
+        linhas=[]; tot_p=tot_d=tot_l=0.0
+        for f in funcs:
+            pro, des, tp, td, liq = self._folha_calcular_funcionario(f)
+            linhas.append((f.get('id'), f.get('nome'), f.get('setor') or '', f.get('funcao') or '', tp, td, liq))
+            tot_p += tp; tot_d += td; tot_l += liq
+        with open(csv_path, 'w', newline='', encoding='utf-8-sig') as fp:
+            wr=csv.writer(fp, delimiter=';')
+            wr.writerow(['ID','Funcionário','Setor','Função','Proventos','Descontos','Líquido'])
+            for row in linhas:
+                wr.writerow([row[0],row[1],row[2],row[3],moeda_br(row[4]),moeda_br(row[5]),moeda_br(row[6])])
+            wr.writerow(['','','','TOTAIS',moeda_br(tot_p),moeda_br(tot_d),moeda_br(tot_l)])
+        c=canvas.Canvas(pdf, pagesize=A4); W,H=A4; L=36; R=W-36; y=H-42
+        def t(x,y,text,size=8,bold=False,align='left'):
+            c.setFont('Helvetica-Bold' if bold else 'Helvetica', size)
+            text='' if text is None else str(text)
+            if align=='right': c.drawRightString(x,y,text)
+            elif align=='center': c.drawCentredString(x,y,text)
+            else: c.drawString(x,y,text)
+        def header():
+            nonlocal y
+            y=H-42
+            t(L,y,APP_NAME,12,True); t(R,y,f'Competência: {MESES[mes-1]}/{ano}',9,True,'right')
+            y-=20; t(L,y,'Relatório de líquidos da folha',11,True)
+            y-=18; c.line(L,y,R,y); y-=12
+            t(L,y,'Funcionário',7,True); t(L+230,y,'Setor',7,True); t(L+310,y,'Função',7,True); t(R-150,y,'Proventos',7,True,'right'); t(R-75,y,'Descontos',7,True,'right'); t(R,y,'Líquido',7,True,'right')
+            y-=8; c.line(L,y,R,y); y-=12
+        header()
+        for _id,nome,setor,funcao,tp,td,liq in linhas:
+            if y < 70:
+                c.showPage(); header()
+            t(L,y,str(nome)[:36],7); t(L+230,y,str(setor)[:12],7); t(L+310,y,str(funcao)[:18],7)
+            t(R-150,y,moeda_br(tp),7,False,'right'); t(R-75,y,moeda_br(td),7,False,'right'); t(R,y,moeda_br(liq),7,True,'right')
+            y-=12
+        y-=6; c.line(L,y,R,y); y-=14
+        t(L+310,y,'TOTAIS',8,True); t(R-150,y,moeda_br(tot_p),8,True,'right'); t(R-75,y,moeda_br(tot_d),8,True,'right'); t(R,y,moeda_br(tot_l),8,True,'right')
+        t(L,28,'Sistema Gestão Izzant',6); t(R,28,datetime.now().strftime('%d/%m/%Y %H:%M'),6,False,'right')
+        c.save()
+        try:
+            if os.name=='nt': os.startfile(pdf)
+            else: webbrowser.open(pdf)
+        except Exception:
+            pass
+        log_action(self.usuario,'FOLHA',f'Relatório de líquidos gerado: {pdf}')
+        messagebox.showinfo('Relatório de líquidos', f'Relatório gerado em:\n{pdf}\n\nCSV:\n{csv_path}')
 
     def build_backup(self):
         f=self.tab_backup

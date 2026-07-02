@@ -1,20 +1,9 @@
-# CHANGELOG
+# Changelog - v3.7
 
-## v3.6 - Folha de Pagamento Enterprise
-
-- Cria estrutura avançada da Folha de Pagamento.
-- Adiciona aba de lançamentos manuais por funcionário, setor, função ou todos.
-- Adiciona cadastro rápido de eventos de folha.
-- Preserva lançamentos manuais ao recalcular a folha.
-- Ajusta holerite no modelo SCI com duas vias por página.
-- Integra lançamentos manuais ao cálculo e ao PDF do holerite.
-
-# Changelog
-
-## v3.5 - Holerite modelo SCI
-
-- Ajusta o PDF do holerite para seguir o modelo enviado.
-- Gera duas vias do recibo por folha A4.
-- Reorganiza cabeçalho com empresa, competência e dados do colaborador.
-- Cria tabela de lançamentos com códigos, descrições, referências, proventos e descontos.
-- Inclui totais, salário líquido, bases de cálculo e assinatura.
+## Folha de Pagamento
+- Corrigido alinhamento do quadro de salário líquido no holerite.
+- Ajustados valores de base no rodapé do holerite para evitar sobreposição com linhas.
+- Mantido o espaço em branco padrão do holerite, conforme modelo SCI.
+- Criado filtro no resumo da folha para visualizar por funcionário, setor, função ou todos.
+- A lista de funcionários não é carregada automaticamente na aba Resumo.
+- Criado relatório de líquidos da folha em PDF e CSV.
