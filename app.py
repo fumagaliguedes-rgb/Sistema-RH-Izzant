@@ -2354,117 +2354,217 @@ class App(tk.Tk):
 
 
     def build_ferias(self):
-        f=self.tab_ferias
-        ttk.Label(f,text='Controle Completo de Férias - Cálculos, Histórico e Documentos',style='Title.TLabel').grid(row=0,column=0,columnspan=8,sticky='w',padx=16,pady=16)
-        ttk.Label(f,text='Funcionário').grid(row=1,column=0,sticky='w',padx=12,pady=6)
-        self.ferias_func_var=tk.StringVar()
-        self.combo_ferias_func=ttk.Combobox(f,textvariable=self.ferias_func_var,width=65,state='readonly')
-        self.combo_ferias_func.grid(row=1,column=1,columnspan=5,sticky='ew',padx=8,pady=6)
-        self.combo_ferias_func.bind('<<ComboboxSelected>>', lambda e: (self.atualizar_periodos_ferias_funcionario(), self.carregar_dados_financeiros_ferias()))
+        """Central de Gestão de Férias.
 
-        ttk.Label(f,text='Período aquisitivo calculado pela admissão').grid(row=2,column=0,sticky='w',padx=12,pady=6)
-        self.ferias_periodo_var=tk.StringVar()
-        self.combo_ferias_periodo=ttk.Combobox(f,textvariable=self.ferias_periodo_var,width=65,state='readonly')
-        self.combo_ferias_periodo.grid(row=2,column=1,columnspan=4,sticky='ew',padx=8,pady=6)
-        self.combo_ferias_periodo.bind('<<ComboboxSelected>>', lambda e: self.aplicar_periodo_aquisitivo_ferias())
-        ttk.Button(f,text='Atualizar períodos',command=self.atualizar_periodos_ferias_funcionario).grid(row=2,column=5,sticky='ew',padx=8,pady=6)
-        ttk.Button(f,text='Calcular férias',command=self.calcular_ferias_tela).grid(row=2,column=6,sticky='ew',padx=8,pady=6)
+        Interface reorganizada em abas para evitar telas longas e campos pequenos:
+        - Programação e cálculos
+        - Documentos de férias
+        - Histórico completo
+        - Calendário/resumo
+        A lógica de cálculo e os nomes dos widgets foram preservados para manter compatibilidade.
+        """
+        f = self.tab_ferias
+        for w in f.winfo_children():
+            w.destroy()
+        f.columnconfigure(0, weight=1)
+        f.rowconfigure(2, weight=1)
 
-        campos=[('fer_aq_ini','Aquisitivo início'),('fer_aq_fim','Aquisitivo fim'),('fer_conc','Limite concessivo'),('fer_ini','Início férias'),('fer_fim','Fim férias'),('fer_ret','Retorno')]
-        self.ferias_vars={}
+        header = ttk.Frame(f)
+        header.grid(row=0, column=0, sticky='ew', padx=16, pady=(14, 6))
+        header.columnconfigure(0, weight=1)
+        ttk.Label(header, text='🏖️ Centro de Gestão de Férias', style='Title.TLabel').grid(row=0, column=0, sticky='w')
+        ttk.Label(header, text='Programação, cálculos, documentos em PDF/Word, histórico e retorno automático.', font=('Arial', 10)).grid(row=1, column=0, sticky='w', pady=(2,0))
+
+        resumo = ttk.LabelFrame(f, text='Resumo rápido')
+        resumo.grid(row=1, column=0, sticky='ew', padx=16, pady=(4, 8))
+        for c in range(6):
+            resumo.columnconfigure(c, weight=1)
+        self.fer_card_func = tk.StringVar(value='Funcionário: selecione')
+        self.fer_card_periodo = tk.StringVar(value='Período aquisitivo: -')
+        self.fer_card_saldo = tk.StringVar(value='Saldo: -')
+        self.fer_card_status = tk.StringVar(value='Status: -')
+        self.fer_card_liquido = tk.StringVar(value='Líquido: R$ 0,00')
+        cards = [
+            ('Funcionário', self.fer_card_func), ('Aquisitivo', self.fer_card_periodo),
+            ('Saldo', self.fer_card_saldo), ('Situação', self.fer_card_status),
+            ('Líquido estimado', self.fer_card_liquido)
+        ]
+        for i,(titulo,var) in enumerate(cards):
+            box = tk.Frame(resumo, bg='white', highlightbackground='#d1d5db', highlightthickness=1)
+            box.grid(row=0, column=i, sticky='ew', padx=6, pady=8)
+            tk.Label(box, text=titulo, bg='white', fg='#6b7280', font=('Arial', 8, 'bold')).pack(anchor='w', padx=10, pady=(8,1))
+            tk.Label(box, textvariable=var, bg='white', fg='#111827', font=('Arial', 9, 'bold'), wraplength=190, justify='left').pack(anchor='w', padx=10, pady=(0,8))
+
+        nb = ttk.Notebook(f)
+        nb.grid(row=2, column=0, sticky='nsew', padx=16, pady=(0, 12))
+
+        tab_prog = ttk.Frame(nb)
+        tab_docs = ttk.Frame(nb)
+        tab_hist = ttk.Frame(nb)
+        tab_cal = ttk.Frame(nb)
+        nb.add(tab_prog, text='Programação e cálculos')
+        nb.add(tab_docs, text='Documentos de férias')
+        nb.add(tab_hist, text='Histórico completo')
+        nb.add(tab_cal, text='Calendário / resumo')
+
+        # Aba Programação e Cálculos
+        tab_prog.columnconfigure(0, weight=1)
+        tab_prog.rowconfigure(1, weight=1)
+        bloco = ttk.LabelFrame(tab_prog, text='Dados da programação')
+        bloco.grid(row=0, column=0, sticky='ew', padx=10, pady=10)
+        for c in range(8):
+            bloco.columnconfigure(c, weight=1)
+
+        ttk.Label(bloco, text='Funcionário').grid(row=0, column=0, sticky='w', padx=8, pady=6)
+        self.ferias_func_var = tk.StringVar()
+        self.combo_ferias_func = ttk.Combobox(bloco, textvariable=self.ferias_func_var, width=65, state='readonly')
+        self.combo_ferias_func.grid(row=0, column=1, columnspan=5, sticky='ew', padx=8, pady=6)
+        self.combo_ferias_func.bind('<<ComboboxSelected>>', lambda e: (self.atualizar_periodos_ferias_funcionario(), self.carregar_dados_financeiros_ferias(), self.atualizar_cards_ferias()))
+
+        ttk.Label(bloco, text='Período aquisitivo').grid(row=1, column=0, sticky='w', padx=8, pady=6)
+        self.ferias_periodo_var = tk.StringVar()
+        self.combo_ferias_periodo = ttk.Combobox(bloco, textvariable=self.ferias_periodo_var, width=65, state='readonly')
+        self.combo_ferias_periodo.grid(row=1, column=1, columnspan=4, sticky='ew', padx=8, pady=6)
+        self.combo_ferias_periodo.bind('<<ComboboxSelected>>', lambda e: (self.aplicar_periodo_aquisitivo_ferias(), self.atualizar_cards_ferias()))
+        ttk.Button(bloco, text='Atualizar períodos', command=self.atualizar_periodos_ferias_funcionario).grid(row=1, column=5, sticky='ew', padx=8, pady=6)
+        ttk.Button(bloco, text='Calcular férias', command=lambda: (self.calcular_ferias_tela(), self.atualizar_cards_ferias())).grid(row=1, column=6, sticky='ew', padx=8, pady=6)
+
+        campos = [('fer_aq_ini','Aquisitivo início'),('fer_aq_fim','Aquisitivo fim'),('fer_conc','Limite concessivo'),('fer_ini','Início férias'),('fer_fim','Fim férias'),('fer_ret','Retorno')]
+        self.ferias_vars = {}
         for i,(key,label) in enumerate(campos):
-            r=3+i//3; c=(i%3)*2
-            ttk.Label(f,text=label+' DD/MM/AAAA').grid(row=r,column=c,sticky='w',padx=12,pady=6)
-            v=tk.StringVar(); self.ferias_vars[key]=v
-            e=ttk.Entry(f,textvariable=v,width=18); e.grid(row=r,column=c+1,sticky='ew',padx=8,pady=6)
-            e.bind('<FocusOut>', lambda ev, var=v: (formatar_campo_data(var), self.calcular_ferias_tela()))
+            r = 2 + i//3; c = (i%3)*2
+            ttk.Label(bloco, text=label).grid(row=r, column=c, sticky='w', padx=8, pady=6)
+            v = tk.StringVar(); self.ferias_vars[key] = v
+            e = ttk.Entry(bloco, textvariable=v, width=18)
+            e.grid(row=r, column=c+1, sticky='ew', padx=8, pady=6)
+            e.bind('<FocusOut>', lambda ev, var=v: (formatar_campo_data(var), self.calcular_ferias_tela(), self.atualizar_cards_ferias()))
 
-        ttk.Label(f,text='Dias a gozar').grid(row=5,column=0,sticky='w',padx=12,pady=6)
-        self.fer_dias_gozar=tk.StringVar(value='30'); ttk.Entry(f,textvariable=self.fer_dias_gozar,width=10).grid(row=5,column=1,sticky='ew',padx=8,pady=6)
-        ttk.Label(f,text='Dias abono').grid(row=5,column=2,sticky='w',padx=12,pady=6)
-        self.fer_dias_abono=tk.StringVar(value='0'); ttk.Entry(f,textvariable=self.fer_dias_abono,width=10).grid(row=5,column=3,sticky='ew',padx=8,pady=6)
-        self.fer_adianta_13=tk.IntVar(value=0); ttk.Checkbutton(f,text='Adiantamento 13º',variable=self.fer_adianta_13,command=self.calcular_ferias_tela).grid(row=5,column=4,sticky='w',padx=8,pady=6)
-        ttk.Label(f,text='Status').grid(row=5,column=5,sticky='w',padx=12,pady=6)
-        self.fer_status=tk.StringVar(value='Programada')
-        ttk.Combobox(f,textvariable=self.fer_status,values=['Programada','Em gozo','Concluída','Cancelada'],state='readonly').grid(row=5,column=6,sticky='ew',padx=8,pady=6)
+        ttk.Label(bloco, text='Dias a gozar').grid(row=4, column=0, sticky='w', padx=8, pady=6)
+        self.fer_dias_gozar = tk.StringVar(value='30')
+        ttk.Entry(bloco, textvariable=self.fer_dias_gozar, width=10).grid(row=4, column=1, sticky='ew', padx=8, pady=6)
+        ttk.Label(bloco, text='Dias abono').grid(row=4, column=2, sticky='w', padx=8, pady=6)
+        self.fer_dias_abono = tk.StringVar(value='0')
+        ttk.Entry(bloco, textvariable=self.fer_dias_abono, width=10).grid(row=4, column=3, sticky='ew', padx=8, pady=6)
+        self.fer_adianta_13 = tk.IntVar(value=0)
+        ttk.Checkbutton(bloco, text='Adiantamento 13º', variable=self.fer_adianta_13, command=lambda: (self.calcular_ferias_tela(), self.atualizar_cards_ferias())).grid(row=4, column=4, sticky='w', padx=8, pady=6)
+        ttk.Label(bloco, text='Status').grid(row=4, column=5, sticky='w', padx=8, pady=6)
+        self.fer_status = tk.StringVar(value='Programada')
+        ttk.Combobox(bloco, textvariable=self.fer_status, values=['Programada','Em gozo','Concluída','Cancelada'], state='readonly').grid(row=4, column=6, sticky='ew', padx=8, pady=6)
 
-        ttk.Label(f,text='Salário-base').grid(row=6,column=0,sticky='w',padx=12,pady=6)
-        self.fer_salario=tk.StringVar(value='0,00'); ttk.Entry(f,textvariable=self.fer_salario,width=14).grid(row=6,column=1,sticky='ew',padx=8,pady=6)
-        ttk.Label(f,text='Médias/variáveis').grid(row=6,column=2,sticky='w',padx=12,pady=6)
-        self.fer_media=tk.StringVar(value='0,00'); ttk.Entry(f,textvariable=self.fer_media,width=14).grid(row=6,column=3,sticky='ew',padx=8,pady=6)
-        ttk.Label(f,text='Dias restantes').grid(row=6,column=4,sticky='w',padx=12,pady=6)
-        self.fer_dias_restantes=tk.StringVar(value='0'); ttk.Entry(f,textvariable=self.fer_dias_restantes,width=10,state='readonly').grid(row=6,column=5,sticky='ew',padx=8,pady=6)
+        ttk.Label(bloco, text='Salário-base').grid(row=5, column=0, sticky='w', padx=8, pady=6)
+        self.fer_salario = tk.StringVar(value='0,00')
+        ttk.Entry(bloco, textvariable=self.fer_salario, width=14).grid(row=5, column=1, sticky='ew', padx=8, pady=6)
+        ttk.Label(bloco, text='Médias/variáveis').grid(row=5, column=2, sticky='w', padx=8, pady=6)
+        self.fer_media = tk.StringVar(value='0,00')
+        ttk.Entry(bloco, textvariable=self.fer_media, width=14).grid(row=5, column=3, sticky='ew', padx=8, pady=6)
+        ttk.Label(bloco, text='Dias restantes').grid(row=5, column=4, sticky='w', padx=8, pady=6)
+        self.fer_dias_restantes = tk.StringVar(value='0')
+        ttk.Entry(bloco, textvariable=self.fer_dias_restantes, width=10, state='readonly').grid(row=5, column=5, sticky='ew', padx=8, pady=6)
 
-        self.fer_calc_vars={}
-        calc_campos=[('valor_ferias','Valor férias'),('valor_um_terco','1/3 constitucional'),('valor_abono','Abono + 1/3'),('valor_13','Adiant. 13º'),('total_bruto','Total bruto'),('inss_estimado','INSS estimado'),('irrf_estimado','IRRF estimado'),('liquido_estimado','Líquido estimado')]
+        calc_box = ttk.LabelFrame(tab_prog, text='Cálculo financeiro estimado')
+        calc_box.grid(row=1, column=0, sticky='nsew', padx=10, pady=(0, 10))
+        for c in range(4):
+            calc_box.columnconfigure(c, weight=1)
+        self.fer_calc_vars = {}
+        calc_campos = [('valor_ferias','Valor férias'),('valor_um_terco','1/3 constitucional'),('valor_abono','Abono + 1/3'),('valor_13','Adiant. 13º'),('total_bruto','Total bruto'),('inss_estimado','INSS estimado'),('irrf_estimado','IRRF estimado'),('liquido_estimado','Líquido estimado')]
         for i,(key,label) in enumerate(calc_campos):
-            r=7+i//4; c=(i%4)*2
-            ttk.Label(f,text=label).grid(row=r,column=c,sticky='w',padx=12,pady=4)
-            v=tk.StringVar(value='R$ 0,00'); self.fer_calc_vars[key]=v
-            ttk.Entry(f,textvariable=v,width=16,state='readonly').grid(row=r,column=c+1,sticky='ew',padx=8,pady=4)
+            r = i//4; c = (i%4)*2
+            ttk.Label(calc_box, text=label).grid(row=r, column=c, sticky='w', padx=8, pady=6)
+            v = tk.StringVar(value='R$ 0,00'); self.fer_calc_vars[key]=v
+            ttk.Entry(calc_box, textvariable=v, width=18, state='readonly').grid(row=r, column=c+1, sticky='ew', padx=8, pady=6)
 
-        ttk.Label(f,text='Observação').grid(row=9,column=0,sticky='nw',padx=12,pady=6)
-        self.fer_obs=tk.Text(f,height=3,wrap='word'); self.fer_obs.grid(row=9,column=1,columnspan=7,sticky='ew',padx=8,pady=6)
-        ttk.Button(f,text='Salvar férias',command=self.salvar_ferias).grid(row=10,column=1,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Cancelar férias selecionada',command=self.cancelar_ferias).grid(row=10,column=2,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Gerar ocorrência FÉRIAS na folha',command=self.gerar_ocorrencia_ferias).grid(row=10,column=3,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Gerar Aviso PDF/Word',command=lambda:self.gerar_documento_ferias('Aviso de Férias')).grid(row=10,column=4,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Gerar Recibo PDF/Word',command=lambda:self.gerar_documento_ferias('Recibo de Férias')).grid(row=10,column=5,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Gerar Comunicação PDF/Word',command=lambda:self.gerar_documento_ferias('Comunicação de Férias')).grid(row=10,column=6,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Concluir Férias',command=self.concluir_ferias).grid(row=10,column=7,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Atualizar cálculo',command=self.calcular_ferias_tela).grid(row=12,column=5,sticky='ew',padx=8,pady=4)
-        ttk.Button(f,text='Abrir pasta de documentos',command=self.abrir_documentos_ferias).grid(row=12,column=6,sticky='ew',padx=8,pady=4)
-        ttk.Button(f,text='Abrir documento selecionado',command=self.abrir_documento_ferias_selecionado).grid(row=12,column=7,sticky='ew',padx=8,pady=4)
+        obs_box = ttk.LabelFrame(tab_prog, text='Observações e ações')
+        obs_box.grid(row=2, column=0, sticky='ew', padx=10, pady=(0,10))
+        obs_box.columnconfigure(1, weight=1)
+        ttk.Label(obs_box, text='Observação').grid(row=0, column=0, sticky='nw', padx=8, pady=6)
+        self.fer_obs = tk.Text(obs_box, height=3, wrap='word')
+        self.fer_obs.grid(row=0, column=1, columnspan=7, sticky='ew', padx=8, pady=6)
+        botoes = [
+            ('Salvar férias', self.salvar_ferias), ('Cancelar selecionada', self.cancelar_ferias),
+            ('Gerar ocorrência na folha', self.gerar_ocorrencia_ferias), ('Concluir Férias', self.concluir_ferias),
+            ('Atualizar cálculo', lambda: (self.calcular_ferias_tela(), self.atualizar_cards_ferias()))
+        ]
+        for i,(texto,cmd) in enumerate(botoes):
+            ttk.Button(obs_box, text=texto, command=cmd).grid(row=1, column=i, sticky='ew', padx=6, pady=8)
 
-        listas_box = ttk.LabelFrame(f, text='Consulta de Férias')
-        listas_box.grid(row=13,column=0,columnspan=8,sticky='nsew',padx=12,pady=(8,10))
-        listas_box.rowconfigure(0, weight=1)
-        listas_box.columnconfigure(0, weight=1)
+        # Aba Documentos
+        tab_docs.columnconfigure(0, weight=1)
+        tab_docs.rowconfigure(1, weight=1)
+        doc_actions = ttk.LabelFrame(tab_docs, text='Gerar documentos de férias no modelo oficial')
+        doc_actions.grid(row=0, column=0, sticky='ew', padx=10, pady=10)
+        for c in range(6): doc_actions.columnconfigure(c, weight=1)
+        ttk.Button(doc_actions, text='Gerar Aviso + Recibo PDF', command=lambda:self.gerar_documento_ferias('Aviso e Recibo de Férias')).grid(row=0, column=0, sticky='ew', padx=6, pady=8)
+        ttk.Button(doc_actions, text='Gerar Aviso Word/PDF', command=lambda:self.gerar_documento_ferias('Aviso de Férias')).grid(row=0, column=1, sticky='ew', padx=6, pady=8)
+        ttk.Button(doc_actions, text='Gerar Recibo Word/PDF', command=lambda:self.gerar_documento_ferias('Recibo de Férias')).grid(row=0, column=2, sticky='ew', padx=6, pady=8)
+        ttk.Button(doc_actions, text='Abrir pasta', command=self.abrir_documentos_ferias).grid(row=0, column=3, sticky='ew', padx=6, pady=8)
+        ttk.Button(doc_actions, text='Abrir selecionado', command=self.abrir_documento_ferias_selecionado).grid(row=0, column=4, sticky='ew', padx=6, pady=8)
+        ttk.Button(doc_actions, text='Atualizar lista', command=self.carregar_documentos_ferias).grid(row=0, column=5, sticky='ew', padx=6, pady=8)
 
-        self.ferias_consulta_nb = ttk.Notebook(listas_box)
-        self.ferias_consulta_nb.grid(row=0,column=0,sticky='nsew')
+        docs_table = ttk.LabelFrame(tab_docs, text='Documentos gerados')
+        docs_table.grid(row=1, column=0, sticky='nsew', padx=10, pady=(0,10))
+        docs_table.rowconfigure(0, weight=1); docs_table.columnconfigure(0, weight=1)
+        self.fer_docs_tree = ttk.Treeview(docs_table, columns=('data','func','tipo','titulo','arquivo'), show='headings', height=20)
+        for col,txt,w in [('data','Data',100),('func','Funcionário',260),('tipo','Tipo',190),('titulo','Título',260),('arquivo','Arquivo',580)]:
+            self.fer_docs_tree.heading(col, text=txt); self.fer_docs_tree.column(col, width=w, minwidth=90)
+        self.fer_docs_tree.grid(row=0, column=0, sticky='nsew')
+        ttk.Scrollbar(docs_table, orient='vertical', command=self.fer_docs_tree.yview).grid(row=0, column=1, sticky='ns')
+        sx_docs = ttk.Scrollbar(docs_table, orient='horizontal', command=self.fer_docs_tree.xview)
+        sx_docs.grid(row=1, column=0, sticky='ew')
+        self.fer_docs_tree.configure(xscrollcommand=sx_docs.set)
 
-        historico_box = ttk.Frame(self.ferias_consulta_nb)
-        docs_box = ttk.Frame(self.ferias_consulta_nb)
-        calendario_box = ttk.Frame(self.ferias_consulta_nb)
-        self.ferias_consulta_nb.add(historico_box, text='Histórico de férias')
-        self.ferias_consulta_nb.add(docs_box, text='Documentos gerados')
-        self.ferias_consulta_nb.add(calendario_box, text='Calendário/Resumo')
+        # Aba Histórico
+        tab_hist.columnconfigure(0, weight=1)
+        tab_hist.rowconfigure(1, weight=1)
+        hist_top = ttk.Frame(tab_hist)
+        hist_top.grid(row=0, column=0, sticky='ew', padx=10, pady=10)
+        hist_top.columnconfigure(0, weight=1)
+        ttk.Label(hist_top, text='Histórico completo de férias', style='Subtitle.TLabel').grid(row=0, column=0, sticky='w')
+        ttk.Button(hist_top, text='Atualizar histórico', command=self.carregar_ferias).grid(row=0, column=1, sticky='e')
+        hist_table = ttk.LabelFrame(tab_hist, text='Registros de férias')
+        hist_table.grid(row=1, column=0, sticky='nsew', padx=10, pady=(0,10))
+        hist_table.rowconfigure(0, weight=1); hist_table.columnconfigure(0, weight=1)
+        self.fer_tree = ttk.Treeview(hist_table, columns=('func','aq','conc','periodo','ret','dias','rest','total','status'), show='headings', height=24)
+        for col,txt,w in [('func','Funcionário',260),('aq','Aquisitivo',190),('conc','Concessivo até',120),('periodo','Férias',210),('ret','Retorno',100),('dias','Dias',70),('rest','Rest.',70),('total','Total bruto',120),('status','Status',120)]:
+            self.fer_tree.heading(col, text=txt); self.fer_tree.column(col, width=w, minwidth=70)
+        self.fer_tree.grid(row=0, column=0, sticky='nsew')
+        ttk.Scrollbar(hist_table, orient='vertical', command=self.fer_tree.yview).grid(row=0, column=1, sticky='ns')
+        sx_hist = ttk.Scrollbar(hist_table, orient='horizontal', command=self.fer_tree.xview)
+        sx_hist.grid(row=1, column=0, sticky='ew')
+        self.fer_tree.configure(xscrollcommand=sx_hist.set)
 
-        historico_box.rowconfigure(0, weight=1)
-        historico_box.columnconfigure(0, weight=1)
-        self.fer_tree=ttk.Treeview(historico_box,columns=('func','aq','conc','periodo','ret','dias','rest','total','status'),show='headings', height=18)
-        for col,txt,w in [('func','Funcionário',240),('aq','Aquisitivo',180),('conc','Concessivo até',115),('periodo','Férias',190),('ret','Retorno',95),('dias','Dias',60),('rest','Rest.',60),('total','Total bruto',110),('status','Status',110)]:
-            self.fer_tree.heading(col,text=txt); self.fer_tree.column(col,width=w, minwidth=60)
-        self.fer_tree.grid(row=0,column=0,sticky='nsew')
-        fer_scroll=ttk.Scrollbar(historico_box, orient='vertical', command=self.fer_tree.yview)
-        fer_scroll.grid(row=0,column=1,sticky='ns')
-        fer_scroll_x=ttk.Scrollbar(historico_box, orient='horizontal', command=self.fer_tree.xview)
-        fer_scroll_x.grid(row=1,column=0,sticky='ew')
-        self.fer_tree.configure(yscrollcommand=fer_scroll.set, xscrollcommand=fer_scroll_x.set)
+        # Aba Calendário
+        tab_cal.columnconfigure(0, weight=1)
+        tab_cal.rowconfigure(0, weight=1)
+        self.fer_cal_text = tk.Text(tab_cal, height=24, wrap='word', font=('Consolas', 10))
+        self.fer_cal_text.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
+        ttk.Scrollbar(tab_cal, orient='vertical', command=self.fer_cal_text.yview).grid(row=0, column=1, sticky='ns', pady=10)
+        self.fer_cal_text.configure(yscrollcommand=lambda *args: None)
 
-        docs_box.rowconfigure(0, weight=1)
-        docs_box.columnconfigure(0, weight=1)
-        self.fer_docs_tree=ttk.Treeview(docs_box,columns=('data','func','tipo','titulo','arquivo'),show='headings', height=18)
-        for col,txt,w in [('data','Data',100),('func','Funcionário',260),('tipo','Tipo',190),('titulo','Título',260),('arquivo','Arquivo',520)]:
-            self.fer_docs_tree.heading(col,text=txt); self.fer_docs_tree.column(col,width=w, minwidth=80)
-        self.fer_docs_tree.grid(row=0,column=0,sticky='nsew')
-        docs_scroll=ttk.Scrollbar(docs_box, orient='vertical', command=self.fer_docs_tree.yview)
-        docs_scroll.grid(row=0,column=1,sticky='ns')
-        docs_scroll_x=ttk.Scrollbar(docs_box, orient='horizontal', command=self.fer_docs_tree.xview)
-        docs_scroll_x.grid(row=1,column=0,sticky='ew')
-        self.fer_docs_tree.configure(yscrollcommand=docs_scroll.set, xscrollcommand=docs_scroll_x.set)
+        for c in range(8):
+            tab_prog.columnconfigure(c, weight=1)
 
-        calendario_box.rowconfigure(0, weight=1)
-        calendario_box.columnconfigure(0, weight=1)
-        self.fer_cal_text = tk.Text(calendario_box, height=18, wrap='word', font=('Consolas', 10))
-        self.fer_cal_text.grid(row=0, column=0, sticky='nsew')
-        cal_scroll = ttk.Scrollbar(calendario_box, orient='vertical', command=self.fer_cal_text.yview)
-        cal_scroll.grid(row=0, column=1, sticky='ns')
-        self.fer_cal_text.configure(yscrollcommand=cal_scroll.set)
-
-        f.rowconfigure(13,weight=8)
-        for c in range(8): f.columnconfigure(c,weight=1)
+    def atualizar_cards_ferias(self):
+        try:
+            nome = getattr(self, 'ferias_func_var', tk.StringVar()).get().strip()
+            if nome:
+                nome = nome.split(' - ', 1)[1] if ' - ' in nome else nome
+                self.fer_card_func.set(nome[:38])
+            aq = ''
+            if hasattr(self, 'ferias_vars'):
+                aq_ini = self.ferias_vars.get('fer_aq_ini', tk.StringVar()).get()
+                aq_fim = self.ferias_vars.get('fer_aq_fim', tk.StringVar()).get()
+                if aq_ini or aq_fim:
+                    aq = f'{aq_ini} a {aq_fim}'
+            if aq:
+                self.fer_card_periodo.set(aq)
+            if hasattr(self, 'fer_dias_restantes'):
+                self.fer_card_saldo.set(f'{self.fer_dias_restantes.get()} dias restantes')
+            if hasattr(self, 'fer_status'):
+                self.fer_card_status.set(self.fer_status.get())
+            if hasattr(self, 'fer_calc_vars') and 'liquido_estimado' in self.fer_calc_vars:
+                self.fer_card_liquido.set(self.fer_calc_vars['liquido_estimado'].get())
+        except Exception:
+            pass
 
     def _ferias_func_id(self):
         val = getattr(self, 'ferias_func_var', tk.StringVar()).get().strip()
@@ -2588,6 +2688,10 @@ class App(tk.Tk):
             for k,v in vals.items():
                 if k in self.fer_calc_vars:
                     self.fer_calc_vars[k].set(moeda_br(v))
+        try:
+            self.atualizar_cards_ferias()
+        except Exception:
+            pass
         return vals
 
     def _ferias_contexto_mais_recente(self, fid):
@@ -2677,6 +2781,7 @@ class App(tk.Tk):
     def _modelo_documento_ferias(self, tipo):
         mapa = {
             'Aviso de Férias': '08_Aviso_de_Ferias.docx',
+            'Aviso e Recibo de Férias': '08_Aviso_de_Ferias.docx',
             'Recibo de Férias': '09_Recibo_de_Ferias.docx',
             'Recibo de Abono': '09_Recibo_de_Ferias.docx',
             'Comunicação de Férias': '13_Comunicacao_de_Ferias.docx',
@@ -2686,64 +2791,198 @@ class App(tk.Tk):
         return mapa.get(tipo, '08_Aviso_de_Ferias.docx')
 
     def _gerar_pdf_ferias_resumo(self, tipo, dados, destino_pdf):
-        """Gera um PDF direto dos documentos de férias, sem depender de conversão externa.
-        Mantém o Word como arquivo editável e cria também o PDF pronto para impressão.
+        """Gera Aviso e Recibo de Férias em PDF seguindo o modelo contábil enviado.
+
+        O PDF é direto, pronto para impressão, com marca d'água discreta da Izzant
+        quando existir logo em assets/izzant_logo.png. Mantém também o Word editável.
         """
         os.makedirs(os.path.dirname(destino_pdf), exist_ok=True)
         c = canvas.Canvas(destino_pdf, pagesize=A4)
         W, H = A4
-        y = H - 50
-        c.setFont('Helvetica-Bold', 16)
-        c.drawCentredString(W/2, y, 'SISTEMA GESTÃO IZZANT')
-        y -= 24
-        c.setFont('Helvetica-Bold', 13)
-        c.drawCentredString(W/2, y, str(tipo).upper())
+        left, right = 22, W-22
+        top = H - 18
+        bottom = 44
+
+        def set_alpha(alpha):
+            try:
+                c.setFillAlpha(alpha); c.setStrokeAlpha(alpha)
+            except Exception:
+                pass
+
+        def watermark():
+            c.saveState()
+            set_alpha(0.08)
+            try:
+                if os.path.exists(LOGO_APP):
+                    # marca d'água central semelhante ao modelo institucional
+                    img_w = 410; img_h = 250
+                    c.drawImage(LOGO_APP, (W-img_w)/2, 250, width=img_w, height=img_h, preserveAspectRatio=True, mask='auto')
+                else:
+                    c.setFillColor(colors.HexColor('#c81e1e'))
+                    c.setFont('Helvetica-Bold', 64)
+                    c.drawCentredString(W/2, 390, 'IZZANT')
+                    c.setFillColor(colors.gray)
+                    c.setFont('Helvetica', 44)
+                    c.drawCentredString(W/2, 340, 'SERVIÇOS')
+            except Exception:
+                pass
+            c.restoreState()
+            try:
+                c.setFillAlpha(1); c.setStrokeAlpha(1)
+            except Exception:
+                pass
+
+        def rect(x,y,w,h,lw=0.55):
+            c.setLineWidth(lw); c.rect(x,y,w,h,stroke=1,fill=0)
+
+        def line(x1,y1,x2,y2,lw=0.55):
+            c.setLineWidth(lw); c.line(x1,y1,x2,y2)
+
+        def txt(x,y,text,size=8,bold=False,align='left'):
+            c.setFont('Helvetica-Bold' if bold else 'Helvetica', size)
+            text = '' if text is None else str(text)
+            if align == 'center': c.drawCentredString(x,y,text)
+            elif align == 'right': c.drawRightString(x,y,text)
+            else: c.drawString(x,y,text)
+
+        def moeda_sem_prefixo(valor):
+            v = str(valor or '').replace('R$', '').strip()
+            return v or '0,00'
+
+        def extenso_valor():
+            # Campo textual simplificado. Caso exista VALOR_EXTENSO nos dados, usa-o.
+            return dados.get('VALOR_EXTENSO') or dados.get('VALOR_POR_EXTENSO') or 'Valor líquido conforme cálculo acima'
+
+        empresa = dados.get('EMPRESA') or 'IZZANT SERVIÇOS LTDA'
+        cnpj = dados.get('CNPJ') or '44.177.413/0001-11'
+        funcionario = dados.get('FUNCIONARIO') or dados.get('NOME') or ''
+        matricula = dados.get('MATRICULA') or dados.get('CODIGO') or ''
+        cargo = dados.get('CARGO') or dados.get('FUNCAO') or ''
+        cpf = dados.get('CPF') or ''
+        adm = dados.get('DATA_ADMISSAO') or dados.get('ADMISSAO') or ''
+        aq = dados.get('PERIODO_AQUISITIVO') or dados.get('PERIODO_AQUISITIVO_COMPLETO') or ''
+        periodo = dados.get('PERIODO') or f"{dados.get('INICIO','')} a {dados.get('TERMINO','')}"
+        inicio = dados.get('INICIO') or dados.get('DATA_INICIO') or ''
+        fim = dados.get('TERMINO') or dados.get('DATA_FIM') or ''
+        retorno = dados.get('DATA_RETORNO') or ''
+        dias = dados.get('DIAS_FERIAS') or dados.get('DIAS_GOZADOS') or ''
+        dias_abono = dados.get('DIAS_ABONO') or '0'
+        salario = moeda_sem_prefixo(dados.get('SALARIO_BASE') or dados.get('SALARIO'))
+        valor_ferias = moeda_sem_prefixo(dados.get('VALOR_FERIAS'))
+        um_terco = moeda_sem_prefixo(dados.get('VALOR_UM_TERCO'))
+        total_bruto = moeda_sem_prefixo(dados.get('TOTAL_BRUTO'))
+        inss = moeda_sem_prefixo(dados.get('INSS_ESTIMADO'))
+        liquido = moeda_sem_prefixo(dados.get('LIQUIDO_ESTIMADO'))
+        media = moeda_sem_prefixo(dados.get('MEDIA_VARIAVEIS'))
+        abono_valor = moeda_sem_prefixo(dados.get('VALOR_ABONO'))
+        local = (dados.get('CIDADE') or 'Itajaí').upper() + ' - ' + (dados.get('UF') or 'SC')
+        hoje = datetime.now().strftime('%d/%m/%Y')
+        endereco = dados.get('ENDERECO') or 'Rua ALMIRANTE TAMANDARÉ, 114 - CENTRO - Itajaí / SC'
+
+        watermark()
+
+        # Moldura geral e aviso
+        rect(left, bottom, right-left, top-bottom)
+        y = top - 8
+        txt(W/2, y, f'17 - {empresa}', 12, True, 'center'); y -= 14
+        txt(W/2, y, cnpj, 10, False, 'center'); y -= 13
+        txt(W/2, y, 'AVISO DE FÉRIAS', 11, False, 'center'); y -= 13
+        txt(W/2, y, 'NOTIFICAÇÃO', 10, False, 'center')
+        line(left, y-7, right, y-7)
+        y -= 22
+
+        txt(left+10, y, f'Colaborador: {matricula + " - " if matricula else ""}{funcionario}', 8.5); y -= 15
+        txt(left+10, y, 'C.Custo.......:', 8.5); y -= 15
+        txt(left+10, y, f'Função.......: {cargo}', 8.5); y -= 15
+        txt(left+10, y, f'CPF............: {cpf}', 8.5)
+        txt(left+250, y, f'Admissão:  {adm}', 8.5)
+        line(left, y-14, right, y-14)
+        y -= 28
+
+        txt(W/2, y+10, 'PERÍODOS', 9, False, 'center')
+        line(left, y+5, right, y+5); line(left, y-8, right, y-8)
+        y -= 23
+        txt(left+10, y, f'Aquisição........................: {aq}', 8.5); y -= 16
+        txt(left+10, y, f'Gozo de férias.................: {periodo}', 8.5); y -= 16
+        txt(left+10, y, f'Dias de abono pecuniário: {dias_abono}', 8.5); y -= 26
+        txt(left+10, y, f'Retorno...........................: {retorno}', 8.5)
+        line(left, y-12, right, y-12)
+        y -= 26
+
+        txt(W/2, y+10, 'BASE PARA CÁLCULO DA REMUNERAÇÃO DAS FÉRIAS', 9, False, 'center')
+        line(left, y+5, right, y+5); line(left, y-8, right, y-8)
+        base_y = y - 8
+        h = 48
+        colw = (right-left)/3
+        rect(left, base_y-h, colw, h); rect(left+colw, base_y-h, colw, h); rect(left+2*colw, base_y-h, colw, h)
+        txt(left+colw/2, base_y-14, 'Faltas não justificadas', 8, False, 'center')
+        txt(left+colw+colw/2, base_y-14, 'Salário base', 8, False, 'center')
+        txt(left+2*colw+colw/2, base_y-14, 'Base de cálculo', 8, False, 'center')
+        txt(left+colw/2, base_y-36, '0', 8.5, False, 'center')
+        txt(left+colw+colw/2, base_y-36, salario, 8.5, False, 'center')
+        txt(left+2*colw+colw/2, base_y-36, str(moeda_sem_prefixo(dados.get('BASE_CALCULO') or dados.get('TOTAL_BRUTO') or salario)), 8.5, False, 'center')
+        y = base_y - h - 16
+
+        # Lançamentos estilo contábil
+        rows = [
+            ('30005', 'Férias', str(dias or '30,00'), valor_ferias),
+            ('30152', 'Férias médias/variáveis', '', media if media != '0,00' else ''),
+            ('30993', '1/3 férias', '', um_terco),
+            ('ABONO', 'Abono pecuniário', str(dias_abono), abono_valor if abono_valor != '0,00' else ''),
+        ]
+        for cod, desc, ref, val in rows:
+            if not val and cod not in ('30005','30993'):
+                continue
+            txt(left+6, y, cod, 8); txt(left+55, y, desc, 8); txt(left+250, y, ref, 8, False, 'right'); txt(left+315, y, val, 8, False, 'right')
+            y -= 14
+        txt(left+360, y+42, '91015', 8); txt(left+410, y+42, 'INSS férias', 8); txt(right-80, y+42, '9,00%', 8); txt(right-8, y+42, inss, 8, False, 'right')
+        y -= 44
+        txt(left+315, y, 'Proventos:', 8); txt(left+390, y, total_bruto, 8)
+        txt(right-155, y, 'Descontos:', 8); txt(right-8, y, inss, 8, False, 'right'); y -= 18
+        txt(right-110, y, 'Líquido:', 8); txt(right-8, y, liquido, 8, True, 'right')
+        line(left, y-14, right, y-14)
         y -= 30
-        c.setFont('Helvetica', 9)
-        empresa = dados.get('EMPRESA','')
-        c.drawCentredString(W/2, y, empresa)
-        y -= 18
-        c.setLineWidth(0.6); c.line(42, y, W-42, y); y -= 22
 
-        def linha(label, valor, bold=False):
-            nonlocal y
-            if y < 80:
-                c.showPage(); y = H - 50; c.setFont('Helvetica', 10)
-            c.setFont('Helvetica-Bold', 9)
-            c.drawString(50, y, f'{label}:')
-            c.setFont('Helvetica-Bold' if bold else 'Helvetica', 9)
-            c.drawString(190, y, str(valor or ''))
-            y -= 16
+        texto = f'Pelo presente comunicamos-lhe que, de acordo com a lei, ser-lhe-ão concedidas férias relativas ao período acima descrito, e a sua disposição fica a importância líquida de R$ {liquido} a ser paga adiantadamente.'
+        # quebra simples
+        x = left+10
+        for part in [texto[i:i+130] for i in range(0, len(texto), 130)]:
+            txt(x, y, part, 7.8); y -= 11
+        y -= 6
+        rect(left+10, y-22, 100, 22); rect(left+110, y-22, right-left-120, 22)
+        txt(left+60, y-9, 'Valor por\nextenso', 7.2, False, 'center')
+        txt(left+118, y-14, extenso_valor(), 8)
+        y -= 42
+        txt(left+10, y, f'Ciente: {local}, {hoje}', 8); y -= 36
+        line(left+10, y, left+240, y); line(right-240, y, right-10, y)
+        y -= 12
+        txt(left+125, y, funcionario, 8, False, 'center'); txt(right-125, y, empresa, 8, False, 'center')
 
-        linha('Funcionário', dados.get('FUNCIONARIO') or dados.get('NOME'), True)
-        linha('CPF', dados.get('CPF'))
-        linha('Cargo/Função', dados.get('CARGO') or dados.get('FUNCAO'))
-        linha('Setor', dados.get('SETOR'))
-        linha('Admissão', dados.get('DATA_ADMISSAO') or dados.get('ADMISSAO'), True)
-        y -= 6
-        c.setFont('Helvetica-Bold', 11); c.drawString(50, y, 'Dados das férias'); y -= 18
-        linha('Período aquisitivo', dados.get('PERIODO_AQUISITIVO') or dados.get('PERIODO_AQUISITIVO_COMPLETO'), True)
-        linha('Início das férias', dados.get('INICIO') or dados.get('INICIO_FERIAS'), True)
-        linha('Término das férias', dados.get('TERMINO') or dados.get('FIM_FERIAS'), True)
-        linha('Retorno ao trabalho', dados.get('DATA_RETORNO'), True)
-        linha('Dias de férias', dados.get('DIAS_FERIAS') or dados.get('DIAS_GOZADOS'), True)
-        linha('Dias de abono', dados.get('DIAS_ABONO'))
-        linha('Dias restantes', dados.get('DIAS_RESTANTES'))
-        y -= 6
-        c.setFont('Helvetica-Bold', 11); c.drawString(50, y, 'Resumo financeiro estimado'); y -= 18
-        for label, key in [
-            ('Salário-base','SALARIO_BASE'), ('Valor de férias','VALOR_FERIAS'), ('1/3 constitucional','VALOR_UM_TERCO'),
-            ('Abono pecuniário','VALOR_ABONO'), ('Adiantamento 13º','ADIANTAMENTO_13'), ('Total bruto','TOTAL_BRUTO'),
-            ('INSS estimado','INSS_ESTIMADO'), ('IRRF estimado','IRRF_ESTIMADO'), ('Líquido estimado','LIQUIDO_ESTIMADO')]:
-            linha(label, dados.get(key), True if key in ('TOTAL_BRUTO','LIQUIDO_ESTIMADO') else False)
-        y -= 20
-        c.setFont('Helvetica', 9)
-        texto = 'Documento gerado automaticamente pelo módulo Férias do Sistema Gestão Izzant.'
-        c.drawString(50, y, texto); y -= 50
-        c.line(80, y, 260, y); c.line(330, y, 510, y); y -= 13
-        c.setFont('Helvetica', 8)
-        c.drawCentredString(170, y, 'Funcionário')
-        c.drawCentredString(420, y, 'Responsável')
+        # Recibo na parte inferior
+        recibo_top = y - 18
+        line(left, recibo_top, right, recibo_top)
+        y = recibo_top - 20
+        txt(W/2, y, f'17 - {empresa}', 11, True, 'center'); y -= 13
+        txt(W/2, y, cnpj, 9.5, False, 'center'); y -= 13
+        txt(W/2, y, 'RECIBO DE FÉRIAS', 11, False, 'center'); y -= 13
+        txt(W/2, y, 'De acordo com o parágrafo único do artigo 145 da C.L.T.', 8, False, 'center')
+        line(left, y-8, right, y-8)
+        y -= 25
+        texto2 = f'Recebi da empresa {empresa}, estabelecida na {endereco} a importância de R$ {liquido}, que me paga antecipadamente por motivo das minhas férias, ora concedidas e que vou gozar de acordo com a descrição acima, tudo conforme o aviso que recebi em tempo, e no qual dei o meu "CIENTE".'
+        for part in [texto2[i:i+135] for i in range(0, len(texto2), 135)]:
+            txt(left+10, y, part, 7.8); y -= 11
+        y -= 4
+        rect(left+10, y-22, 100, 22); rect(left+110, y-22, right-left-120, 22)
+        txt(left+60, y-9, 'Valor por\nextenso', 7.2, False, 'center')
+        txt(left+118, y-14, extenso_valor(), 8)
+        y -= 42
+        txt(left+10, y, 'Para clareza e documento, firmo o presente recibo, dando plena e legal quitação.', 8); y -= 24
+        txt(left+10, y, f'{local}, {fim or hoje}', 8)
+        line(right-260, y, right-10, y); y -= 12
+        txt(right-135, y, funcionario, 8, False, 'center')
+
+        txt(left, 18, 'Sistema Gestão Izzant', 6)
+        txt(right, 18, datetime.now().strftime('%d/%m/%Y %H:%M'), 6, False, 'right')
         c.save()
 
     def gerar_documento_ferias(self, tipo='Aviso de Férias'):
