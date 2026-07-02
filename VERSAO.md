@@ -1,5 +1,5 @@
 # Sistema Gestão Izzant
 
-Versão: v4.2
+Versão: v4.3
 
-Módulo Folha reorganizado: fluxo gerar/ver folha, lançamentos por valor ou percentual e relatórios.
+Módulo Folha de Pagamento com interface premium, menus reorganizados e fluxo visual melhorado.

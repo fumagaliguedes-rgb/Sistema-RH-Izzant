@@ -460,7 +460,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v4.2 Folha', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v4.3 Folha Premium', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1422,7 +1422,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v4.2 Folha')
+        self.title(APP_NAME + ' - Enterprise v4.3 Folha Premium')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -4087,7 +4087,7 @@ class App(tk.Tk):
         frame.columnconfigure(0, weight=1)
         frame.rowconfigure(1, weight=1)
 
-        top = ttk.LabelFrame(frame, text='Competência da folha')
+        top = ttk.LabelFrame(frame, text='Painel da competência da folha')
         top.grid(row=0, column=0, sticky='ew', padx=14, pady=10)
         for c in range(10):
             top.columnconfigure(c, weight=1)
@@ -4097,12 +4097,12 @@ class App(tk.Tk):
         ttk.Label(top, text='Ano').grid(row=0, column=2, sticky='w', padx=6, pady=8)
         self.folha_ano = tk.IntVar(value=datetime.now().year)
         ttk.Entry(top, textvariable=self.folha_ano, width=10).grid(row=0, column=3, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Ver folha gerada', command=self.carregar_folha_preview).grid(row=0, column=4, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Gerar folha', command=self.calcular_folha_competencia).grid(row=0, column=5, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Holerite selecionado', command=self.gerar_holerite_selecionado).grid(row=0, column=6, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Holerites todos', command=self.gerar_holerites_folha).grid(row=0, column=7, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Relatório líquidos', command=self.gerar_relatorio_liquidos_folha).grid(row=0, column=8, sticky='ew', padx=6, pady=8)
-        ttk.Button(top, text='Abrir pasta', command=lambda:self._open(os.path.join(PDF_DIR, 'folha_pagamento'))).grid(row=0, column=9, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='📂 Ver folha gerada', command=self.carregar_folha_preview).grid(row=0, column=4, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='🧮 Gerar folha', command=self.calcular_folha_competencia).grid(row=0, column=5, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='📄 Holerite selecionado', command=self.gerar_holerite_selecionado).grid(row=0, column=6, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='🖨 Holerites todos', command=self.gerar_holerites_folha).grid(row=0, column=7, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='💰 Relatório líquidos', command=self.gerar_relatorio_liquidos_folha).grid(row=0, column=8, sticky='ew', padx=6, pady=8)
+        ttk.Button(top, text='📂 Abrir pasta', command=lambda:self._open(os.path.join(PDF_DIR, 'folha_pagamento'))).grid(row=0, column=9, sticky='ew', padx=6, pady=8)
 
         self.folha_nb = ttk.Notebook(frame)
         self.folha_nb.grid(row=1, column=0, sticky='nsew', padx=14, pady=(0,12))
@@ -4111,10 +4111,10 @@ class App(tk.Tk):
         self.folha_tab_holerites = ttk.Frame(self.folha_nb)
         self.folha_tab_relatorios = ttk.Frame(self.folha_nb)
         self.folha_tab_eventos = ttk.Frame(self.folha_nb)
-        self.folha_nb.add(self.folha_tab_resumo, text='📌 Gerar / Ver Folha')
-        self.folha_nb.add(self.folha_tab_lanc, text='➕ Lançamentos')
-        self.folha_nb.add(self.folha_tab_holerites, text='🖨 Holerites')
-        self.folha_nb.add(self.folha_tab_relatorios, text='📊 Relatórios')
+        self.folha_nb.add(self.folha_tab_resumo, text='📌 Painel da Folha')
+        self.folha_nb.add(self.folha_tab_lanc, text='➕ Menu Lançamentos')
+        self.folha_nb.add(self.folha_tab_holerites, text='🖨 Gerar Holerites')
+        self.folha_nb.add(self.folha_tab_relatorios, text='📊 Relatórios da Folha')
         self.folha_nb.add(self.folha_tab_eventos, text='⚙️ Eventos')
 
         self._build_folha_resumo_tab()
@@ -4130,11 +4130,11 @@ class App(tk.Tk):
         f = self.folha_tab_resumo
         f.columnconfigure(0, weight=1); f.rowconfigure(1, weight=1)
 
-        painel = ttk.LabelFrame(f, text='Gerar folha / Ver folha gerada')
+        painel = ttk.LabelFrame(f, text='Fluxo principal da competência')
         painel.grid(row=0, column=0, columnspan=2, sticky='ew', padx=8, pady=8)
         for c in range(8): painel.columnconfigure(c, weight=1)
         self.folha_mostrar_lista = tk.IntVar(value=0)
-        ttk.Label(painel, text='Fluxo da competência: gere a folha, visualize por filtro e emita relatórios. A lista completa só aparece quando marcada para manter a tela limpa.').grid(row=0, column=0, columnspan=8, sticky='w', padx=8, pady=(6,2))
+        ttk.Label(painel, text='Painel da competência: gere a folha, confira resultados, filtre por funcionário/setor/função e emita relatórios sem carregar todos os funcionários na tela.').grid(row=0, column=0, columnspan=8, sticky='w', padx=8, pady=(6,2))
         ttk.Checkbutton(painel, text='Mostrar funcionários na tela', variable=self.folha_mostrar_lista, command=self.carregar_folha_preview).grid(row=1, column=0, sticky='w', padx=8, pady=6)
         ttk.Label(painel, text='Filtro').grid(row=1, column=1, sticky='e', padx=6, pady=6)
         self.folha_filtro_tipo = tk.StringVar(value='Todos')
@@ -4161,7 +4161,7 @@ class App(tk.Tk):
     def _build_folha_lancamentos_tab(self):
         f = self.folha_tab_lanc
         f.columnconfigure(0, weight=1); f.rowconfigure(1, weight=1)
-        form = ttk.LabelFrame(f, text='Lançamentos da Folha - individual ou lote, por valor, percentual ou cálculo automático')
+        form = ttk.LabelFrame(f, text='Menu de Lançamentos - individual, setor, função ou todos')
         form.grid(row=0, column=0, sticky='ew', padx=8, pady=8)
         for c in range(10): form.columnconfigure(c, weight=1)
         ttk.Label(form, text='Evento').grid(row=0, column=0, sticky='w', padx=6, pady=5)
@@ -4188,9 +4188,9 @@ class App(tk.Tk):
         self.folha_alvo_combo = ttk.Combobox(form, textvariable=self.folha_alvo_var)
         self.folha_alvo_combo.grid(row=2, column=3, columnspan=3, sticky='ew', padx=6, pady=5)
         ttk.Button(form, text='Atualizar alvos', command=self.atualizar_alvos_folha).grid(row=2, column=6, sticky='ew', padx=6, pady=5)
-        ttk.Button(form, text='Aplicar lançamento', command=self.aplicar_lancamento_folha).grid(row=2, column=7, sticky='ew', padx=6, pady=5)
-        ttk.Button(form, text='Excluir selecionado', command=self.excluir_lancamento_folha).grid(row=2, column=8, columnspan=2, sticky='ew', padx=6, pady=5)
-        lista = ttk.LabelFrame(f, text='Lançamentos aplicados na competência')
+        ttk.Button(form, text='✅ Aplicar lançamento', command=self.aplicar_lancamento_folha).grid(row=2, column=7, sticky='ew', padx=6, pady=5)
+        ttk.Button(form, text='🗑 Excluir selecionado', command=self.excluir_lancamento_folha).grid(row=2, column=8, columnspan=2, sticky='ew', padx=6, pady=5)
+        lista = ttk.LabelFrame(f, text='Lançamentos aplicados na competência atual')
         lista.grid(row=1, column=0, sticky='nsew', padx=8, pady=(0,8))
         lista.columnconfigure(0, weight=1); lista.rowconfigure(0, weight=1)
         self.folha_lanc_tree = ttk.Treeview(lista, columns=('id','func','codigo','desc','ref','tipo','valor','origem'), show='headings', height=14)
@@ -4235,7 +4235,7 @@ class App(tk.Tk):
         f.columnconfigure(0, weight=1)
         f.rowconfigure(2, weight=1)
 
-        header = ttk.LabelFrame(f, text='Holerites da competência')
+        header = ttk.LabelFrame(f, text='Geração de Holerites da Competência')
         header.grid(row=0, column=0, sticky='ew', padx=8, pady=8)
         for c in range(9):
             header.columnconfigure(c, weight=1)
@@ -4260,7 +4260,7 @@ class App(tk.Tk):
         grid.grid(row=2, column=0, sticky='nsew', padx=8, pady=(0,8))
         grid.columnconfigure(0, weight=1)
         grid.rowconfigure(0, weight=1)
-        self.hol_func_tree = ttk.Treeview(grid, columns=('id','nome','setor','funcao','salario','prov','desc','liq'), show='headings', height=13, selectmode='extended')
+        self.hol_func_tree = ttk.Treeview(grid, columns=('id','nome','setor','funcao','salario','prov','desc','liq'), show='headings', height=16, selectmode='extended')
         for col, txt, w in [('id','ID',55),('nome','Funcionário',260),('setor','Setor',115),('funcao','Função',140),('salario','Salário',95),('prov','Proventos',105),('desc','Descontos',105),('liq','Líquido',105)]:
             self.hol_func_tree.heading(col, text=txt)
             self.hol_func_tree.column(col, width=w, minwidth=50)
