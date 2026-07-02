@@ -1,3 +1,9 @@
+
+## v1.6.1 - Dashboard Executivo
+- Melhorado painel inicial com cards compactos.
+- Incluída central de módulos por cartões.
+- Mantidas intactas as regras de folha, DSR, sábado compensado e 12x36.
+
 # Changelog
 
 ## v1.5.4 DEV - Modo Desenvolvedor

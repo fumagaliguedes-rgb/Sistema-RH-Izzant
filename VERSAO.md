@@ -1,9 +1,12 @@
-# Sistema RH Izzant
+# Sistema Gestão Izzant
 
-Versão: v1.5.9 Navegação por Grupos
+Versão: v1.6.1 Dashboard Executivo
 
-Alteração:
-- Menu lateral passa a exibir apenas grupos principais.
-- Submenus aparecem na tela inicial, em cartões, ao clicar no grupo.
-- Férias passa a ser um grupo único no menu principal.
-- Folha de ponto e regras de jornadas/DSR não foram alteradas.
+Status: Desenvolvimento na branch develop
+
+Alterações:
+- Painel inicial mais profissional e compacto.
+- Cards com indicadores em duas linhas.
+- Central de módulos com cartões de acesso.
+- Atalhos rápidos para funções mais usadas.
+- Nome oficial: Sistema Gestão Izzant.

@@ -1337,7 +1337,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v1.6.0 Interface')
+        self.title(APP_NAME + ' - Enterprise v1.6.1 Dashboard')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -1397,7 +1397,7 @@ class App(tk.Tk):
             pass
         tk.Label(logo_box, text='SISTEMA GESTÃO\nIZZANT', bg='#111827', fg='white',
                  font=('Arial',15,'bold'), justify='left').pack(anchor='w')
-        tk.Label(logo_box, text='Enterprise v1.6.0', bg='#111827', fg='#9ca3af',
+        tk.Label(logo_box, text='Enterprise v1.6.1', bg='#111827', fg='#9ca3af',
                  font=('Arial',9), justify='left').pack(anchor='w', pady=(4,0))
 
         self.nb=ttk.Notebook(main, style='Hidden.TNotebook')
@@ -1565,44 +1565,71 @@ class App(tk.Tk):
         except Exception:
             pass
 
-    def card(self, parent, title, value, col):
+    def card(self, parent, title, value, col, row=1, accent='#2563eb'):
         frame=tk.Frame(parent, bg='white', highlightbackground='#d1d5db', highlightthickness=1)
-        frame.grid(row=1, column=col, sticky='nsew', padx=8, pady=8)
-        tk.Label(frame, text=title, bg='white', fg='#4b5563', font=('Arial',10)).pack(anchor='w', padx=14, pady=(12,4))
+        frame.grid(row=row, column=col, sticky='nsew', padx=8, pady=8)
+        tk.Frame(frame, bg=accent, height=4).pack(fill='x')
+        tk.Label(frame, text=title, bg='white', fg='#4b5563', font=('Arial',10,'bold')).pack(anchor='w', padx=14, pady=(12,4))
         lab=tk.Label(frame, text=value, bg='white', fg='#111827', font=('Arial',20,'bold'))
         lab.pack(anchor='w', padx=14, pady=(0,12))
         return lab
 
+    def dashboard_shortcut(self, parent, title, desc, command, col, row=0, icon='•'):
+        card = tk.Frame(parent, bg='white', highlightbackground='#d1d5db', highlightthickness=1, cursor='hand2')
+        card.grid(row=row, column=col, sticky='nsew', padx=8, pady=8, ipadx=6, ipady=6)
+        tk.Label(card, text=icon, bg='white', fg='#111827', font=('Arial',22)).pack(anchor='w', padx=12, pady=(10,0))
+        tk.Label(card, text=title, bg='white', fg='#111827', font=('Arial',12,'bold')).pack(anchor='w', padx=12, pady=(4,2))
+        tk.Label(card, text=desc, bg='white', fg='#4b5563', font=('Arial',9), wraplength=210, justify='left').pack(anchor='w', padx=12, pady=(0,10))
+        ttk.Button(card, text='Abrir', command=command).pack(anchor='e', padx=12, pady=(0,10))
+        card.bind('<Double-Button-1>', lambda e: command())
+
     def build_inicio(self):
         f=self.tab_inicio
-        header = ttk.Frame(f)
+        header = tk.Frame(f, bg='#eef2f6')
         header.grid(row=0,column=0,columnspan=4,sticky='ew',padx=20,pady=(18,8))
         try:
             if os.path.exists(LOGO_APP):
                 self.logo_inicio_img = tk.PhotoImage(file=LOGO_APP)
-                ttk.Label(header, image=self.logo_inicio_img).pack(side='left', padx=(0,16))
+                tk.Label(header, image=self.logo_inicio_img, bg='#eef2f6').pack(side='left', padx=(0,16))
         except Exception:
             pass
-        ttk.Label(header, text='Sistema Gestão Izzant', style='Title.TLabel').pack(side='left', anchor='center')
-        self.card_total=self.card(f,'Funcionários ativos','0',0)
-        self.card_mes=self.card(f,'Mês padrão',MESES[datetime.now().month-1],1)
-        self.card_pdf=self.card(f,'Último PDF','Nenhum',2)
-        self.card_backup=self.card(f,'Backups','0',3)
-        self.card_setores=self.card(f,'Setores','0',0)
-        self.card_jornadas=self.card(f,'Jornadas','0',1)
-        self.card_ocorrencias=self.card(f,'Ocorrências mês','0',2)
-        self.card_feriados=self.card(f,'Feriados','0',3)
-        actions=ttk.LabelFrame(f, text='Atalhos rápidos')
-        actions.grid(row=2,column=0,columnspan=4,sticky='ew',padx=20,pady=18)
-        ttk.Button(actions, text='Cadastrar funcionário', command=lambda:(self.nb.select(self.tab_func), self.clear_func())).pack(side='left', padx=8, pady=12)
-        ttk.Button(actions, text='Gerar PDF de todos', command=lambda:(self.nb.select(self.tab_pdf), self.gerar_pdf(True))).pack(side='left', padx=8, pady=12)
-        ttk.Button(actions, text='Importar Excel', command=self.importar_excel).pack(side='left', padx=8, pady=12)
-        ttk.Button(actions, text='Baixar Modelo', command=self.baixar_modelo_importacao).pack(side='left', padx=8, pady=12)
-        ttk.Button(actions, text='Backup agora', command=self.backup_now).pack(side='left', padx=8, pady=12)
-        info=('Sistema local com salvamento automático em banco SQLite.\n'
-              'Os PDFs são salvos automaticamente por ano e mês. A folha de ponto aprovada foi preservada. Férias são calculadas em dias corridos, sem prorrogação por feriados.')
-        ttk.Label(f, text=info, font=('Arial',11), justify='left').grid(row=3,column=0,columnspan=4,sticky='w',padx=20,pady=8)
+        title_box = tk.Frame(header, bg='#eef2f6')
+        title_box.pack(side='left', fill='x', expand=True)
+        tk.Label(title_box, text='Sistema Gestão Izzant', bg='#eef2f6', fg='#111827', font=('Arial',20,'bold')).pack(anchor='w')
+        tk.Label(title_box, text='Painel executivo • navegação por grupos • folha de ponto preservada', bg='#eef2f6', fg='#4b5563', font=('Arial',10)).pack(anchor='w', pady=(2,0))
+        tk.Label(header, text=f'Usuário: {self.usuario}  |  Perfil: {self.perfil}', bg='#eef2f6', fg='#374151', font=('Arial',10,'bold')).pack(side='right', padx=10)
+
+        self.card_total=self.card(f,'Funcionários ativos','0',0,row=1,accent='#2563eb')
+        self.card_setores=self.card(f,'Setores','0',1,row=1,accent='#16a34a')
+        self.card_jornadas=self.card(f,'Jornadas','0',2,row=1,accent='#f59e0b')
+        self.card_feriados=self.card(f,'Feriados','0',3,row=1,accent='#7c3aed')
+        self.card_ocorrencias=self.card(f,'Ocorrências no mês','0',0,row=2,accent='#dc2626')
+        self.card_backup=self.card(f,'Backups','0',1,row=2,accent='#0891b2')
+        self.card_pdf=self.card(f,'Último PDF','Nenhum',2,row=2,accent='#4f46e5')
+        self.card_mes=self.card(f,'Mês padrão',MESES[datetime.now().month-1],3,row=2,accent='#64748b')
+
+        atalhos=ttk.LabelFrame(f, text='Central de módulos')
+        atalhos.grid(row=3,column=0,columnspan=4,sticky='nsew',padx=20,pady=(14,8))
+        for c in range(4): atalhos.columnconfigure(c, weight=1)
+        self.dashboard_shortcut(atalhos,'Cadastros','Empresa, funcionários, setores e jornadas.', lambda:self.show_group('Cadastros'),0,0,'📁')
+        self.dashboard_shortcut(atalhos,'Gestão de Pessoas','Férias, ocorrências, banco de horas, EPIs e exames.', lambda:self.show_group('Gestão de Pessoas'),1,0,'👥')
+        self.dashboard_shortcut(atalhos,'Controle de Jornada','Folha de ponto, feriados, escalas e regras de jornada.', lambda:self.show_group('Controle de Jornada'),2,0,'⏰')
+        self.dashboard_shortcut(atalhos,'Documentos','Modelos Word, documentos inteligentes e central de PDFs.', lambda:self.show_group('Documentos'),3,0,'📄')
+
+        actions=ttk.LabelFrame(f, text='Ações rápidas')
+        actions.grid(row=4,column=0,columnspan=4,sticky='ew',padx=20,pady=(8,10))
+        ttk.Button(actions, text='Novo funcionário', command=lambda:(self.nb.select(self.tab_func), self.clear_func())).pack(side='left', padx=8, pady=10)
+        ttk.Button(actions, text='Gerar folhas', command=lambda:self.nb.select(self.tab_pdf)).pack(side='left', padx=8, pady=10)
+        ttk.Button(actions, text='Férias', command=lambda:self.nb.select(self.tab_ferias)).pack(side='left', padx=8, pady=10)
+        ttk.Button(actions, text='Feriados', command=lambda:self.nb.select(self.tab_feriados)).pack(side='left', padx=8, pady=10)
+        ttk.Button(actions, text='Modo Desenvolvedor', command=lambda:self.nb.select(self.tab_dev)).pack(side='left', padx=8, pady=10)
+        ttk.Button(actions, text='Backup agora', command=self.backup_now).pack(side='right', padx=8, pady=10)
+
+        info=('Base estável preservada: folha de ponto, DSR, sábado compensado e regra 12x36. '
+              'Use a branch develop para testar novas melhorias antes de integrar à main.')
+        ttk.Label(f, text=info, font=('Arial',10), justify='left').grid(row=5,column=0,columnspan=4,sticky='w',padx=20,pady=(4,12))
         for c in range(4): f.columnconfigure(c, weight=1)
+        f.rowconfigure(3, weight=1)
 
     def build_empresa(self):
         f=self.tab_empresa
