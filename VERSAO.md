@@ -1,5 +1,10 @@
 # Sistema Gestão Izzant
 
-Versão: v1.8.0
+Versão: v1.8.1
+Data: 02/07/2026
 
-Correção completa do fluxo de férias: PDF reposicionado, valor por extenso, ocorrência na folha e conclusão de férias.
+## Ajustes
+- Tela de férias simplificada.
+- Campos de cálculo financeiro ocultos da tela principal.
+- PDF de aviso/recibo ajustado para reduzir sobreposição.
+- Campo Ciente/reposicionamento do valor por extenso e assinaturas corrigidos.
