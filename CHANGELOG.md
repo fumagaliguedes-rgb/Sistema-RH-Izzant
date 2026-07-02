@@ -1,8 +1,10 @@
-# Changelog - Sistema Gestão Izzant
+# Changelog
 
-## v1.6.8
-- Criado painel interno de consulta no módulo Férias.
-- Histórico de férias e Documentos gerados passam a ficar em abas próprias dentro do módulo.
-- Aumentada a área de visualização do histórico de férias.
-- Adicionadas barras de rolagem horizontal nas grades de histórico e documentos.
-- Mantida a correção anterior: histórico de férias consulta apenas `ferias_controle`, sem carregar feriados.
+## v1.7.0 - Centro de Gestão de Férias
+
+- Adicionada geração automática de PDF ao gerar documentos de férias.
+- Mantida geração do Word editável para arquivo administrativo.
+- Documentos de férias passam a registrar Word e PDF no histórico.
+- Adicionada aba Calendário/Resumo no módulo Férias.
+- Aumentado peso visual da área de consulta de férias.
+- Preservadas as regras estáveis da folha de ponto, DSR, sábado compensado e 12x36.

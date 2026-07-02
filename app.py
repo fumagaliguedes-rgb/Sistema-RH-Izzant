@@ -418,7 +418,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v1.6.4 Interface', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v1.7.0 Férias', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1337,7 +1337,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v1.6.4 Interface')
+        self.title(APP_NAME + ' - Enterprise v1.7.0 Férias')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -1397,7 +1397,7 @@ class App(tk.Tk):
             pass
         tk.Label(logo_box, text='SISTEMA GESTÃO\nIZZANT', bg='#111827', fg='white',
                  font=('Arial',15,'bold'), justify='left').pack(anchor='w')
-        tk.Label(logo_box, text='Enterprise v1.6.4', bg='#111827', fg='#9ca3af',
+        tk.Label(logo_box, text='Enterprise v1.7.0', bg='#111827', fg='#9ca3af',
                  font=('Arial',9), justify='left').pack(anchor='w', pady=(4,0))
 
         self.nb=ttk.Notebook(main, style='Hidden.TNotebook')
@@ -2408,9 +2408,9 @@ class App(tk.Tk):
         ttk.Button(f,text='Salvar férias',command=self.salvar_ferias).grid(row=10,column=1,sticky='ew',padx=8,pady=10)
         ttk.Button(f,text='Cancelar férias selecionada',command=self.cancelar_ferias).grid(row=10,column=2,sticky='ew',padx=8,pady=10)
         ttk.Button(f,text='Gerar ocorrência FÉRIAS na folha',command=self.gerar_ocorrencia_ferias).grid(row=10,column=3,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Gerar Aviso de Férias',command=lambda:self.gerar_documento_ferias('Aviso de Férias')).grid(row=10,column=4,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Gerar Recibo de Férias',command=lambda:self.gerar_documento_ferias('Recibo de Férias')).grid(row=10,column=5,sticky='ew',padx=8,pady=10)
-        ttk.Button(f,text='Gerar Comunicação/Termo',command=lambda:self.gerar_documento_ferias('Comunicação de Férias')).grid(row=10,column=6,sticky='ew',padx=8,pady=10)
+        ttk.Button(f,text='Gerar Aviso PDF/Word',command=lambda:self.gerar_documento_ferias('Aviso de Férias')).grid(row=10,column=4,sticky='ew',padx=8,pady=10)
+        ttk.Button(f,text='Gerar Recibo PDF/Word',command=lambda:self.gerar_documento_ferias('Recibo de Férias')).grid(row=10,column=5,sticky='ew',padx=8,pady=10)
+        ttk.Button(f,text='Gerar Comunicação PDF/Word',command=lambda:self.gerar_documento_ferias('Comunicação de Férias')).grid(row=10,column=6,sticky='ew',padx=8,pady=10)
         ttk.Button(f,text='Concluir Férias',command=self.concluir_ferias).grid(row=10,column=7,sticky='ew',padx=8,pady=10)
         ttk.Button(f,text='Atualizar cálculo',command=self.calcular_ferias_tela).grid(row=12,column=5,sticky='ew',padx=8,pady=4)
         ttk.Button(f,text='Abrir pasta de documentos',command=self.abrir_documentos_ferias).grid(row=12,column=6,sticky='ew',padx=8,pady=4)
@@ -2426,8 +2426,10 @@ class App(tk.Tk):
 
         historico_box = ttk.Frame(self.ferias_consulta_nb)
         docs_box = ttk.Frame(self.ferias_consulta_nb)
+        calendario_box = ttk.Frame(self.ferias_consulta_nb)
         self.ferias_consulta_nb.add(historico_box, text='Histórico de férias')
         self.ferias_consulta_nb.add(docs_box, text='Documentos gerados')
+        self.ferias_consulta_nb.add(calendario_box, text='Calendário/Resumo')
 
         historico_box.rowconfigure(0, weight=1)
         historico_box.columnconfigure(0, weight=1)
@@ -2453,7 +2455,15 @@ class App(tk.Tk):
         docs_scroll_x.grid(row=1,column=0,sticky='ew')
         self.fer_docs_tree.configure(yscrollcommand=docs_scroll.set, xscrollcommand=docs_scroll_x.set)
 
-        f.rowconfigure(13,weight=6)
+        calendario_box.rowconfigure(0, weight=1)
+        calendario_box.columnconfigure(0, weight=1)
+        self.fer_cal_text = tk.Text(calendario_box, height=18, wrap='word', font=('Consolas', 10))
+        self.fer_cal_text.grid(row=0, column=0, sticky='nsew')
+        cal_scroll = ttk.Scrollbar(calendario_box, orient='vertical', command=self.fer_cal_text.yview)
+        cal_scroll.grid(row=0, column=1, sticky='ns')
+        self.fer_cal_text.configure(yscrollcommand=cal_scroll.set)
+
+        f.rowconfigure(13,weight=8)
         for c in range(8): f.columnconfigure(c,weight=1)
 
     def _ferias_func_id(self):
@@ -2675,6 +2685,67 @@ class App(tk.Tk):
         }
         return mapa.get(tipo, '08_Aviso_de_Ferias.docx')
 
+    def _gerar_pdf_ferias_resumo(self, tipo, dados, destino_pdf):
+        """Gera um PDF direto dos documentos de férias, sem depender de conversão externa.
+        Mantém o Word como arquivo editável e cria também o PDF pronto para impressão.
+        """
+        os.makedirs(os.path.dirname(destino_pdf), exist_ok=True)
+        c = canvas.Canvas(destino_pdf, pagesize=A4)
+        W, H = A4
+        y = H - 50
+        c.setFont('Helvetica-Bold', 16)
+        c.drawCentredString(W/2, y, 'SISTEMA GESTÃO IZZANT')
+        y -= 24
+        c.setFont('Helvetica-Bold', 13)
+        c.drawCentredString(W/2, y, str(tipo).upper())
+        y -= 30
+        c.setFont('Helvetica', 9)
+        empresa = dados.get('EMPRESA','')
+        c.drawCentredString(W/2, y, empresa)
+        y -= 18
+        c.setLineWidth(0.6); c.line(42, y, W-42, y); y -= 22
+
+        def linha(label, valor, bold=False):
+            nonlocal y
+            if y < 80:
+                c.showPage(); y = H - 50; c.setFont('Helvetica', 10)
+            c.setFont('Helvetica-Bold', 9)
+            c.drawString(50, y, f'{label}:')
+            c.setFont('Helvetica-Bold' if bold else 'Helvetica', 9)
+            c.drawString(190, y, str(valor or ''))
+            y -= 16
+
+        linha('Funcionário', dados.get('FUNCIONARIO') or dados.get('NOME'), True)
+        linha('CPF', dados.get('CPF'))
+        linha('Cargo/Função', dados.get('CARGO') or dados.get('FUNCAO'))
+        linha('Setor', dados.get('SETOR'))
+        linha('Admissão', dados.get('DATA_ADMISSAO') or dados.get('ADMISSAO'), True)
+        y -= 6
+        c.setFont('Helvetica-Bold', 11); c.drawString(50, y, 'Dados das férias'); y -= 18
+        linha('Período aquisitivo', dados.get('PERIODO_AQUISITIVO') or dados.get('PERIODO_AQUISITIVO_COMPLETO'), True)
+        linha('Início das férias', dados.get('INICIO') or dados.get('INICIO_FERIAS'), True)
+        linha('Término das férias', dados.get('TERMINO') or dados.get('FIM_FERIAS'), True)
+        linha('Retorno ao trabalho', dados.get('DATA_RETORNO'), True)
+        linha('Dias de férias', dados.get('DIAS_FERIAS') or dados.get('DIAS_GOZADOS'), True)
+        linha('Dias de abono', dados.get('DIAS_ABONO'))
+        linha('Dias restantes', dados.get('DIAS_RESTANTES'))
+        y -= 6
+        c.setFont('Helvetica-Bold', 11); c.drawString(50, y, 'Resumo financeiro estimado'); y -= 18
+        for label, key in [
+            ('Salário-base','SALARIO_BASE'), ('Valor de férias','VALOR_FERIAS'), ('1/3 constitucional','VALOR_UM_TERCO'),
+            ('Abono pecuniário','VALOR_ABONO'), ('Adiantamento 13º','ADIANTAMENTO_13'), ('Total bruto','TOTAL_BRUTO'),
+            ('INSS estimado','INSS_ESTIMADO'), ('IRRF estimado','IRRF_ESTIMADO'), ('Líquido estimado','LIQUIDO_ESTIMADO')]:
+            linha(label, dados.get(key), True if key in ('TOTAL_BRUTO','LIQUIDO_ESTIMADO') else False)
+        y -= 20
+        c.setFont('Helvetica', 9)
+        texto = 'Documento gerado automaticamente pelo módulo Férias do Sistema Gestão Izzant.'
+        c.drawString(50, y, texto); y -= 50
+        c.line(80, y, 260, y); c.line(330, y, 510, y); y -= 13
+        c.setFont('Helvetica', 8)
+        c.drawCentredString(170, y, 'Funcionário')
+        c.drawCentredString(420, y, 'Responsável')
+        c.save()
+
     def gerar_documento_ferias(self, tipo='Aviso de Férias'):
         reg=self._ferias_registro_selecionado()
         ferias_id=reg[0] if reg else None
@@ -2691,16 +2762,20 @@ class App(tk.Tk):
         tipo_seguro=self._safe_filename(tipo, 40)
         data_arq=datetime.now().strftime('%Y%m%d_%H%M%S')
         destino=os.path.join(pasta, f'{tipo_seguro}_{seguro}_{data_arq}.docx')
+        destino_pdf=os.path.join(pasta, f'{tipo_seguro}_{seguro}_{data_arq}.pdf')
         shutil.copy2(modelo, destino)
         try:
             self._substituir_placeholders_docx(destino, dados)
+            self._gerar_pdf_ferias_resumo(tipo, dados, destino_pdf)
             with con() as db:
                 db.execute("""INSERT INTO documentos_rh(funcionario_id,tipo,data,titulo,observacao,arquivo,ativo)
-                              VALUES(?,?,?,?,?,?,1)""", (funcionario_id, tipo, date.today().isoformat(), tipo, 'Gerado diretamente no módulo Férias', destino))
-            log_action(self.usuario,'FÉRIAS',f'Documento de férias gerado: {os.path.basename(destino)}')
-            messagebox.showinfo('Férias', f'{tipo} gerado em documentos_gerados/ferias:\n{os.path.basename(destino)}')
+                              VALUES(?,?,?,?,?,?,1)""", (funcionario_id, tipo + ' - Word', date.today().isoformat(), tipo, 'Gerado diretamente no módulo Férias', destino))
+                db.execute("""INSERT INTO documentos_rh(funcionario_id,tipo,data,titulo,observacao,arquivo,ativo)
+                              VALUES(?,?,?,?,?,?,1)""", (funcionario_id, tipo + ' - PDF', date.today().isoformat(), tipo, 'Gerado diretamente no módulo Férias', destino_pdf))
+            log_action(self.usuario,'FÉRIAS',f'Documento de férias gerado em Word/PDF: {os.path.basename(destino_pdf)}')
+            messagebox.showinfo('Férias', f'{tipo} gerado em Word e PDF na pasta documentos_gerados/ferias:\n\n{os.path.basename(destino)}\n{os.path.basename(destino_pdf)}')
             try:
-                if os.name=='nt': os.startfile(destino)
+                if os.name=='nt': os.startfile(destino_pdf)
             except Exception:
                 pass
             self.carregar_documentos()
@@ -2709,6 +2784,7 @@ class App(tk.Tk):
             messagebox.showerror('Erro ao gerar documento de férias', str(exc))
             try:
                 if os.path.exists(destino): os.remove(destino)
+                if os.path.exists(destino_pdf): os.remove(destino_pdf)
             except Exception:
                 pass
 
@@ -2720,7 +2796,7 @@ class App(tk.Tk):
     def carregar_documentos_ferias(self):
         """Carrega somente documentos gerados no módulo Férias.
 
-        Correção v1.6.7: esta grade não deve consultar feriados nem outros
+        Correção v1.7.0: esta grade não deve consultar feriados nem outros
         registros administrativos. Ela usa exclusivamente a tabela
         documentos_rh filtrando documentos com observação de origem do módulo
         Férias ou tipos de documentos de férias.
@@ -2745,6 +2821,8 @@ class App(tk.Tk):
                       AND (d.tipo IN ({placeholders})
                            OR UPPER(COALESCE(d.observacao,'')) LIKE '%MÓDULO FÉRIAS%'
                            OR UPPER(COALESCE(d.observacao,'')) LIKE '%MODULO FERIAS%'
+                           OR UPPER(COALESCE(d.tipo,'')) LIKE '%FÉRIAS%'
+                           OR UPPER(COALESCE(d.tipo,'')) LIKE '%FERIAS%'
                            OR LOWER(COALESCE(d.arquivo,'')) LIKE '%ferias%')
                     ORDER BY date(d.data) DESC, d.id DESC
                     LIMIT 300
@@ -2800,6 +2878,35 @@ class App(tk.Tk):
         # Mantido apenas por compatibilidade com versões antigas: agora férias gera documentos no próprio módulo Férias.
         self.gerar_documento_ferias('Aviso de Férias')
 
+    def carregar_calendario_ferias(self):
+        """Mostra um resumo visual simples das férias programadas e concluídas.
+        A intenção é dar uma visão rápida sem interferir no cálculo legal das férias.
+        """
+        if not hasattr(self, 'fer_cal_text'):
+            return
+        self.fer_cal_text.configure(state='normal')
+        self.fer_cal_text.delete('1.0', 'end')
+        try:
+            with con() as db:
+                rows = db.execute("""SELECT f.nome, fc.inicio, fc.fim, fc.retorno, fc.dias, fc.status
+                                   FROM ferias_controle fc
+                                   JOIN funcionarios f ON f.id=fc.funcionario_id
+                                   WHERE fc.ativo=1
+                                   ORDER BY date(fc.inicio) DESC, f.nome
+                                   LIMIT 120""").fetchall()
+            self.fer_cal_text.insert('end', 'CALENDÁRIO / RESUMO DE FÉRIAS\n')
+            self.fer_cal_text.insert('end', '='*72 + '\n\n')
+            if not rows:
+                self.fer_cal_text.insert('end', 'Nenhuma férias cadastrada.\n')
+            for nome, ini, fim, ret, dias, status in rows:
+                linha = f'{fmt_data(ini)} a {fmt_data(fim)} | Retorno: {fmt_data(ret)} | {dias or 0} dias | {status or ""}\n'
+                self.fer_cal_text.insert('end', nome + '\n')
+                self.fer_cal_text.insert('end', linha)
+                self.fer_cal_text.insert('end', '-'*72 + '\n')
+        except Exception as exc:
+            self.fer_cal_text.insert('end', f'Erro ao carregar calendário/resumo: {exc}\n')
+        self.fer_cal_text.configure(state='disabled')
+
     def carregar_ferias(self):
         if hasattr(self,'combo_ferias_func'):
             vals=[f"{x['id']} - {x['nome']}" for x in get_funcionarios(True)]
@@ -2815,6 +2922,7 @@ class App(tk.Tk):
         for rid,nome,aqi,aqf,conc,ini,fim,ret,dias,rest,total,status in rows:
             self.fer_tree.insert('', 'end', iid=str(rid), values=(nome, f'{fmt_data(aqi)} a {fmt_data(aqf)}', fmt_data(conc), f'{fmt_data(ini)} a {fmt_data(fim)}', fmt_data(ret), dias or '', rest or '', moeda_br(total or 0), status))
         self.carregar_documentos_ferias()
+        self.carregar_calendario_ferias()
 
     def salvar_ferias(self):
         val=self.ferias_func_var.get().strip()
