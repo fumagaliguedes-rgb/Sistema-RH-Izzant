@@ -418,7 +418,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v3.2 Férias PDFs separados', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v3.3 Férias', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -733,9 +733,30 @@ def adicionar_dias_corridos(inicio, dias):
     return fim, retorno
 
 
+def aliquota_inss_faixa(base):
+    """Retorna a alíquota nominal da faixa do INSS 2026 para exibição no demonstrativo."""
+    base = max(0.0, float(base or 0))
+    if base <= 1621.00:
+        return 0.075
+    if base <= 2902.84:
+        return 0.09
+    if base <= 4354.27:
+        return 0.12
+    return 0.14
+
+
 def calcular_inss_estimado(base):
-    """Calcula INSS 2026 de forma progressiva para empregado/avulso/doméstico.
-    Fonte de referência: tabela oficial Gov.br/INSS 2026.
+    """Calcula o INSS 2026 pelo método progressivo.
+
+    Tabela 2026:
+    - até R$ 1.621,00: 7,5%
+    - de R$ 1.621,01 até R$ 2.902,84: 9%
+    - de R$ 2.902,85 até R$ 4.354,27: 12%
+    - de R$ 4.354,28 até R$ 8.475,55: 14%
+
+    Observação: no demonstrativo de férias, a base usada é a verba tributável
+    de férias + 1/3 de férias. Abono pecuniário e adiantamento de 13º não
+    entram nessa base de INSS do recibo de férias.
     """
     base = max(0.0, float(base or 0))
     faixas = [
@@ -749,31 +770,27 @@ def calcular_inss_estimado(base):
     for limite, aliquota in faixas:
         if base > anterior:
             tributavel = min(base, limite) - anterior
-            imposto += max(0.0, tributavel) * aliquota
+            imposto += max(0, tributavel) * aliquota
             anterior = limite
         if base <= limite:
             break
     return round(imposto, 2)
 
 
-def aliquota_inss_faixa(base):
-    """Retorna a alíquota da faixa do INSS 2026 apenas para exibição no demonstrativo."""
-    base = max(0.0, float(base or 0))
-    if base <= 1621.00:
-        return 7.5
-    if base <= 2902.84:
-        return 9.0
-    if base <= 4354.27:
-        return 12.0
-    return 14.0
-
-
 def calcular_irrf_estimado(base, inss=0.0, dependentes=0):
-    """Calcula IRRF mensal 2026 com tabela progressiva, dedução por dependente
-    e redução legal para bases até R$ 7.350,00.
+    """Calcula IRRF mensal 2026 de forma parametrizada/simplificada.
+
+    Regra prática aplicada no sistema:
+    - base até R$ 5.000,00: isento pela regra de isenção ampliada de 2026;
+    - acima disso, aplica tabela progressiva mensal vigente e redução gradual
+      simplificada até R$ 7.350,00.
     """
     ded_dep = 189.59 * int(dependentes or 0)
     b = max(0.0, float(base or 0) - float(inss or 0) - ded_dep)
+
+    if b <= 5000.00:
+        return 0.0
+
     tabela = [
         (2428.80, 0.0, 0.0),
         (2826.65, 0.075, 182.16),
@@ -786,41 +803,53 @@ def calcular_irrf_estimado(base, inss=0.0, dependentes=0):
         if b <= limite:
             imposto = max(0.0, b * aliq - ded)
             break
-    # Redução legal 2026 para rendimentos mensais até R$ 7.350,00.
-    if b <= 5000.00:
-        reducao = imposto
-    elif b <= 7350.00:
-        reducao = max(0.0, 978.62 - (0.133145 * b))
-    else:
-        reducao = 0.0
-    return round(max(0.0, imposto - reducao), 2)
+
+    # Redução gradual simplificada para a faixa de transição de 5.000 a 7.350.
+    # Para bases até 5.000 o imposto é zero; acima de 7.350 permanece a tabela cheia.
+    if b <= 7350.00:
+        fator = max(0.0, min(1.0, (b - 5000.00) / 2350.00))
+        imposto *= fator
+
+    return round(max(0.0, imposto), 2)
 
 
 def calcular_ferias_valores(salario_base, dias_ferias, dias_abono=0, media_variaveis=0, adiantamento_13=False):
-    """Calcula valores estimados de férias com base em dias corridos.
-    Observação: os valores são estimativos para conferência e emissão interna.
+    """Calcula férias com separação correta entre verbas tributáveis e indenizatórias.
+
+    - Férias gozadas + 1/3 integram a base de INSS/IRRF de férias.
+    - Abono pecuniário e 1/3 do abono são lançamentos próprios no demonstrativo.
+    - Adiantamento do 13º é lançamento próprio e não compõe a base de INSS das férias.
     """
     salario = parse_moeda_br(salario_base)
     media = parse_moeda_br(media_variaveis)
     base_mensal = salario + media
     dias = max(0, int(dias_ferias or 0))
     abono = max(0, int(dias_abono or 0))
+
     valor_ferias = base_mensal / 30.0 * dias
     valor_um_terco = valor_ferias / 3.0
-    valor_abono = base_mensal / 30.0 * abono
-    # 1/3 sobre o abono pecuniário, quando houver
-    valor_abono_terco = valor_abono / 3.0 if valor_abono else 0.0
+
+    valor_abono_principal = base_mensal / 30.0 * abono
+    valor_abono_terco = valor_abono_principal / 3.0 if valor_abono_principal else 0.0
+    valor_abono_total = valor_abono_principal + valor_abono_terco
+
     valor_13 = base_mensal / 2.0 if adiantamento_13 else 0.0
-    total_bruto = valor_ferias + valor_um_terco + valor_abono + valor_abono_terco + valor_13
-    inss = calcular_inss_estimado(total_bruto)
-    irrf = calcular_irrf_estimado(total_bruto, inss)
+
+    base_inss_ferias = valor_ferias + valor_um_terco
+    inss = calcular_inss_estimado(base_inss_ferias)
+    irrf = calcular_irrf_estimado(base_inss_ferias, inss)
+
+    total_bruto = valor_ferias + valor_um_terco + valor_abono_total + valor_13
     liquido = total_bruto - inss - irrf
+
     return {
-        'salario_base': salario, 'media_variaveis': media,
+        'salario_base': round(salario, 2), 'media_variaveis': round(media, 2),
         'valor_ferias': round(valor_ferias,2), 'valor_um_terco': round(valor_um_terco,2),
-        'valor_abono': round(valor_abono + valor_abono_terco,2), 'valor_13': round(valor_13,2),
-        'total_bruto': round(total_bruto,2), 'inss_estimado': round(inss,2),
-        'irrf_estimado': round(irrf,2), 'liquido_estimado': round(liquido,2)
+        'valor_abono': round(valor_abono_total,2), 'valor_abono_principal': round(valor_abono_principal,2),
+        'valor_abono_terco': round(valor_abono_terco,2), 'valor_13': round(valor_13,2),
+        'base_inss_ferias': round(base_inss_ferias,2), 'total_bruto': round(total_bruto,2),
+        'inss_estimado': round(inss,2), 'irrf_estimado': round(irrf,2),
+        'liquido_estimado': round(liquido,2)
     }
 
 
@@ -1410,7 +1439,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v3.2 Férias PDFs separados')
+        self.title(APP_NAME + ' - Enterprise v3.3 Férias')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -2554,9 +2583,10 @@ class App(tk.Tk):
         for c in range(6): doc_actions.columnconfigure(c, weight=1)
         ttk.Button(doc_actions, text='Gerar Aviso de Férias PDF', command=lambda:self.gerar_documento_ferias('Aviso de Férias')).grid(row=0, column=0, sticky='ew', padx=6, pady=8)
         ttk.Button(doc_actions, text='Gerar Recibo de Férias PDF', command=lambda:self.gerar_documento_ferias('Recibo de Férias')).grid(row=0, column=1, sticky='ew', padx=6, pady=8)
-        ttk.Button(doc_actions, text='Abrir pasta', command=self.abrir_documentos_ferias).grid(row=0, column=2, sticky='ew', padx=6, pady=8)
-        ttk.Button(doc_actions, text='Abrir selecionado', command=self.abrir_documento_ferias_selecionado).grid(row=0, column=3, sticky='ew', padx=6, pady=8)
-        ttk.Button(doc_actions, text='Atualizar lista', command=self.carregar_documentos_ferias).grid(row=0, column=4, sticky='ew', padx=6, pady=8)
+        ttk.Button(doc_actions, text='Gerar Aviso + Recibo PDF', command=lambda:self.gerar_documento_ferias('Aviso e Recibo de Férias')).grid(row=0, column=2, sticky='ew', padx=6, pady=8)
+        ttk.Button(doc_actions, text='Abrir pasta', command=self.abrir_documentos_ferias).grid(row=0, column=3, sticky='ew', padx=6, pady=8)
+        ttk.Button(doc_actions, text='Abrir selecionado', command=self.abrir_documento_ferias_selecionado).grid(row=0, column=4, sticky='ew', padx=6, pady=8)
+        ttk.Button(doc_actions, text='Atualizar lista', command=self.carregar_documentos_ferias).grid(row=0, column=5, sticky='ew', padx=6, pady=8)
 
         docs_table = ttk.LabelFrame(tab_docs, text='Documentos gerados')
         docs_table.grid(row=1, column=0, sticky='nsew', padx=10, pady=(0,10))
@@ -2898,14 +2928,21 @@ class App(tk.Tk):
         return self._criar_ferias_registro_da_tela(status_override=status_override)
 
     def _gerar_pdf_ferias_resumo(self, tipo, dados, destino_pdf):
-        """Gera PDFs independentes de Aviso e Recibo de Férias.
-        Versão v3.2: documentos separados, períodos em grade, dados do colaborador lado a lado,
-        demonstrativo em duas colunas e cálculo INSS/IRRF 2026 parametrizado no código.
+        """Gera PDF de férias em layout estável.
+
+        Versão v3.3:
+        - aviso e recibo podem ser gerados separadamente;
+        - dados do colaborador em duas colunas;
+        - períodos em grade compacta;
+        - demonstrativo em duas colunas (proventos e descontos), como no modelo SCI;
+        - INSS exibindo alíquota nominal da faixa, com cálculo progressivo sobre férias + 1/3;
+        - abono pecuniário, 1/3 do abono e adiantamento do 13º em lançamentos próprios;
+        - textos e assinaturas com espaçamento fixo para não sobrepor.
         """
         os.makedirs(os.path.dirname(destino_pdf), exist_ok=True)
         c = canvas.Canvas(destino_pdf, pagesize=A4)
         W, H = A4
-        L, R = 32, W - 32
+        L, R = 24, W - 24
         BW = R - L
 
         def txt(x, y, text='', size=8, bold=False, align='left'):
@@ -2919,41 +2956,90 @@ class App(tk.Tk):
                 c.drawString(x, y, text)
 
         def line(x1, y1, x2, y2, lw=0.55):
-            c.setLineWidth(lw); c.line(x1, y1, x2, y2)
+            c.setLineWidth(lw)
+            c.line(x1, y1, x2, y2)
 
-        def rect(x, y, w, h, lw=0.55):
-            c.setLineWidth(lw); c.rect(x, y, w, h, fill=0, stroke=1)
+        def rect(x, y, w, h, lw=0.55, fill=0):
+            c.setLineWidth(lw)
+            c.rect(x, y, w, h, fill=fill, stroke=1)
 
         def fill_rect(x, y, w, h, color=colors.HexColor('#e5e7eb')):
-            c.setFillColor(color); c.rect(x, y, w, h, fill=1, stroke=0); c.setFillColor(colors.black); rect(x, y, w, h)
-
-        def wrap_lines(text, chars):
-            words = str(text or '').split(); lines=[]; cur=''
-            for w in words:
-                cand = (cur + ' ' + w).strip()
-                if len(cand) <= chars:
-                    cur = cand
-                else:
-                    if cur: lines.append(cur)
-                    cur = w
-            if cur: lines.append(cur)
-            return lines or ['']
-
-        def para(x, y, text, chars=120, size=8, leading=10, max_lines=6):
-            for i, ln in enumerate(wrap_lines(text, chars)[:max_lines]):
-                txt(x, y - i*leading, ln, size)
-            return y - min(len(wrap_lines(text, chars)), max_lines)*leading
-
-        def draw_label_value(x, y, w, h, label, value, size=8):
+            c.setFillColor(color)
+            c.rect(x, y, w, h, fill=1, stroke=0)
+            c.setFillColor(colors.black)
             rect(x, y, w, h)
-            txt(x+4, y+h-10, label, 6.8, True)
-            txt(x+4, y+6, str(value or '')[:60], size)
 
-        def moeda_txt(valor):
-            return moeda_br(valor).replace('R$','').strip()
+        def moeda(valor):
+            return str(valor or '').replace('R$', '').strip() or '0,00'
 
         def val(k, default=''):
             return dados.get(k) or default
+
+        def fnum(v):
+            return valor_moeda_para_float(v)
+
+        def mbr(v):
+            return moeda_br(v).replace('R$', '').strip()
+
+        def wrap_width(text, max_width, font='Helvetica', size=8):
+            words = str(text or '').split()
+            lines = []
+            cur = ''
+            for word in words:
+                cand = (cur + ' ' + word).strip()
+                if not cur or c.stringWidth(cand, font, size) <= max_width:
+                    cur = cand
+                else:
+                    lines.append(cur)
+                    cur = word
+            if cur:
+                lines.append(cur)
+            return lines or ['']
+
+        def para(x, y, text, width, size=8, leading=10, max_lines=6):
+            lines = wrap_width(text, width, 'Helvetica', size)[:max_lines]
+            for i, ln in enumerate(lines):
+                txt(x, y - i * leading, ln, size)
+            return y - len(lines) * leading
+
+        def draw_footer():
+            txt(L, 18, 'Sistema Gestão Izzant', 6)
+            txt(R, 18, datetime.now().strftime('%d/%m/%Y %H:%M'), 6, False, 'right')
+
+        def draw_header(titulo, subtitulo=''):
+            top = H - 24
+            rect(L, top - 78, BW, 78)
+            txt(W/2, top - 16, f'17 - {empresa}', 12, True, 'center')
+            txt(W/2, top - 31, cnpj, 9.5, False, 'center')
+            txt(W/2, top - 49, titulo, 12, True, 'center')
+            if subtitulo:
+                txt(W/2, top - 64, subtitulo, 8.5, True, 'center')
+            return top - 78
+
+        def label_pair(x, y, w, h, label, value, size=8):
+            rect(x, y, w, h)
+            txt(x+6, y+h-13, label, 7.5, True)
+            txt(x+w-6, y+7, value, size, False, 'right')
+
+        def simple_cell(x, y, w, h, label, value, size=8):
+            rect(x, y, w, h)
+            txt(x+6, y+h-13, label, 7.5, True)
+            txt(x+6, y+7, value, size)
+
+        def draw_watermark():
+            c.saveState()
+            try:
+                c.setFillAlpha(0.045)
+                c.setStrokeAlpha(0.045)
+            except Exception:
+                pass
+            try:
+                if os.path.exists(LOGO_APP):
+                    c.drawImage(LOGO_APP, W/2 - 180, H/2 - 115, width=360, height=230, preserveAspectRatio=True, mask='auto')
+            except Exception:
+                pass
+            c.restoreState()
+            c.setFillColor(colors.black)
 
         empresa = (val('EMPRESA','IZZANT SERVIÇOS LTDA')).upper()
         cnpj = val('CNPJ','44.177.413/0001-11')
@@ -2967,186 +3053,204 @@ class App(tk.Tk):
         fim = val('TERMINO') or val('DATA_FIM')
         periodo = val('PERIODO') or f'{inicio} a {fim}'
         retorno = val('DATA_RETORNO')
-        dias = int(str(val('DIAS_FERIAS') or val('DIAS_GOZADOS') or '30').replace(',','.').split('.')[0] or 0)
-        dias_abono = int(str(val('DIAS_ABONO','0')).replace(',','.').split('.')[0] or 0)
-        salario_f = parse_moeda_br(val('SALARIO_BASE') or val('SALARIO'))
-        media_f = parse_moeda_br(val('MEDIA_VARIAVEIS'))
-        base_mensal = salario_f + media_f
-        valor_ferias_f = round(base_mensal / 30.0 * max(0, dias), 2)
-        um_terco_f = round(valor_ferias_f / 3.0, 2)
-        abono_f = round(base_mensal / 30.0 * max(0, dias_abono), 2)
-        abono_terco_f = round(abono_f / 3.0, 2)
-        valor_13_f = parse_moeda_br(val('VALOR_13'))
-        # Base previdenciária das férias: férias gozadas + 1/3. Abono e adiantamento de 13º ficam fora desta base.
-        base_inss_f = round(valor_ferias_f + um_terco_f, 2)
-        inss_f = calcular_inss_estimado(base_inss_f)
-        irrf_f = calcular_irrf_estimado(base_inss_f, inss_f)
-        proventos_f = round(valor_ferias_f + um_terco_f + abono_f + abono_terco_f + valor_13_f, 2)
-        descontos_f = round(inss_f + irrf_f, 2)
-        liquido_f = round(proventos_f - descontos_f, 2)
-        aliq_inss = aliquota_inss_faixa(base_inss_f)
-        extenso = valor_por_extenso_reais(liquido_f)
-        cidade = (val('CIDADE','Itajaí')).upper(); uf = val('UF','SC').upper()
+        dias = int(str(val('DIAS_FERIAS') or val('DIAS_GOZADOS') or '30').replace(',', '.').split('.')[0] or 30)
+        dias_abono = int(str(val('DIAS_ABONO','0')).replace(',', '.').split('.')[0] or 0)
+        salario_base = fnum(val('SALARIO_BASE') or val('SALARIO'))
+        media = fnum(val('MEDIA_VARIAVEIS'))
+        base_mensal = salario_base + media
+
+        # Recalcula os valores para garantir consistência com abono/13º e INSS correto.
+        valor_ferias = base_mensal / 30.0 * dias
+        um_terco = valor_ferias / 3.0
+        abono_principal = base_mensal / 30.0 * dias_abono
+        abono_terco = abono_principal / 3.0 if abono_principal else 0.0
+        valor_13 = fnum(val('VALOR_13'))
+        if valor_13 <= 0 and str(val('ADIANTAMENTO_13')).strip().lower() in ('sim','s','true','1','x'):
+            valor_13 = base_mensal / 2.0
+
+        base_inss = valor_ferias + um_terco
+        inss_val = calcular_inss_estimado(base_inss)
+        irrf_val = calcular_irrf_estimado(base_inss, inss_val)
+        total_prov = valor_ferias + um_terco + abono_principal + abono_terco + valor_13
+        total_desc = inss_val + irrf_val
+        liquido_val = total_prov - total_desc
+
+        salario = mbr(salario_base)
+        base_calc = mbr(base_inss)
+        valor_ferias_txt = mbr(valor_ferias)
+        um_terco_txt = mbr(um_terco)
+        abono_principal_txt = mbr(abono_principal)
+        abono_terco_txt = mbr(abono_terco)
+        valor_13_txt = mbr(valor_13)
+        inss = mbr(inss_val)
+        irrf = mbr(irrf_val)
+        total_bruto = mbr(total_prov)
+        total_desc_txt = mbr(total_desc)
+        liquido = mbr(liquido_val)
+        aliq_inss = aliquota_inss_faixa(base_inss) * 100
+        aliq_inss_txt = f'{aliq_inss:.2f}%'.replace('.', ',')
+        extenso = valor_por_extenso_reais(liquido_val)
+
+        cidade = (val('CIDADE','Itajaí')).upper()
+        uf = val('UF','SC').upper()
         local = f'{cidade} - {uf}'
         hoje = datetime.now().strftime('%d/%m/%Y')
-        endereco = val('ENDERECO') or 'Rua ALMIRANTE TAMANDARÉ, 114 - CENTRO - Itajaí / SC'
+        endereco = val('ENDERECO') or 'R: ALMIRANTE TAMANDARÉ - ANDAR 1 - BOX 25 - 114 - CENTRO - ITAJAÍ - SC'
 
         proventos = [
-            ('30005', 'Férias', str(dias), valor_ferias_f),
-            ('30993', '1/3 férias', '', um_terco_f),
+            ('30005', f'Férias ({dias})', valor_ferias_txt),
+            ('30993', '1/3 férias', um_terco_txt),
         ]
         if dias_abono > 0:
-            proventos.append(('30010', 'Abono pecuniário', str(dias_abono), abono_f))
-            proventos.append(('30994', '1/3 abono pecuniário', '', abono_terco_f))
-        if valor_13_f > 0:
-            proventos.append(('30200', 'Adiantamento 13º salário', '', valor_13_f))
-        descontos = []
-        if inss_f > 0:
-            descontos.append(('91015', 'INSS férias', f'{aliq_inss:.2f}%'.replace('.',','), inss_f))
-        if irrf_f > 0:
-            descontos.append(('92001', 'IRRF férias', '', irrf_f))
+            proventos.append(('30010', f'Abono pecuniário ({dias_abono})', abono_principal_txt))
+            proventos.append(('30994', '1/3 abono pecuniário', abono_terco_txt))
+        if valor_13 > 0:
+            proventos.append(('30200', 'Adiantamento 13º salário', valor_13_txt))
 
-        def marca_dagua():
-            c.saveState()
-            try:
-                c.setFillAlpha(0.055); c.setStrokeAlpha(0.055)
-            except Exception:
-                pass
-            try:
-                if os.path.exists(LOGO_APP):
-                    c.drawImage(LOGO_APP, W/2 - 185, 310, width=370, height=230, preserveAspectRatio=True, mask='auto')
-            except Exception:
-                pass
-            c.restoreState(); c.setFillColor(colors.black)
+        descontos = [('91015', f'INSS férias ({aliq_inss_txt})', inss)]
+        if irrf_val > 0:
+            descontos.append(('92001', 'IRRF férias', irrf))
 
-        def cabecalho(titulo, subtitulo=''):
-            marca_dagua()
-            rect(L, 36, BW, H-72)
-            txt(W/2, H-52, f'17 - {empresa}', 12, True, 'center')
-            txt(W/2, H-66, cnpj, 9.5, False, 'center')
-            txt(W/2, H-84, titulo, 12, True, 'center')
-            if subtitulo:
-                txt(W/2, H-99, subtitulo, 10, True, 'center')
-            line(L, H-110, R, H-110)
-            return H-132
-
-        def dados_colaborador(y):
-            fill_rect(L, y, BW, 16); txt(W/2, y+5, 'DADOS DO COLABORADOR', 8.5, True, 'center')
-            y -= 28
-            h=27; w=BW/2
-            draw_label_value(L, y, w, h, 'Colaborador', (matricula + ' - ' if matricula else '') + funcionario, 7.8)
-            draw_label_value(L+w, y, w, h, 'Admissão', adm, 8)
-            y -= h
-            draw_label_value(L, y, w, h, 'Função', cargo, 8)
-            draw_label_value(L+w, y, w, h, 'CPF', cpf, 8)
-            return y - 14
-
-        def periodos(y):
-            fill_rect(L, y, BW, 16); txt(W/2, y+5, 'PERÍODOS', 8.5, True, 'center')
-            y -= 28
-            h=30; w=BW/2
-            draw_label_value(L, y, w, h, 'Período aquisitivo', aq, 7.8)
-            draw_label_value(L+w, y, w, h, 'Gozo das férias', periodo, 7.8)
-            y -= h
-            draw_label_value(L, y, w, h, 'Retorno', retorno, 7.8)
-            draw_label_value(L+w, y, w, h, 'Abono pecuniário', f'{dias_abono} dia(s)', 7.8)
-            return y - 14
-
-        def base_calculo(y):
-            fill_rect(L, y, BW, 16); txt(W/2, y+5, 'BASE PARA CÁLCULO DA REMUNERAÇÃO DAS FÉRIAS', 8.5, True, 'center')
-            y -= 43
-            colw=BW/3; h=43
-            for i,(label,value) in enumerate([('Faltas não justificadas','0'),('Salário base',moeda_txt(salario_f)),('Base de INSS',moeda_txt(base_inss_f))]):
-                draw_label_value(L+i*colw, y, colw, h, label, value, 8)
-            return y - 16
-
-        def demonstrativo(y):
-            fill_rect(L, y, BW, 16); txt(W/2, y+5, 'DEMONSTRATIVO DAS FÉRIAS', 8.5, True, 'center')
-            y -= 24
+        def draw_demo_duas_colunas(y_top):
+            fill_rect(L, y_top-18, BW, 18)
+            txt(W/2, y_top-13, 'DEMONSTRATIVO DAS FÉRIAS', 8.8, True, 'center')
+            y = y_top - 32
             gap = 12
-            wcol = (BW-gap)/2
-            row_h = 15
-            # Cabeçalhos
-            fill_rect(L, y, wcol, row_h); txt(L+wcol/2, y+4, 'PROVENTOS', 8, True, 'center')
-            fill_rect(L+wcol+gap, y, wcol, row_h); txt(L+wcol+gap+wcol/2, y+4, 'DESCONTOS', 8, True, 'center')
-            y -= row_h
-            maxlin = max(len(proventos), len(descontos), 1)
-            for i in range(maxlin):
-                rect(L, y, wcol, row_h); rect(L+wcol+gap, y, wcol, row_h)
-                if i < len(proventos):
-                    cod, desc, ref, valor = proventos[i]
-                    txt(L+4, y+4, cod, 7)
-                    txt(L+42, y+4, (desc + (f' ({ref})' if ref else ''))[:28], 7)
-                    txt(L+wcol-5, y+4, moeda_txt(valor), 7, False, 'right')
-                if i < len(descontos):
-                    cod, desc, ref, valor = descontos[i]
-                    txt(L+wcol+gap+4, y+4, cod, 7)
-                    txt(L+wcol+gap+42, y+4, (desc + (f' ({ref})' if ref else ''))[:27], 7)
-                    txt(R-5, y+4, moeda_txt(valor), 7, False, 'right')
-                y -= row_h
-            y -= 4
-            rect(L, y-22, BW, 22)
-            txt(L+8, y-14, 'Proventos:', 8, True); txt(L+95, y-14, moeda_txt(proventos_f), 8, False, 'right')
-            txt(L+170, y-14, 'Descontos:', 8, True); txt(L+260, y-14, moeda_txt(descontos_f), 8, False, 'right')
-            txt(R-140, y-14, 'Líquido:', 8, True); txt(R-8, y-14, moeda_txt(liquido_f), 8, True, 'right')
+            col_w = (BW - gap) / 2
+            left_x = L
+            right_x = L + col_w + gap
+            row_h = 16
+            max_rows = max(len(proventos), len(descontos), 5)
+
+            for title, x in [('PROVENTOS', left_x), ('DESCONTOS', right_x)]:
+                fill_rect(x, y-row_h, col_w, row_h)
+                txt(x+col_w/2, y-11, title, 8, True, 'center')
+
+            yrow = y - row_h
+            for i in range(max_rows):
+                yrow -= row_h
+                for x, lista in [(left_x, proventos), (right_x, descontos)]:
+                    rect(x, yrow, col_w, row_h)
+                    line(x+38, yrow, x+38, yrow+row_h)
+                    line(x+col_w-72, yrow, x+col_w-72, yrow+row_h)
+                    if i < len(lista):
+                        cod, desc, valor = lista[i]
+                        txt(x+5, yrow+5, cod, 7.2)
+                        txt(x+44, yrow+5, desc[:36], 7.2)
+                        txt(x+col_w-6, yrow+5, valor, 7.2, False, 'right')
+            return yrow - 14
+
+        def draw_totais(y):
+            rect(L, y-30, BW, 30)
+            txt(L+8, y-18, 'Proventos:', 8, True)
+            txt(L+108, y-18, total_bruto, 8)
+            txt(L+210, y-18, 'Descontos:', 8, True)
+            txt(L+315, y-18, total_desc_txt, 8)
+            txt(R-145, y-18, 'Líquido:', 8, True)
+            txt(R-8, y-18, liquido, 8, True, 'right')
+            return y - 36
+
+        def draw_extenso(y):
+            rect(L, y-30, 92, 30)
+            rect(L+92, y-30, BW-92, 30)
+            txt(L+46, y-14, 'Valor por', 7, False, 'center')
+            txt(L+46, y-23, 'extenso', 7, False, 'center')
+            txt(L+102, y-19, extenso[:120], 7.6)
             return y - 38
 
-        def valor_extenso(y):
-            rect(L, y-28, 82, 28); rect(L+82, y-28, BW-82, 28)
-            txt(L+41, y-12, 'Valor por', 7, False, 'center'); txt(L+41, y-21, 'extenso', 7, False, 'center')
-            txt(L+92, y-17, extenso[:120], 7.5)
-            return y - 42
+        def draw_assinaturas_aviso(y):
+            txt(L+8, y, f'Ciente: {local}, {hoje}', 7.5)
+            y -= 26
+            line(L+10, y, L+250, y)
+            line(R-250, y, R-10, y)
+            txt(L+130, y-15, funcionario[:42], 7.5, False, 'center')
+            txt(R-130, y-15, empresa[:42], 7.5, False, 'center')
 
-        def assinaturas(y, inclui_empresa=True):
-            y = max(y, 130)
-            txt(L+10, y, f'Ciente: {local}, {hoje}', 7.8)
+        def draw_assinatura_recibo(y):
+            line(R-255, y, R-10, y)
+            txt(R-132, y-16, funcionario[:42], 7.6, False, 'center')
+
+        def draw_aviso():
+            draw_watermark()
+            y = draw_header('AVISO DE FÉRIAS', 'NOTIFICAÇÃO')
+            # Dados do colaborador em duas colunas.
+            y -= 44
+            h = 24
+            col_w = BW / 2
+            label_pair(L, y, col_w, h, 'Colaborador', f'{matricula + " - " if matricula else ""}{funcionario}', 7.8)
+            label_pair(L+col_w, y, col_w, h, 'Admissão', adm, 8)
+            y -= h
+            label_pair(L, y, col_w, h, 'Função', cargo, 8)
+            label_pair(L+col_w, y, col_w, h, 'CPF', cpf, 8)
+            y -= h
+            label_pair(L, y, col_w, h, 'Centro de custo', '', 8)
+            label_pair(L+col_w, y, col_w, h, 'Cargo/CBO', val('CBO',''), 8)
+
+            y -= 24
+            fill_rect(L, y, BW, 18)
+            txt(W/2, y+5, 'PERÍODOS', 9, True, 'center')
             y -= 42
-            if inclui_empresa:
-                line(L+30, y, L+250, y); line(R-250, y, R-30, y)
-                txt(L+140, y-14, funcionario[:42], 7.8, False, 'center')
-                txt(R-140, y-14, empresa[:42], 7.8, False, 'center')
-            else:
-                line(W/2-140, y, W/2+140, y)
-                txt(W/2, y-14, funcionario[:42], 7.8, False, 'center')
+            simple_cell(L, y, col_w, 42, 'Período aquisitivo', aq, 8)
+            simple_cell(L+col_w, y, col_w, 42, 'Gozo de férias', periodo, 8)
+            y -= 42
+            simple_cell(L, y, col_w, 42, 'Retorno', retorno, 8)
+            simple_cell(L+col_w, y, col_w, 42, 'Abono pecuniário', f'{dias_abono} dia(s)', 8)
 
-        def rodape():
-            txt(L, 20, 'Sistema Gestão Izzant', 6)
-            txt(R, 20, datetime.now().strftime('%d/%m/%Y %H:%M'), 6, False, 'right')
+            y -= 28
+            fill_rect(L, y, BW, 18)
+            txt(W/2, y+5, 'BASE PARA CÁLCULO DA REMUNERAÇÃO DAS FÉRIAS', 8.5, True, 'center')
+            y -= 42
+            base_col = BW/3
+            simple_cell(L, y, base_col, 42, 'Faltas não justificadas', '0', 8.5)
+            simple_cell(L+base_col, y, base_col, 42, 'Salário base', salario, 8.5)
+            simple_cell(L+2*base_col, y, base_col, 42, 'Base de cálculo', base_calc, 8.5)
 
-        def pagina_aviso():
-            y=cabecalho('AVISO DE FÉRIAS','NOTIFICAÇÃO')
-            y=dados_colaborador(y)
-            y=periodos(y)
-            y=base_calculo(y)
-            y=demonstrativo(y)
-            texto = (f'Pelo presente comunicamos-lhe que serão concedidas férias relativas ao período aquisitivo {aq}, '
-                     f'para gozo no período de {periodo}, ficando à sua disposição a importância líquida de R$ {moeda_txt(liquido_f)}, '
-                     f'a ser paga adiantadamente, na forma da legislação trabalhista.')
-            y=para(L+8, y, texto, 142, 7.6, 9, 4) - 8
-            y=valor_extenso(y)
-            assinaturas(y, True)
-            rodape()
+            y = draw_demo_duas_colunas(y - 8)
+            y = draw_totais(y)
 
-        def pagina_recibo():
-            y=cabecalho('RECIBO DE FÉRIAS','De acordo com o parágrafo único do artigo 145 da C.L.T.')
-            texto = (f'Recebi da empresa {empresa}, estabelecida na {endereco}, a importância de R$ {moeda_txt(liquido_f)}, '
-                     f'que me paga antecipadamente por motivo das minhas férias, ora concedidas e que vou gozar no período de {periodo}, '
-                     f'tudo conforme o aviso que recebi em tempo, e no qual dei o meu CIENTE.')
-            y=para(L+8, y, texto, 142, 8, 10, 6) - 10
-            y=demonstrativo(y)
-            y=valor_extenso(y)
-            y=para(L+8, y, 'Para clareza e documento, firmo o presente recibo, dando plena e legal quitação.', 130, 8, 10, 2) - 8
+            texto = (
+                f'Pelo presente comunicamos-lhe que serão concedidas férias relativas ao período aquisitivo {aq}, '
+                f'para gozo no período de {periodo}, ficando à sua disposição a importância líquida de R$ {liquido}, '
+                f'a ser paga adiantadamente.'
+            )
+            rect(L, y-42, BW, 42)
+            para(L+8, y-12, texto, BW-16, 7.2, 9, 4)
+            y -= 48
+            y = draw_extenso(y)
+            draw_assinaturas_aviso(y - 4)
+            draw_footer()
+
+        def draw_recibo():
+            draw_watermark()
+            y = draw_header('RECIBO DE FÉRIAS', 'De acordo com o parágrafo único do artigo 145 da C.L.T.')
+            y -= 28
+            texto = (
+                f'Recebi da empresa {empresa}, estabelecida na {endereco}, a importância de R$ {liquido}, '
+                f'que me paga antecipadamente por motivo das minhas férias, ora concedidas e que vou gozar no período de {periodo}, '
+                f'tudo conforme o aviso que recebi em tempo, e no qual dei o meu CIENTE.'
+            )
+            para(L+8, y, texto, BW-16, 8, 10, 5)
+            y -= 64
+            y = draw_demo_duas_colunas(y)
+            y = draw_totais(y)
+            y = draw_extenso(y - 6)
+            txt(L+8, y, 'Para clareza e documento, firmo o presente recibo, dando plena e legal quitação.', 8)
+            y -= 28
             txt(L+8, y, f'{local}, {fim or hoje}', 8)
-            assinaturas(y-8, False)
-            rodape()
+            txt(L+8, y-14, f'Ciente: {local}, {hoje}', 8)
+            draw_assinatura_recibo(y - 52)
+            draw_footer()
 
         tipo_norm = norm_txt(tipo)
         if 'RECIBO' in tipo_norm and 'AVISO' not in tipo_norm:
-            pagina_recibo()
-        elif 'AVISO E RECIBO' in tipo_norm:
-            pagina_aviso(); c.showPage(); pagina_recibo()
+            draw_recibo()
+        elif 'AVISO' in tipo_norm and 'RECIBO' not in tipo_norm:
+            draw_aviso()
         else:
-            pagina_aviso()
+            draw_aviso()
+            c.showPage()
+            draw_recibo()
+
         c.save()
 
     def gerar_documento_ferias(self, tipo='Aviso de Férias'):
@@ -3166,19 +3270,27 @@ class App(tk.Tk):
         dados=self._dados_documento_ferias(ferias_id, funcionario_id)
         if not dados:
             messagebox.showwarning('Férias','Selecione um funcionário ou um registro de férias.'); return
+        modelo=os.path.join(MODELOS_DIR, self._modelo_documento_ferias(tipo))
+        if not os.path.exists(modelo):
+            messagebox.showerror('Férias','Modelo de férias não encontrado na pasta modelos_documentos.'); return
         pasta=os.path.join(DOCS_GERADOS_DIR, 'ferias')
         os.makedirs(pasta, exist_ok=True)
         seguro=self._safe_filename(dados.get('FUNCIONARIO'), 60)
         tipo_seguro=self._safe_filename(tipo, 40)
         data_arq=datetime.now().strftime('%Y%m%d_%H%M%S')
+        destino=os.path.join(pasta, f'{tipo_seguro}_{seguro}_{data_arq}.docx')
         destino_pdf=os.path.join(pasta, f'{tipo_seguro}_{seguro}_{data_arq}.pdf')
+        shutil.copy2(modelo, destino)
         try:
+            self._substituir_placeholders_docx(destino, dados)
             self._gerar_pdf_ferias_resumo(tipo, dados, destino_pdf)
             with con() as db:
                 db.execute("""INSERT INTO documentos_rh(funcionario_id,tipo,data,titulo,observacao,arquivo,ativo)
+                              VALUES(?,?,?,?,?,?,1)""", (funcionario_id, tipo + ' - Word', date.today().isoformat(), tipo, 'Gerado diretamente no módulo Férias', destino))
+                db.execute("""INSERT INTO documentos_rh(funcionario_id,tipo,data,titulo,observacao,arquivo,ativo)
                               VALUES(?,?,?,?,?,?,1)""", (funcionario_id, tipo + ' - PDF', date.today().isoformat(), tipo, 'Gerado diretamente no módulo Férias', destino_pdf))
-            log_action(self.usuario,'FÉRIAS',f'Documento de férias gerado em PDF: {os.path.basename(destino_pdf)}')
-            messagebox.showinfo('Férias', f'{tipo} gerado em PDF na pasta documentos_gerados/ferias:\n\n{os.path.basename(destino_pdf)}')
+            log_action(self.usuario,'FÉRIAS',f'Documento de férias gerado em Word/PDF: {os.path.basename(destino_pdf)}')
+            messagebox.showinfo('Férias', f'{tipo} gerado em Word e PDF na pasta documentos_gerados/ferias:\n\n{os.path.basename(destino)}\n{os.path.basename(destino_pdf)}')
             try:
                 if os.name=='nt': os.startfile(destino_pdf)
             except Exception:
@@ -3188,6 +3300,7 @@ class App(tk.Tk):
         except Exception as exc:
             messagebox.showerror('Erro ao gerar documento de férias', str(exc))
             try:
+                if os.path.exists(destino): os.remove(destino)
                 if os.path.exists(destino_pdf): os.remove(destino_pdf)
             except Exception:
                 pass

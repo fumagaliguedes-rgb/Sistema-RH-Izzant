@@ -1,5 +1,5 @@
 # Sistema Gestão Izzant
 
-Versão: v3.2.1
+Versão: v3.3
 
-Status: Férias com PDFs separados estável.
+Módulo Férias: PDF ajustado, cálculo de INSS/IRRF revisado e documentos separados.

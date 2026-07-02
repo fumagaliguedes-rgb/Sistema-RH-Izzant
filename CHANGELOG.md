@@ -1,9 +1,12 @@
-## v3.2.1 - Férias com PDFs separados
+# Changelog
 
-- Geração separada de Aviso de Férias em PDF.
-- Geração separada de Recibo de Férias em PDF.
-- Dados do colaborador lado a lado.
-- Períodos em grade 2x2.
-- Demonstrativo em duas colunas: proventos e descontos.
-- INSS 2026 progressivo e IRRF 2026 com redução legal.
-- Venda de férias e adiantamento do 13º preservados no demonstrativo.
+## v3.3 - Férias PDF e cálculos finais
+
+- Ajusta o PDF de férias com dados do colaborador lado a lado.
+- Mantém períodos em grade compacta.
+- Organiza demonstrativo em duas colunas: proventos e descontos.
+- Corrige cálculo do INSS para usar base tributável de férias + 1/3.
+- Exibe a alíquota nominal correta da faixa do INSS no demonstrativo.
+- Mantém abono pecuniário, 1/3 do abono e adiantamento do 13º como lançamentos próprios.
+- Separa geração de Aviso de Férias e Recibo de Férias em PDFs próprios.
+- Ajusta quebra de texto e espaçamento das assinaturas.
