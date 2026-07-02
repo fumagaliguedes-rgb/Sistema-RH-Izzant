@@ -1,7 +1,8 @@
-# Changelog
+# Changelog - Sistema Gestão Izzant
 
-## v1.6.7
-- Corrigido conflito interno entre a tabela de Feriados e o Histórico de Férias.
-- O Histórico de Férias passa a usar exclusivamente a tabela de férias.
-- A tela de Férias recebeu área de histórico maior para melhor visualização.
-- Mantida a interface aprovada da v1.6.5/v1.6.4, sem regressão visual.
+## v1.6.8
+- Criado painel interno de consulta no módulo Férias.
+- Histórico de férias e Documentos gerados passam a ficar em abas próprias dentro do módulo.
+- Aumentada a área de visualização do histórico de férias.
+- Adicionadas barras de rolagem horizontal nas grades de histórico e documentos.
+- Mantida a correção anterior: histórico de férias consulta apenas `ferias_controle`, sem carregar feriados.

@@ -2416,32 +2416,44 @@ class App(tk.Tk):
         ttk.Button(f,text='Abrir pasta de documentos',command=self.abrir_documentos_ferias).grid(row=12,column=6,sticky='ew',padx=8,pady=4)
         ttk.Button(f,text='Abrir documento selecionado',command=self.abrir_documento_ferias_selecionado).grid(row=12,column=7,sticky='ew',padx=8,pady=4)
 
-        historico_box = ttk.LabelFrame(f, text='Histórico de férias')
-        historico_box.grid(row=13,column=0,columnspan=8,sticky='nsew',padx=12,pady=(8,4))
+        listas_box = ttk.LabelFrame(f, text='Consulta de Férias')
+        listas_box.grid(row=13,column=0,columnspan=8,sticky='nsew',padx=12,pady=(8,10))
+        listas_box.rowconfigure(0, weight=1)
+        listas_box.columnconfigure(0, weight=1)
+
+        self.ferias_consulta_nb = ttk.Notebook(listas_box)
+        self.ferias_consulta_nb.grid(row=0,column=0,sticky='nsew')
+
+        historico_box = ttk.Frame(self.ferias_consulta_nb)
+        docs_box = ttk.Frame(self.ferias_consulta_nb)
+        self.ferias_consulta_nb.add(historico_box, text='Histórico de férias')
+        self.ferias_consulta_nb.add(docs_box, text='Documentos gerados')
+
         historico_box.rowconfigure(0, weight=1)
         historico_box.columnconfigure(0, weight=1)
-        self.fer_tree=ttk.Treeview(historico_box,columns=('func','aq','conc','periodo','ret','dias','rest','total','status'),show='headings', height=12)
-        for col,txt,w in [('func','Funcionário',210),('aq','Aquisitivo',160),('conc','Concessivo até',100),('periodo','Férias',165),('ret','Retorno',85),('dias','Dias',50),('rest','Rest.',50),('total','Total bruto',95),('status','Status',90)]:
-            self.fer_tree.heading(col,text=txt); self.fer_tree.column(col,width=w)
+        self.fer_tree=ttk.Treeview(historico_box,columns=('func','aq','conc','periodo','ret','dias','rest','total','status'),show='headings', height=18)
+        for col,txt,w in [('func','Funcionário',240),('aq','Aquisitivo',180),('conc','Concessivo até',115),('periodo','Férias',190),('ret','Retorno',95),('dias','Dias',60),('rest','Rest.',60),('total','Total bruto',110),('status','Status',110)]:
+            self.fer_tree.heading(col,text=txt); self.fer_tree.column(col,width=w, minwidth=60)
         self.fer_tree.grid(row=0,column=0,sticky='nsew')
         fer_scroll=ttk.Scrollbar(historico_box, orient='vertical', command=self.fer_tree.yview)
         fer_scroll.grid(row=0,column=1,sticky='ns')
-        self.fer_tree.configure(yscrollcommand=fer_scroll.set)
+        fer_scroll_x=ttk.Scrollbar(historico_box, orient='horizontal', command=self.fer_tree.xview)
+        fer_scroll_x.grid(row=1,column=0,sticky='ew')
+        self.fer_tree.configure(yscrollcommand=fer_scroll.set, xscrollcommand=fer_scroll_x.set)
 
-        docs_box = ttk.LabelFrame(f, text='Documentos de férias gerados')
-        docs_box.grid(row=14,column=0,columnspan=8,sticky='nsew',padx=12,pady=(4,10))
         docs_box.rowconfigure(0, weight=1)
         docs_box.columnconfigure(0, weight=1)
-        self.fer_docs_tree=ttk.Treeview(docs_box,columns=('data','func','tipo','titulo','arquivo'),show='headings', height=6)
-        for col,txt,w in [('data','Data',90),('func','Funcionário',220),('tipo','Tipo',160),('titulo','Título',220),('arquivo','Arquivo',360)]:
-            self.fer_docs_tree.heading(col,text=txt); self.fer_docs_tree.column(col,width=w)
+        self.fer_docs_tree=ttk.Treeview(docs_box,columns=('data','func','tipo','titulo','arquivo'),show='headings', height=18)
+        for col,txt,w in [('data','Data',100),('func','Funcionário',260),('tipo','Tipo',190),('titulo','Título',260),('arquivo','Arquivo',520)]:
+            self.fer_docs_tree.heading(col,text=txt); self.fer_docs_tree.column(col,width=w, minwidth=80)
         self.fer_docs_tree.grid(row=0,column=0,sticky='nsew')
         docs_scroll=ttk.Scrollbar(docs_box, orient='vertical', command=self.fer_docs_tree.yview)
         docs_scroll.grid(row=0,column=1,sticky='ns')
-        self.fer_docs_tree.configure(yscrollcommand=docs_scroll.set)
+        docs_scroll_x=ttk.Scrollbar(docs_box, orient='horizontal', command=self.fer_docs_tree.xview)
+        docs_scroll_x.grid(row=1,column=0,sticky='ew')
+        self.fer_docs_tree.configure(yscrollcommand=docs_scroll.set, xscrollcommand=docs_scroll_x.set)
 
-        f.rowconfigure(13,weight=3)
-        f.rowconfigure(14,weight=1)
+        f.rowconfigure(13,weight=6)
         for c in range(8): f.columnconfigure(c,weight=1)
 
     def _ferias_func_id(self):

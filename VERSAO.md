@@ -1,5 +1,7 @@
 # Sistema Gestão Izzant
 
-Versão: v1.6.7
+Versão: v1.6.8
 
-Correção focada no módulo Férias/Feriados.
+Status: Desenvolvimento
+
+Alteração principal: melhora a visualização do Histórico de Férias e dos Documentos Gerados dentro do módulo Férias, usando abas internas e grades maiores.
