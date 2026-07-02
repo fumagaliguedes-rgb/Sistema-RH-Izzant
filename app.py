@@ -418,7 +418,7 @@ class LoginDialog(tk.Tk):
 
         tk.Label(card, text='Sistema Gestão Izzant', bg='white', fg='#111827', font=('Arial', 18, 'bold')).pack(pady=(2,2))
         tk.Label(card, text='Acesso restrito ao sistema', bg='white', fg='#6b7280', font=('Arial', 10)).pack(pady=(0,4))
-        tk.Label(card, text='Enterprise v1.8.1 Férias', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
+        tk.Label(card, text='Enterprise v1.8.2 Férias', bg='white', fg='#9ca3af', font=('Arial', 9)).pack(pady=(0,14))
 
         frm = ttk.Frame(card, padding=(28, 4, 28, 18))
         frm.pack(fill='x')
@@ -1380,7 +1380,7 @@ class App(tk.Tk):
         super().__init__()
         self.usuario = usuario
         self.perfil = perfil
-        self.title(APP_NAME + ' - Enterprise v1.8.1 Férias')
+        self.title(APP_NAME + ' - Enterprise v1.8.2 Férias')
         self.geometry('1180x740')
         self.minsize(1040,680)
         self.configure(bg='#eef2f6')
@@ -2870,7 +2870,7 @@ class App(tk.Tk):
 
     def _gerar_pdf_ferias_resumo(self, tipo, dados, destino_pdf):
         """Gera Aviso + Recibo de Férias em PDF com layout fixo e sem sobreposição.
-        Corrigido na v1.8.1: valor por extenso, assinaturas, lançamentos e rodapé.
+        Corrigido na v1.8.2: totais, comunicado de concessão, valor por extenso e espaçamentos finais.
         """
         os.makedirs(os.path.dirname(destino_pdf), exist_ok=True)
         c = canvas.Canvas(destino_pdf, pagesize=A4)
@@ -2967,7 +2967,7 @@ class App(tk.Tk):
         c.setFillColor(colors.black)
 
         # AVISO - quadro superior
-        aviso_top, aviso_bottom = H - 18, 268
+        aviso_top, aviso_bottom = H - 18, 250
         rect(L, aviso_bottom, BW, aviso_top-aviso_bottom)
         txt(W/2, aviso_top-14, f'17 - {empresa}', 12, True, 'center')
         txt(W/2, aviso_top-28, cnpj, 9.5, False, 'center')
@@ -3030,30 +3030,38 @@ class App(tk.Tk):
             txt(cols[3]-8, yrow+5, ref, 7.7, False, 'right')
             txt(cols[4]-8, yrow+5, prov, 7.7, False, 'right')
             txt(R-8, yrow+5, descv, 7.7, False, 'right')
-        # Totais em linhas separadas para evitar sobreposição.
+        # Totais em linhas separadas e com colunas mais largas para evitar sobreposição.
         total_y = yrow - 16
-        txt(L+315, total_y, 'Proventos:', 8, True); txt(L+390, total_y, total_bruto, 8, False, 'right')
-        txt(R-170, total_y, 'Descontos:', 8, True); txt(R-8, total_y, inss, 8, False, 'right')
-        txt(R-110, total_y-18, 'Líquido:', 8, True); txt(R-8, total_y-18, liquido, 8, True, 'right')
+        txt(R-318, total_y, 'Proventos:', 7.8, True)
+        txt(R-235, total_y, total_bruto, 7.8, False, 'right')
+        txt(R-190, total_y, 'Descontos:', 7.8, True)
+        txt(R-8, total_y, inss, 7.8, False, 'right')
+        txt(R-110, total_y-18, 'Líquido:', 8, True)
+        txt(R-8, total_y-18, liquido, 8, True, 'right')
 
-        # Área inferior do aviso com posições fixas para não invadir o quadro do valor por extenso.
-        comm_top = total_y - 34
+        # Comunicado de concessão das férias em campo próprio, separado do valor por extenso.
+        comm_top = total_y - 32
         line(L, comm_top, R, comm_top)
-        texto = f'Pelo presente comunicamos-lhe que, de acordo com a lei, ser-lhe-ão concedidas férias relativas ao período acima descrito, e a sua disposição fica a importância líquida de R$ {liquido} a ser paga adiantadamente.'
-        para(L+10, comm_top-14, texto, 120, 7.3, 8.5, 3)
-        ext_y = aviso_bottom + 44
+        texto = (
+            f'Pelo presente comunicamos-lhe que serão concedidas férias relativas ao período aquisitivo {aq}, '
+            f'para gozo no período de {periodo}, ficando à sua disposição a importância líquida de R$ {liquido}, '
+            f'a ser paga adiantadamente.'
+        )
+        para(L+10, comm_top-11, texto, 155, 6.8, 8, 3)
+
+        ext_y = aviso_bottom + 29
         rect(L+10, ext_y, 92, 23); rect(L+102, ext_y, BW-112, 23)
         txt(L+56, ext_y+13, 'Valor por', 7, False, 'center'); txt(L+56, ext_y+5, 'extenso', 7, False, 'center')
-        txt(L+112, ext_y+9, extenso[:105], 7.4)
-        ciente_y = aviso_bottom + 30
-        txt(L+10, ciente_y, f'Ciente: {local}, {hoje}', 7.5)
-        sig_y = aviso_bottom + 14
+        txt(L+112, ext_y+9, extenso[:120], 7.2)
+        ciente_y = aviso_bottom + 18
+        txt(L+10, ciente_y, f'Ciente: {local}, {hoje}', 7.3)
+        sig_y = aviso_bottom + 10
         line(L+10, sig_y, L+240, sig_y); line(R-250, sig_y, R-10, sig_y)
         txt(L+125, sig_y-11, funcionario[:42], 7.5, False, 'center')
         txt(R-130, sig_y-11, empresa[:42], 7.5, False, 'center')
 
         # RECIBO - quadro inferior
-        recibo_top, recibo_bottom = 258, 58
+        recibo_top, recibo_bottom = 240, 42
         rect(L, recibo_bottom, BW, recibo_top-recibo_bottom)
         y = recibo_top-15
         txt(W/2, y, f'17 - {empresa}', 11.5, True, 'center')

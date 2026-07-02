@@ -1,7 +1,7 @@
 # Changelog
 
-## v1.8.1
-- Retirados os campos de cálculo financeiro da visualização principal do módulo Férias.
-- Mantidos os cálculos internamente para geração do PDF.
-- Corrigida a área inferior do Aviso de Férias para evitar sobreposição entre Ciente, valor por extenso e assinaturas.
-- Ajustado demonstrativo/totais no PDF para melhorar alinhamento.
+## v1.8.2
+- Ajustado o campo de totais no demonstrativo de férias para evitar sobreposição entre Proventos e Descontos.
+- Corrigido o texto de concessão das férias para informar claramente o período aquisitivo e o período de gozo.
+- Reposicionado o campo de valor por extenso no Aviso de Férias.
+- Preservada a tela simples de férias e os botões já aprovados.

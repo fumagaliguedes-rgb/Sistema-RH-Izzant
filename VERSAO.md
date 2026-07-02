@@ -1,10 +1,5 @@
 # Sistema Gestão Izzant
 
-Versão: v1.8.1
-Data: 02/07/2026
+Versão: v1.8.2
 
-## Ajustes
-- Tela de férias simplificada.
-- Campos de cálculo financeiro ocultos da tela principal.
-- PDF de aviso/recibo ajustado para reduzir sobreposição.
-- Campo Ciente/reposicionamento do valor por extenso e assinaturas corrigidos.
+Ajustes no PDF de férias: totais de proventos/descontos sem sobreposição e comunicado de concessão do período de férias corrigido.
